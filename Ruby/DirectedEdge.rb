@@ -28,7 +28,9 @@ require 'cgi'
 
 module DirectedEdge
 
-  # Represents a Directed Edge database, simply a collection of items
+  # Represents a Directed Edge database, simply a collection of items.  Most
+  # require a password.  The protocal may either be http (the default) or HTTPS
+  # for a secured (but higher latency) connection.
 
   class Database
     def initialize(name, password='', protocol='http')
@@ -40,13 +42,21 @@ module DirectedEdge
       @host = 'webservices.directededge.com'
     end
 
+    # Queries the database for a given item / method and returns a list of all
+    # of all of the items contained in the matching XML element.  If args are
+    # specified they are passed on to the query URL.
+
     def list(item, element, method='', args='')
       values = []
       get(item, method, args).elements.each("//#{element}") { |v| values.push(v.text) }
       values
     end
 
-    def get(item, method, args)
+    # Does an HTTP get to return the XML document that represents the content
+    # behind the item / method.  Method can also be nil to just retrieve the
+    # item's content.
+
+    def get(item, method, args='')
       begin
         text = RestClient.get(url(item, method, args), :accept => 'text/xml')
         document = REXML::Document.new(text)
@@ -57,6 +67,9 @@ module DirectedEdge
       document
     end
 
+    # Does a HTTP put on the item / method with the given XML document.  The method
+    # can also be nil to simply update the item.
+
     def put(item, method, document)
       begin
         puts url(item, method), document
@@ -65,6 +78,8 @@ module DirectedEdge
         puts "Error writing to \"#{item}\" in #{@name} (#{ex.message})"
       end
     end
+
+    # Does an HTTP delete on the item / method.
 
     def delete(item, method='')
       begin
@@ -75,6 +90,9 @@ module DirectedEdge
     end
 
     private
+
+    # Mangles the given item, method, args and protocol (specified in the
+    # constructor) into an address for a Directed Edge resource.
 
     def url(item, method, args='')
       item = CGI::escape(item)
@@ -185,11 +203,15 @@ module DirectedEdge
       @database.list(@identifier, 'related', 'related', '?excludeLinked=true')
     end
 
+    # Returns the identifier of the item.
+
     def to_s
       name
     end
 
     private
+
+    # Creates a skeleton of an XML document for a given item.
 
     def item_document(element, value)
       document = REXML::Document.new
@@ -197,6 +219,8 @@ module DirectedEdge
       item.add_element(element).add_text(value)
       document
     end
+
+    # Sets up an existing XML document with the skeleton Directed Edge elements.
 
     def setup_document(document)
       directededge = document.add_element('directededge')
