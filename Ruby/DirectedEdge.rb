@@ -27,7 +27,7 @@ require 'rexml/document'
 require 'cgi'
 
 module DirectedEdge
-  
+
   # Represents a Directed Edge database, simply a collection of items
 
   class Database
@@ -71,7 +71,7 @@ module DirectedEdge
         RestClient.delete(url(item, method))
       rescue => ex
         puts "Error deleting \"#{item}\" in #{@name} (#{ex.message})"
-      end      
+      end
     end
 
     private
@@ -84,7 +84,6 @@ module DirectedEdge
       end
       "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
     end
-
   end
 
   # Represents an item in a Directed Edge database
@@ -143,7 +142,7 @@ module DirectedEdge
     end
 
     # Returns a list of tags on this item.
-    
+
     def tags
       @database.list(@identifier, 'tag')
     end
@@ -187,16 +186,18 @@ module DirectedEdge
     end
 
     def to_s
-      name()
+      name
     end
 
     private
+
     def item_document(element, value)
       document = REXML::Document.new
       item = setup_document(document)
       item.add_element(element).add_text(value)
       document
     end
+
     def setup_document(document)
       directededge = document.add_element('directededge')
       directededge.add_attribute('version', '0.1')
