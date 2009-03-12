@@ -33,6 +33,7 @@ module DirectedEdge
   # for a secured (but higher latency) connection.
 
   class Database
+
     def initialize(name, password='', protocol='http')
       @name = name
       @password = password
@@ -123,15 +124,18 @@ module DirectedEdge
       @identifier
     end
 
-    # Creates an item if it does not already exist in the database  If links or
-    # tags is set then the item will be created with those default tags.
+    # Creates an item if it does not already exist in the database or overwrites
+    # an existing item if one does.
 
-    def create(links=[], tags=[])
-      document = REXML::Document.new
-      item = setup_document(document)
-      links.each { |link| item.add_element('link').add_text(link) }
-      tags.each { |tag| item.add_element('tag').add_text(tag) }
-      @database.put(@identifier, '', document)
+    def create(links=[], tags=[], properties={})
+      @database.put(@identifier, '', complete_document(links, tags, properties))
+    end
+
+    # Creates an item if it does not already exist in the database or adds the
+    # links, tags and properties to an existing item if one does.
+
+    def add(links=[], tags=[], properties={})
+      @database.put(@identifier, 'add', complete_document(links, tags, properties))
     end
 
     # Removes an item from the database, including deleting all links to and
@@ -145,6 +149,13 @@ module DirectedEdge
 
     def links
       @database.list(@identifier, 'link')
+    end
+
+    # Returns a list of the identifiers that this item is referenced from (the
+    # items that link to this item).
+
+    def references
+      @database.list(@identifier, 'references', '?showReferences=true')
     end
 
     # Creates a link from this item to other.
@@ -175,6 +186,26 @@ module DirectedEdge
 
     def remove_tag(tag)
       @database.put(@identifier, 'remove', item_document('tag', tag.to_s))
+    end
+
+    # Returns a hash of all of the properties for the item.
+
+    def properties
+      props = {}
+      @database.get(item, method, args).elements.each('//property') do |element|
+        props[element.get_attribute('name').value] = element.text
+      end
+      props
+    end
+
+    # Returns the value of the given property if any.
+
+    def property(property)
+      properties[property]
+    end
+
+    def set_property(name, value)
+      add([], [], { name => value })
     end
 
     # Returns the list of items related to this one.  Unlike "recommended" this
@@ -210,6 +241,22 @@ module DirectedEdge
     end
 
     private
+
+    # Creates a document for an entire item including the links, tags and
+    # properties.
+
+    def complete_document(links, tags, properties)
+      document = REXML::Document.new
+      item = setup_document(document)
+      links.each { |link| item.add_element('link').add_text(link) }
+      tags.each { |tag| item.add_element('tag').add_text(tag) }
+      properties.each do |key, value|
+        property = item.add_element('property')
+        property.add_attribute('name', key)
+        property.add_text(value.to_s)
+      end
+      document
+    end
 
     # Creates a skeleton of an XML document for a given item.
 
