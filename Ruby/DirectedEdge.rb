@@ -160,7 +160,7 @@ module DirectedEdge
     # items that link to this item).
 
     def references
-      @database.list(@identifier, 'references', '?showReferences=true')
+      @database.list(@identifier, 'reference', '?showReferences=true')
     end
 
     # Creates a link from this item to other.
