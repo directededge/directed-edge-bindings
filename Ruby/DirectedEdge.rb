@@ -49,7 +49,12 @@ module DirectedEdge
 
     def list(item, element, method='', args='')
       values = []
-      get(item, method, args).elements.each("//#{element}") { |v| values.push(v.text) }
+      document = get(item, method, args)
+      if document.nil?
+        values = nil
+      else
+          document.elements.each("//#{element}") { |v| values.push(v.text) }
+      end
       values
     end
 
@@ -63,7 +68,7 @@ module DirectedEdge
         document = REXML::Document.new(text)
       rescue => ex
         puts "Error reading \"#{item}\" from #{@name}."
-        document = REXML::Document.new
+        document = nil
       end
       document
     end
