@@ -62,7 +62,7 @@ module DirectedEdge
     # behind the item / method.  Method can also be nil to just retrieve the
     # item's content.
 
-    def get(item, method, args='')
+    def get(item, method='', args='')
       begin
         text = RestClient.get(url(item, method, args), :accept => 'text/xml')
         document = REXML::Document.new(text)
@@ -197,8 +197,8 @@ module DirectedEdge
 
     def properties
       props = {}
-      @database.get(item, method, args).elements.each('//property') do |element|
-        props[element.get_attribute('name').value] = element.text
+      @database.get(@identifier, '').elements.each('//property') do |element|
+        props[element.attribute('name').value] = element.text
       end
       props
     end
