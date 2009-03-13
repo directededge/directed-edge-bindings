@@ -63,16 +63,17 @@ module DirectedEdge
 
       records.each do |record|
         item = directededge.add_element('item')
-        item.add_attribute('id', record.name)
-        record.links.each { |link| item.add_element('link').add_text(link) }
-        record.tags.each { |tag| item.add_element('tag').add_text(tag) }
+        item.add_attribute('id', record.name.to_s)
+        record.links.each { |link| item.add_element('link').add_text(link.to_s) }
+        record.tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
         record.properties.each do |key, value|
           property = item.add_element('property')
-          property.add_attribute('name', key)
+          property.add_attribute('name', key.to_s)
           property.add_text(value.to_s)
         end
       end
       url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/add"
+      puts url
       begin
         RestClient.put(url, document.to_s, :content_type => 'text/xml')
       rescue RestClient::RequestFailed => ex
@@ -84,7 +85,7 @@ module DirectedEdge
       document = REXML::Document.new
       directededge = document.add_element('directededge')
       directededge.add_attribute('version', '0.1')
-      names.each { |name| directededge.add_element('item').add_attribute('id', name) }
+      names.each { |name| directededge.add_element('item').add_attribute('id', name.to_s) }
       url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/query"
       if(properties.length > 0)
         url += "?properties=" + properties.join(',')
@@ -315,11 +316,11 @@ module DirectedEdge
     def complete_document(links, tags, properties)
       document = REXML::Document.new
       item = setup_document(document)
-      links.each { |link| item.add_element('link').add_text(link) }
-      tags.each { |tag| item.add_element('tag').add_text(tag) }
+      links.each { |link| item.add_element('link').add_text(link.to_s) }
+      tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
       properties.each do |key, value|
         property = item.add_element('property')
-        property.add_attribute('name', key)
+        property.add_attribute('name', key.to_s)
         property.add_text(value.to_s)
       end
       document
@@ -330,7 +331,7 @@ module DirectedEdge
     def item_document(element, value)
       document = REXML::Document.new
       item = setup_document(document)
-      item.add_element(element).add_text(value)
+      item.add_element(element).add_text(value.to_s)
       document
     end
 
@@ -340,7 +341,7 @@ module DirectedEdge
       directededge = document.add_element('directededge')
       directededge.add_attribute('version', '0.1')
       item = directededge.add_element('item')
-      item.add_attribute('id', @identifier)
+      item.add_attribute('id', @identifier.to_s)
       item
     end
   end
