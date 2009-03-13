@@ -52,8 +52,8 @@ module DirectedEdge
       @password = password
       @protocol = protocol
 
-      # @host = 'localhost'
-      @host = 'webservices.directededge.com'
+      @host = 'localhost'
+      # @host = 'webservices.directededge.com'
     end
 
     def add(records)
@@ -78,6 +78,32 @@ module DirectedEdge
       rescue RestClient::RequestFailed => ex
         raise ConnectionError.new("Could not connect to \"#{@host}\".")
       end
+    end
+
+    def query(names, properties=[])
+      document = REXML::Document.new
+      directededge = document.add_element('directededge')
+      directededge.add_attribute('version', '0.1')
+      names.each { |name| directededge.add_element('item').add_attribute('id', name) }
+      url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/query"
+      if(properties.length > 0)
+        url += "?properties=" + properties.join(',')
+      end
+      begin
+        text = RestClient.post(url, document.to_s, :content_type => 'text/xml')
+      rescue RestClient::RequestFailed => ex
+        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      end
+      result = REXML::Document.new(text)
+      records = []
+      result.elements.each("directededge/item") do |item|
+        properties = {}
+        item.elements.each("property") do |element|
+          properties[element.attribute('name').value] = element.text
+        end
+        records.push(Record.new(item.attribute('id').value, [], [], properties))
+      end
+      records
     end
 
     # Queries the database for a given item / method and returns a list of all
@@ -257,8 +283,7 @@ module DirectedEdge
 
     def related(tags=[])
       if tags.size > 0
-        query = '?tags='
-        tags.each { |tag| query += "#{tag}," }
+        query = '?tags=' + tags.join(',')
       end
       @database.list(@identifier, 'related', 'related', query)
     end
