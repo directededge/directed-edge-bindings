@@ -34,13 +34,43 @@ module DirectedEdge
 
   class Database
 
+    class Record
+      attr_accessor :name, :links, :tags, :properties
+      def initialize(name, links=[], tags=[], properties={})
+        @name = name
+        @links = links
+        @tags = tags
+        @properties = properties
+      end
+    end
+
     def initialize(name, password='', protocol='http')
       @name = name
       @password = password
       @protocol = protocol
 
-      # @host = 'localhost'
-      @host = 'webservices.directededge.com'
+      @host = 'localhost'
+      # @host = 'webservices.directededge.com'
+    end
+
+    def add(records)
+      document = REXML::Document.new
+      directededge = document.add_element('directededge')
+      directededge.add_attribute('version', '0.1')
+
+      records.each do |record|
+        item = directededge.add_element('item')
+        item.add_attribute('id', record.name)
+        record.links.each { |link| item.add_element('link').add_text(link) }
+        record.tags.each { |tag| item.add_element('tag').add_text(tag) }
+        record.properties.each do |key, value|
+          property = item.add_element('property')
+          property.add_attribute('name', key)
+          property.add_text(value.to_s)
+        end
+      end
+      url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/add"
+      RestClient.put(url, document.to_s, :content_type => 'text/xml')
     end
 
     # Queries the database for a given item / method and returns a list of all
@@ -63,36 +93,22 @@ module DirectedEdge
     # item's content.
 
     def get(item, method='', args='')
-      begin
-        text = RestClient.get(url(item, method, args), :accept => 'text/xml')
-        document = REXML::Document.new(text)
-      rescue => ex
-        puts "Error reading \"#{item}\" from #{@name}."
-        document = nil
-      end
-      document
+      text = RestClient.get(url(item, method, args), :accept => 'text/xml')
+      REXML::Document.new(text)
     end
 
     # Does a HTTP put on the item / method with the given XML document.  The method
     # can also be nil to simply update the item.
 
     def put(item, method, document)
-      begin
-        puts url(item, method), document
-        RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
-      rescue => ex
-        puts "Error writing to \"#{item}\" in #{@name} (#{ex.message})"
-      end
+      puts url(item, method), document
+      RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
     end
 
     # Does an HTTP delete on the item / method.
 
     def delete(item, method='')
-      begin
-        RestClient.delete(url(item, method))
-      rescue => ex
-        puts "Error deleting \"#{item}\" in #{@name} (#{ex.message})"
-      end
+      RestClient.delete(url(item, method))
     end
 
     private
@@ -106,7 +122,9 @@ module DirectedEdge
       if password.length > 0
         password = ":#{password}"
       end
-      "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
+      value = "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
+      puts value
+      value
     end
   end
 
