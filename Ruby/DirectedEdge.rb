@@ -28,6 +28,9 @@ require 'cgi'
 
 module DirectedEdge
 
+  class ItemNotFound < StandardError ; end
+  class ConnectionError < StandardError ; end
+
   # Represents a Directed Edge database, simply a collection of items.  Most
   # require a password.  The protocal may either be http (the default) or HTTPS
   # for a secured (but higher latency) connection.
@@ -70,7 +73,11 @@ module DirectedEdge
         end
       end
       url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/add"
-      RestClient.put(url, document.to_s, :content_type => 'text/xml')
+      begin
+        RestClient.put(url, document.to_s, :content_type => 'text/xml')
+      rescue RestClient::RequestFailed => ex
+        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      end
     end
 
     # Queries the database for a given item / method and returns a list of all
@@ -93,7 +100,13 @@ module DirectedEdge
     # item's content.
 
     def get(item, method='', args='')
-      text = RestClient.get(url(item, method, args), :accept => 'text/xml')
+      begin
+        text = RestClient.get(url(item, method, args), :accept => 'text/xml')
+      rescue RestClient::ResourceNotFound => ex
+        raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
+      rescue RestClient::RequestFailed => ex
+        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      end
       REXML::Document.new(text)
     end
 
@@ -102,7 +115,13 @@ module DirectedEdge
 
     def put(item, method, document)
       puts url(item, method), document
-      RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
+      begin
+        RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
+      rescue RestClient::ResourceNotFound => ex
+        raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
+      rescue RestClient::RequestFailed => ex
+        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      end
     end
 
     # Does an HTTP delete on the item / method.
