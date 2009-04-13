@@ -73,11 +73,17 @@ module DirectedEdge
         end
       end
       url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/add"
-      puts url
+      tries = 0
       begin
+        tries += 1
         RestClient.put(url, document.to_s, :content_type => 'text/xml')
-      rescue RestClient::RequestFailed => ex
-        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      rescue
+        if tries <= 3
+          sleep 1
+          retry
+        else
+          raise ConnectionError.new("Could not connect to \"#{@host}\".")
+        end
       end
     end
 
@@ -90,10 +96,19 @@ module DirectedEdge
       if(properties.length > 0)
         url += "?properties=" + properties.join(',')
       end
+
+      tries = 0
+
       begin
+        tries += 1
         text = RestClient.post(url, document.to_s, :content_type => 'text/xml')
-      rescue RestClient::RequestFailed => ex
-        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      rescue
+        if tries <= 3
+          sleep 1
+          retry
+        else
+          raise ConnectionError.new("Could not connect to \"#{@host}\".")
+        end
       end
       result = REXML::Document.new(text)
       records = []
@@ -127,12 +142,19 @@ module DirectedEdge
     # item's content.
 
     def get(item, method='', args='')
+      tries = 0
       begin
+        tries += 1
         text = RestClient.get(url(item, method, args), :accept => 'text/xml')
       rescue RestClient::ResourceNotFound => ex
         raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
-      rescue RestClient::RequestFailed => ex
-        raise ConnectionError.new("Could not connect to \"#{@host}\".")
+      rescue
+        if tries <= 3
+          sleep 1
+          retry
+        else
+          raise ConnectionError.new("Could not connect to \"#{@host}\".")
+        end
       end
       REXML::Document.new(text)
     end
@@ -141,9 +163,15 @@ module DirectedEdge
     # can also be nil to simply update the item.
 
     def put(item, method, document)
-      puts url(item, method), document
+      tries = 0
       begin
+        tries += 1
         RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
+      rescue RestClient::RequestTimeout
+        if tries <= 3
+          sleep 1
+          retry
+        end
       rescue RestClient::ResourceNotFound => ex
         raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
       rescue RestClient::RequestFailed => ex
@@ -163,14 +191,12 @@ module DirectedEdge
     # constructor) into an address for a Directed Edge resource.
 
     def url(item, method, args='')
-      item = CGI::escape(item)
+      item = CGI::escape(item.to_s)
       password = @password
       if password.length > 0
         password = ":#{password}"
       end
-      value = "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
-      puts value
-      value
+      "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
     end
   end
 
