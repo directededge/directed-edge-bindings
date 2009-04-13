@@ -30,6 +30,7 @@ module DirectedEdge
 
   class ItemNotFound < StandardError ; end
   class ConnectionError < StandardError ; end
+  class AuthenticationError < StandardError ; end
 
   # Represents a Directed Edge database, simply a collection of items.  Most
   # require a password.  The protocal may either be http (the default) or HTTPS
@@ -79,7 +80,9 @@ module DirectedEdge
       begin
         tries += 1
         RestClient.put(url, document.to_s, :content_type => 'text/xml')
-      rescue
+      rescue RestClient::Unauthorized => ex
+        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
+      rescue RestClient::RequestTimeout => ex
         if tries <= 3
           sleep 1
           retry
@@ -104,7 +107,9 @@ module DirectedEdge
       begin
         tries += 1
         text = RestClient.post(url, document.to_s, :content_type => 'text/xml')
-      rescue
+      rescue RestClient::Unauthorized => ex
+        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
+      rescue RestClient::RequestTimeout => ex
         if tries <= 3
           sleep 1
           retry
@@ -148,9 +153,11 @@ module DirectedEdge
       begin
         tries += 1
         text = RestClient.get(url(item, method, args), :accept => 'text/xml')
+      rescue RestClient::Unauthorized => ex
+        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
       rescue RestClient::ResourceNotFound => ex
         raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
-      rescue
+      rescue RestClient::RequestTimeout => ex
         if tries <= 3
           sleep 1
           retry
@@ -169,11 +176,13 @@ module DirectedEdge
       begin
         tries += 1
         RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
-      rescue RestClient::RequestTimeout
+      rescue RestClient::RequestTimeout => ex
         if tries <= 3
           sleep 1
           retry
         end
+      rescue RestClient::Unauthorized => ex
+        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
       rescue RestClient::ResourceNotFound => ex
         raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
       rescue RestClient::RequestFailed => ex
