@@ -52,8 +52,10 @@ module DirectedEdge
       @password = password
       @protocol = protocol
 
-      @host = 'localhost'
-      # @host = 'webservices.directededge.com'
+      @host = ENV['DIRECTEDEDGE_HOST']
+      if @host.nil?
+        @host = 'webservices.directededge.com'
+      end
     end
 
     def add(records)
