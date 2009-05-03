@@ -332,11 +332,12 @@ module DirectedEdge
     # tags will be returned.
 
     def recommended(tags=[])
+      query = '?excludeLinked=true'
       if tags.size > 0
-        query = '?tags='
+        query += '&tags='
         tags.each { |tag| query += "#{tag}," }
       end
-      @database.list(@identifier, 'related', 'related', '?excludeLinked=true')
+      @database.list(@identifier, 'related', 'related', query)
     end
 
     # Returns the identifier of the item.
