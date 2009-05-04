@@ -38,18 +38,14 @@ module DirectedEdge
 
   class Database
     attr_accessor :name, :resource
-
     def initialize(name, password='', protocol='http')
       @name = name
-      @password = password
-      @protocol = protocol
-
-      @host = ENV['DIRECTEDEDGE_HOST']
-      if @host.nil?
-        @host = 'webservices.directededge.com'
+      host = ENV['DIRECTEDEDGE_HOST']
+      if host.nil?
+        host = 'webservices.directededge.com'
       end
       @resource =
-        RestClient::Resource.new("#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}")
+        RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}")
     end
 
     def import(file)
