@@ -69,22 +69,22 @@ module DirectedEdge
   # Represents an item in a Directed Edge database
 
   class Record
-    attr_accessor :identifier, :resource
+    attr_accessor :id, :resource
 
-    # Initializes the item with the value identifier.
+    # Initializes the item with the value id.
     # * Note this does not create the item in the database if it does not exist
     # * See also create
 
-    def initialize(database, identifier)
+    def initialize(database, id)
       @database = database
-      @identifier = identifier
-      @resource = @database.resource[@identifier]
+      @id = id
+      @resource = @database.resource[@id]
     end
 
-    # Returns the item's identifier.
+    # Returns the item's id.
 
     def name
-      @identifier
+      @id
     end
 
     # Creates an item if it does not already exist in the database or overwrites
@@ -108,13 +108,13 @@ module DirectedEdge
       @resource.delete
     end
 
-    # Returns a list of the identifiers that this item is linked to.
+    # Returns a list of the ids that this item is linked to.
 
     def links
       list('link')
     end
 
-    # Returns a list of the identifiers that this item is referenced from (the
+    # Returns a list of the ids that this item is referenced from (the
     # items that link to this item).
 
     def references
@@ -190,7 +190,7 @@ module DirectedEdge
       list('recommended', 'recommended?excludeLinked=true&tags=' + tags.join(','))
     end
 
-    # Returns the identifier of the item.
+    # Returns the id of the item.
 
     def to_s
       name
@@ -247,7 +247,7 @@ module DirectedEdge
       directededge = document.add_element('directededge')
       directededge.add_attribute('version', '0.1')
       item = directededge.add_element('item')
-      item.add_attribute('id', @identifier.to_s)
+      item.add_attribute('id', @id.to_s)
       item
     end
   end
