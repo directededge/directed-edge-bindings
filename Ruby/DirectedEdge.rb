@@ -64,82 +64,11 @@ module DirectedEdge
     def import(file)
       @resource.put(File.read(file), :content_type => 'text/xml')
     end
-
-    def add(records)
-      document = REXML::Document.new
-      directededge = document.add_element('directededge')
-      directededge.add_attribute('version', '0.1')
-
-      records.each do |record|
-        item = directededge.add_element('item')
-        item.add_attribute('id', record.name.to_s)
-        record.links.each { |link| item.add_element('link').add_text(link.to_s) }
-        record.tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
-        record.properties.each do |key, value|
-          property = item.add_element('property')
-          property.add_attribute('name', key.to_s)
-          property.add_text(value.to_s)
-        end
-      end
-      tries = 0
-      begin
-        tries += 1
-        @resource['add'].put(document.to_s, :content_type => 'text/xml')
-      rescue RestClient::Unauthorized => ex
-        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
-      rescue RestClient::RequestTimeout => ex
-        if tries <= 3
-          sleep 1
-          retry
-        else
-          raise ConnectionError.new("Could not connect to \"#{@host}\".")
-        end
-      end
-    end
-
-    # Validates a list of items to make sure that they're in the database and
-    # returns the values of the properties specified.
-
-    def query(names, properties=[])
-      document = REXML::Document.new
-      directededge = document.add_element('directededge')
-      directededge.add_attribute('version', '0.1')
-      names.each { |name| directededge.add_element('item').add_attribute('id', name.to_s) }
-      options = ''
-      if(properties.length > 0)
-        options += "?properties=" + properties.join(',')
-      end
-
-      tries = 0
-      begin
-        tries += 1
-        text = @resource[query + options].post(document.to_s, :content_type => 'text/xml')
-      rescue RestClient::Unauthorized => ex
-        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
-      rescue RestClient::RequestTimeout => ex
-        if tries <= 3
-          sleep 1
-          retry
-        else
-          raise ConnectionError.new("Could not connect to \"#{@host}\".")
-        end
-      end
-      result = REXML::Document.new(text)
-      records = []
-      result.elements.each("directededge/item") do |item|
-        properties = {}
-        item.elements.each("property") do |element|
-          properties[element.attribute('name').value] = element.text
-        end
-        records.push(Record.new(item.attribute('id').value, [], [], properties))
-      end
-      records
-    end
   end
 
   # Represents an item in a Directed Edge database
 
-  class Item
+  class Record
     attr_accessor :identifier, :resource
 
     # Initializes the item with the value identifier.
