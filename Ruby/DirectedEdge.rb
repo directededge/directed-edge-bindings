@@ -37,7 +37,7 @@ module DirectedEdge
   # for a secured (but higher latency) connection.
 
   class Database
-
+    attr_accessor :name, :resource
     class Record
       attr_accessor :name, :links, :tags, :properties
       def initialize(name, links=[], tags=[], properties={})
@@ -57,6 +57,12 @@ module DirectedEdge
       if @host.nil?
         @host = 'webservices.directededge.com'
       end
+      @resource =
+        RestClient::Resource.new("#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}")
+    end
+
+    def import(file)
+      @resource.put(File.read(file), :content_type => 'text/xml')
     end
 
     def add(records)
@@ -75,11 +81,10 @@ module DirectedEdge
           property.add_text(value.to_s)
         end
       end
-      url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/add"
       tries = 0
       begin
         tries += 1
-        RestClient.put(url, document.to_s, :content_type => 'text/xml')
+        @resource['add'].put(document.to_s, :content_type => 'text/xml')
       rescue RestClient::Unauthorized => ex
         raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
       rescue RestClient::RequestTimeout => ex
@@ -92,21 +97,23 @@ module DirectedEdge
       end
     end
 
+    # Validates a list of items to make sure that they're in the database and
+    # returns the values of the properties specified.
+
     def query(names, properties=[])
       document = REXML::Document.new
       directededge = document.add_element('directededge')
       directededge.add_attribute('version', '0.1')
       names.each { |name| directededge.add_element('item').add_attribute('id', name.to_s) }
-      url = "#{@protocol}://#{@name}:#{@password}@#{@host}/api/v1/#{@name}/query"
+      options = ''
       if(properties.length > 0)
-        url += "?properties=" + properties.join(',')
+        options += "?properties=" + properties.join(',')
       end
 
       tries = 0
-
       begin
         tries += 1
-        text = RestClient.post(url, document.to_s, :content_type => 'text/xml')
+        text = @resource[query + options].post(document.to_s, :content_type => 'text/xml')
       rescue RestClient::Unauthorized => ex
         raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
       rescue RestClient::RequestTimeout => ex
@@ -128,92 +135,12 @@ module DirectedEdge
       end
       records
     end
-
-    # Queries the database for a given item / method and returns a list of all
-    # of all of the items contained in the matching XML element.  If args are
-    # specified they are passed on to the query URL.
-
-    def list(item, element, method='', args='')
-      values = []
-      document = get(item, method, args)
-      if document.nil?
-        values = nil
-      else
-          document.elements.each("//#{element}") { |v| values.push(v.text) }
-      end
-      values
-    end
-
-    # Does an HTTP get to return the XML document that represents the content
-    # behind the item / method.  Method can also be nil to just retrieve the
-    # item's content.
-
-    def get(item, method='', args='')
-      tries = 0
-      begin
-        tries += 1
-        text = RestClient.get(url(item, method, args), :accept => 'text/xml')
-      rescue RestClient::Unauthorized => ex
-        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
-      rescue RestClient::ResourceNotFound => ex
-        raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
-      rescue RestClient::RequestTimeout => ex
-        if tries <= 3
-          sleep 1
-          retry
-        else
-          raise ConnectionError.new("Could not connect to \"#{@host}\".")
-        end
-      end
-      REXML::Document.new(text)
-    end
-
-    # Does a HTTP put on the item / method with the given XML document.  The method
-    # can also be nil to simply update the item.
-
-    def put(item, method, document)
-      tries = 0
-      begin
-        tries += 1
-        RestClient.put(url(item, method), document.to_s, :content_type => 'text/xml')
-      rescue RestClient::RequestTimeout => ex
-        if tries <= 3
-          sleep 1
-          retry
-        end
-      rescue RestClient::Unauthorized => ex
-        raise UnautherizedError.new("Unauthorized. User name or password is probably incorrect")
-      rescue RestClient::ResourceNotFound => ex
-        raise ItemNotFound.new("\"#{item}\" not found in \"#{@name}.\"")
-      rescue RestClient::RequestFailed => ex
-        raise ConnectionError.new("Could not connect to \"#{@host}\".")
-      end
-    end
-
-    # Does an HTTP delete on the item / method.
-
-    def delete(item, method='')
-      RestClient.delete(url(item, method))
-    end
-
-    private
-
-    # Mangles the given item, method, args and protocol (specified in the
-    # constructor) into an address for a Directed Edge resource.
-
-    def url(item, method, args='')
-      item = CGI::escape(item.to_s)
-      password = @password
-      if password.length > 0
-        password = ":#{password}"
-      end
-      "#{@protocol}://#{@name}#{password}@#{@host}/api/v1/#{@name}/#{item}/#{method}#{args}"
-    end
   end
 
   # Represents an item in a Directed Edge database
 
   class Item
+    attr_accessor :identifier, :resource
 
     # Initializes the item with the value identifier.
     # * Note this does not create the item in the database if it does not exist
@@ -222,6 +149,7 @@ module DirectedEdge
     def initialize(database, identifier)
       @database = database
       @identifier = identifier
+      @resource = @database.resource[@identifier]
     end
 
     # Returns the item's identifier.
@@ -234,71 +162,72 @@ module DirectedEdge
     # an existing item if one does.
 
     def create(links=[], tags=[], properties={})
-      @database.put(@identifier, '', complete_document(links, tags, properties))
+      put(complete_document(links, tags, properties))
     end
 
     # Creates an item if it does not already exist in the database or adds the
     # links, tags and properties to an existing item if one does.
 
     def add(links=[], tags=[], properties={})
-      @database.put(@identifier, 'add', complete_document(links, tags, properties))
+      put(complete_document(links, tags, properties), 'add')
     end
 
     # Removes an item from the database, including deleting all links to and
     # from this item.
 
     def remove
-      @database.delete(@identifier)
+      @resource.delete
     end
 
     # Returns a list of the identifiers that this item is linked to.
 
     def links
-      @database.list(@identifier, 'link')
+      list('link')
     end
 
     # Returns a list of the identifiers that this item is referenced from (the
     # items that link to this item).
 
     def references
-      @database.list(@identifier, 'reference', '?showReferences=true')
+      list('reference', '?showReferences=true')
     end
 
     # Creates a link from this item to other.
 
     def link_to(other, weight=0)
-      @database.put(@identifier, 'add', item_document('link', other.to_s))
+      put(item_document('link', other.to_s), 'add')
     end
 
     # Deletes a link from this item to other.
 
     def unlink_from(other)
-      @database.put(@identifier, 'remove', item_document('link', other.to_s))
+      put(item_document('link', other.to_s), 'remove')
     end
 
     # Returns a list of tags on this item.
 
     def tags
-      @database.list(@identifier, 'tag')
+      list('tag')
     end
 
     # Adds a tag to this item.
 
     def add_tag(tag)
-      @database.put(@identifier, 'add', item_document('tag', tag.to_s))
+      put(item_document('tag', tag.to_s), 'add')
     end
 
     # Removes a tag from this item.
 
     def remove_tag(tag)
-      @database.put(@identifier, 'remove', item_document('tag', tag.to_s))
+      put(item_document('tag', tag.to_s), 'remove')
     end
 
     # Returns a hash of all of the properties for the item.
 
     def properties
       props = {}
-      @database.get(@identifier, '').elements.each('//property') do |element|
+      text = @resource.get(:accept => 'text/xml')
+      REXML::Document.new(text).elements.each('//property') do |element|
         props[element.attribute('name').value] = element.text
       end
       props
@@ -320,10 +249,7 @@ module DirectedEdge
     # will be returned.
 
     def related(tags=[])
-      if tags.size > 0
-        query = '?tags=' + tags.join(',')
-      end
-      @database.list(@identifier, 'related', 'related', query)
+      list('related', 'related?tags=' + tags.join(','))
     end
 
     # Returns the list of items recommended for this item, usually a user.
@@ -332,12 +258,7 @@ module DirectedEdge
     # tags will be returned.
 
     def recommended(tags=[])
-      query = '?excludeLinked=true'
-      if tags.size > 0
-        query += '&tags='
-        tags.each { |tag| query += "#{tag}," }
-      end
-      @database.list(@identifier, 'related', 'related', query)
+      list('recommended', 'recommended?excludeLinked=true&tags=' + tags.join(','))
     end
 
     # Returns the identifier of the item.
@@ -347,6 +268,24 @@ module DirectedEdge
     end
 
     private
+
+    # Queries the database for a given item / method and returns a list of all
+    # of all of the items contained in the matching XML element.
+
+    def list(from_element, method='')
+      values = []
+      document = REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
+      if document.nil?
+        values = nil
+      else
+          document.elements.each("//#{from_element}") { |v| values.push(v.text) }
+      end
+      values
+    end
+
+    def put(document, method='')
+      @resource[method].put(document.to_s, :content_type => 'text/xml')
+    end
 
     # Creates a document for an entire item including the links, tags and
     # properties.
