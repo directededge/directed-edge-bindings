@@ -60,7 +60,7 @@ module DirectedEdge
   # Represents an item in a Directed Edge database
 
   class Record
-    attr_accessor :id, :resource
+    attr_accessor :id
 
     # Initializes the item with the value id.
     # * Note this does not create the item in the database if it does not exist
