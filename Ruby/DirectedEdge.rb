@@ -38,15 +38,6 @@ module DirectedEdge
 
   class Database
     attr_accessor :name, :resource
-    class Record
-      attr_accessor :name, :links, :tags, :properties
-      def initialize(name, links=[], tags=[], properties={})
-        @name = name
-        @links = links
-        @tags = tags
-        @properties = properties
-      end
-    end
 
     def initialize(name, password='', protocol='http')
       @name = name
