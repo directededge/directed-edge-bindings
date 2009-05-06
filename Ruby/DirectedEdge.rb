@@ -174,7 +174,7 @@ module DirectedEdge
     # will be returned.
 
     def related(tags=Set.new)
-      document = read_document('related?tags=' + tags.join(','))
+      document = read_document('related?tags=' + tags.to_a.join(','))
       list(document, 'related')
     end
 
@@ -184,7 +184,7 @@ module DirectedEdge
     # tags will be returned.
 
     def recommended(tags=Set.new)
-      document = read_document('recommended?excludeLinked=true&tags=' + tags.join(','))
+      document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(','))
       list(document, 'recommended')
     end
 
