@@ -74,6 +74,14 @@ module DirectedEdge
       @cached = false
     end
 
+    def ==(other)
+      if other.is_a?(Item)
+        other.id == id
+      else
+        other.to_s == id
+      end
+    end
+
     # Returns the item's id.
 
     def name
