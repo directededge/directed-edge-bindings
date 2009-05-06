@@ -55,7 +55,7 @@ module DirectedEdge
 
   # Represents an item in a Directed Edge database
 
-  class Record
+  class Item
     attr_accessor :id
 
     # Initializes the item with the value id.
@@ -64,8 +64,14 @@ module DirectedEdge
 
     def initialize(database, id)
       @database = database
+
       @id = id
+      @links = Set.new
+      @tags = Set.new
+      @properties = {}
+
       @resource = @database.resource[@id]
+      @cached = false
     end
 
     # Returns the item's id.
@@ -77,59 +83,83 @@ module DirectedEdge
     # Creates an item if it does not already exist in the database or overwrites
     # an existing item if one does.
 
-    def create(links=[], tags=[], properties={})
-      put(complete_document(links, tags, properties))
+    def create(links=Set.new, tags=Set.new, properties={})
+      @links = links
+      @tags = tags
+      @properties = properties
+      save
     end
 
-    # Creates an item if it does not already exist in the database or adds the
-    # links, tags and properties to an existing item if one does.
+    def save
+      if @cached
+        put(complete_document)
+      else
+        put(complete_document, 'add')
+      end
+      self
+    end
 
-    def add(links=[], tags=[], properties={})
-      put(complete_document(links, tags, properties), 'add')
+    # Reloads (or loads) the item from the database
+
+    def reload
+      document = read_document
+
+      @links = list(document, 'link')
+      @tags = list(document, 'tags')
+      @properties = {}
+
+      document.elements.each('//property') do |element|
+        @properties[element.property('name').value] = element.text
+      end
+      @cached = true
+    end
+
+    def links
+      read
+      @links
+    end
+
+    def tags
+      read
+      @tags
+    end
+
+    def properties
+      read
+      @properties
+    end
+
+    def [](property_name)
+      @properties[property_name]
+    end
+
+    def []=(property_name, value)
+      @properties[property_name] = value
     end
 
     # Removes an item from the database, including deleting all links to and
     # from this item.
 
-    def remove
+    def destroy
       @resource.delete
-    end
-
-    # Returns a list of the ids that this item is linked to.
-
-    def links
-      list('link')
-    end
-
-    # Returns a list of the ids that this item is referenced from (the
-    # items that link to this item).
-
-    def references
-      list('reference', '?showReferences=true')
     end
 
     # Creates a link from this item to other.
 
     def link_to(other, weight=0)
-      put(item_document('link', other.to_s), 'add')
+      @links.add(other.to_s)
     end
 
     # Deletes a link from this item to other.
 
     def unlink_from(other)
-      put(item_document('link', other.to_s), 'remove')
-    end
-
-    # Returns a list of tags on this item.
-
-    def tags
-      list('tag')
+      @links.delete(other.to_s)
     end
 
     # Adds a tag to this item.
 
     def add_tag(tag)
-      put(item_document('tag', tag.to_s), 'add')
+      @tags.add(tag)
     end
 
     # Removes a tag from this item.
@@ -138,34 +168,14 @@ module DirectedEdge
       put(item_document('tag', tag.to_s), 'remove')
     end
 
-    # Returns a hash of all of the properties for the item.
-
-    def properties
-      props = {}
-      text = @resource.get(:accept => 'text/xml')
-      REXML::Document.new(text).elements.each('//property') do |element|
-        props[element.attribute('name').value] = element.text
-      end
-      props
-    end
-
-    # Returns the value of the given property if any.
-
-    def property(property)
-      properties[property]
-    end
-
-    def set_property(name, value)
-      add([], [], { name => value })
-    end
-
     # Returns the list of items related to this one.  Unlike "recommended" this
     # may include items which are directly linked from this item.  If any tags
     # are specified, only items which have one or more of the specified tags
     # will be returned.
 
-    def related(tags=[])
-      list('related', 'related?tags=' + tags.join(','))
+    def related(tags=Set.new)
+      document = read_document('related?tags=' + tags.join(','))
+      list(document, 'related')
     end
 
     # Returns the list of items recommended for this item, usually a user.
@@ -173,8 +183,9 @@ module DirectedEdge
     # any tags are specified, only items which have one or more of the specified
     # tags will be returned.
 
-    def recommended(tags=[])
-      list('recommended', 'recommended?excludeLinked=true&tags=' + tags.join(','))
+    def recommended(tags=Set.new)
+      document = read_document('recommended?excludeLinked=true&tags=' + tags.join(','))
+      list(document, 'recommended')
     end
 
     # Returns the id of the item.
@@ -185,33 +196,49 @@ module DirectedEdge
 
     private
 
-    # Queries the database for a given item / method and returns a list of all
-    # of all of the items contained in the matching XML element.
-
-    def list(from_element, method='')
+    def list(document, element)
       values = []
-      document = REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
-      if document.nil?
-        values = nil
-      else
-          document.elements.each("//#{from_element}") { |v| values.push(v.text) }
-      end
+      document.elements.each("//#{element}") { |v| values.push(v.text) }
       values
+    end
+
+    def read
+      if !@cached
+        begin
+          document = read_document
+          @links.merge(list(document, 'link'))
+          @tags.merge(list(document, 'tags'))
+
+          document.elements.each('//property') do |element|
+            name = element.property('name').value
+            if !@properties.has_key?(name)
+              @properties[name] = element.text
+            end
+          end
+          @cached = true
+        rescue
+          # Couldn't read 
+        end
+      end
     end
 
     def put(document, method='')
       @resource[method].put(document.to_s, :content_type => 'text/xml')
     end
 
+    def read_document(method='')
+      REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
+    end
+
     # Creates a document for an entire item including the links, tags and
     # properties.
 
-    def complete_document(links, tags, properties)
+    def complete_document
       document = REXML::Document.new
       item = setup_document(document)
-      links.each { |link| item.add_element('link').add_text(link.to_s) }
-      tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
-      properties.each do |key, value|
+      @links.each { |link| item.add_element('link').add_text(link.to_s) }
+      @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
+      @properties.each do |key, value|
         property = item.add_element('property')
         property.add_attribute('name', key.to_s)
         property.add_text(value.to_s)
