@@ -112,8 +112,8 @@ module DirectedEdge
     def reload
       document = read_document
 
-      @links = list(document, 'link')
-      @tags = list(document, 'tags')
+      @links = Set.new(list(document, 'link'))
+      @tags = Set.new(list(document, 'tags'))
       @properties = {}
 
       document.elements.each('//property') do |element|
@@ -155,13 +155,13 @@ module DirectedEdge
     # Creates a link from this item to other.
 
     def link_to(other, weight=0)
-      @links.add(other.to_s)
+      @links.add(other.id)
     end
 
     # Deletes a link from this item to other.
 
     def unlink_from(other)
-      @links.delete(other.to_s)
+      @links.delete(other.id)
     end
 
     # Adds a tag to this item.
