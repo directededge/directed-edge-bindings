@@ -120,13 +120,14 @@ module DirectedEdge
       self
     end
 
-    # Reloads (or loads) the item from the database
+    # Reloads (or loads) the item from the database.  Any unsaved changes will
+    # will be discarded.
 
     def reload
       document = read_document
 
       @links = Set.new(list(document, 'link'))
-      @tags = Set.new(list(document, 'tags'))
+      @tags = Set.new(list(document, 'tag'))
       @properties = {}
 
       document.elements.each('//property') do |element|
@@ -134,6 +135,8 @@ module DirectedEdge
       end
       @cached = true
     end
+
+    # Returns a set of items that are linked to from this item.
 
     def links
       read
@@ -184,7 +187,6 @@ module DirectedEdge
     # Adds a tag to this item.
     #
     # The changes will not be reflected in the database until save is called.
-
 
     def add_tag(tag)
       @tags.add(tag)
@@ -247,17 +249,18 @@ module DirectedEdge
         begin
           document = read_document
           @links.merge(list(document, 'link'))
-          @tags.merge(list(document, 'tags'))
+          @tags.merge(list(document, 'tag'))
 
           document.elements.each('//property') do |element|
-            name = element.property('name').value
+            name = element.attribute('name').value
             if !@properties.has_key?(name)
               @properties[name] = element.text
             end
+
           end
           @cached = true
         rescue
-          # Couldn't read 
+          puts "Couldn't read \"#{@id}\" from the database."
         end
       end
     end
