@@ -107,9 +107,11 @@ module DirectedEdge
       # copy of the values.
 
       @cached = true
-
       save
     end
+
+    # Writes all changes to links, tags and properties back to the database and
+    # returns this item.
 
     def save
       if @cached
@@ -143,19 +145,27 @@ module DirectedEdge
       @links
     end
 
+    # Returns a set containing all of this item's tags.
+
     def tags
       read
       @tags
     end
+
+    # Returns a hash of all of this item's properties.
 
     def properties
       read
       @properties
     end
 
+    # Returns the property for the name specified.
+
     def [](property_name)
       @properties[property_name]
     end
+
+    # Assigns value to the given property_name.
 
     def []=(property_name, value)
       @properties[property_name] = value
