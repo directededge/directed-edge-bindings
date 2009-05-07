@@ -95,6 +95,12 @@ module DirectedEdge
       @links = links
       @tags = tags
       @properties = properties
+
+      # Here we pretend that it's cached since this is now the authoritative
+      # copy of the values.
+
+      @cached = true
+
       save
     end
 
