@@ -155,13 +155,13 @@ module DirectedEdge
     # Creates a link from this item to other.
 
     def link_to(other, weight=0)
-      @links.add(other.id)
+      @links.add(other.to_s)
     end
 
     # Deletes a link from this item to other.
 
     def unlink_from(other)
-      @links.delete(other.id)
+      @links.delete(other.to_s)
     end
 
     # Adds a tag to this item.
