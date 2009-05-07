@@ -173,7 +173,7 @@ module DirectedEdge
     # Removes a tag from this item.
 
     def remove_tag(tag)
-      put(item_document('tag', tag.to_s), 'remove')
+      @tags.delete(tag)
     end
 
     # Returns the list of items related to this one.  Unlike "recommended" this
