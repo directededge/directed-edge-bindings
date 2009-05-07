@@ -33,7 +33,7 @@ module DirectedEdge
   class AuthenticationError < StandardError ; end
 
   # Represents a Directed Edge database, simply a collection of items.  Most
-  # require a password.  The protocal may either be http (the default) or HTTPS
+  # require a password.  The protocal may either be http (the default) or https
   # for a secured (but higher latency) connection.
 
   class Database
@@ -47,6 +47,10 @@ module DirectedEdge
       @resource =
         RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}")
     end
+
+    # Imports a Directed Edge XML file to the database.
+    #
+    # See http://developer.directededge.com/ for more information on the XML format.
 
     def import(file)
       @resource.put(File.read(file), :content_type => 'text/xml')
@@ -74,6 +78,9 @@ module DirectedEdge
       @cached = false
     end
 
+    # Returns true if the other item is the same.  The item given can either be
+    # a string or an item object.
+
     def ==(other)
       if other.is_a?(Item)
         other.id == id
@@ -82,7 +89,7 @@ module DirectedEdge
       end
     end
 
-    # Returns the item's id.
+    # Returns the item's ID.
 
     def name
       @id
@@ -159,24 +166,33 @@ module DirectedEdge
     end
 
     # Creates a link from this item to other.
+    #
+    # The changes will not be reflected in the database until save is called.
 
     def link_to(other, weight=0)
       @links.add(other.to_s)
     end
 
     # Deletes a link from this item to other.
+    #
+    # The changes will not be reflected in the database until save is called.
 
     def unlink_from(other)
       @links.delete(other.to_s)
     end
 
     # Adds a tag to this item.
+    #
+    # The changes will not be reflected in the database until save is called.
+
 
     def add_tag(tag)
       @tags.add(tag)
     end
 
     # Removes a tag from this item.
+    #
+    # The changes will not be reflected in the database until save is called.
 
     def remove_tag(tag)
       @tags.delete(tag)
@@ -186,6 +202,8 @@ module DirectedEdge
     # may include items which are directly linked from this item.  If any tags
     # are specified, only items which have one or more of the specified tags
     # will be returned.
+    #
+    # This will not reflect any unsaved changes to items.
 
     def related(tags=Set.new)
       document = read_document('related?tags=' + tags.to_a.join(','))
@@ -196,25 +214,33 @@ module DirectedEdge
     # Unlike "related" this does not include items linked from this item.  If
     # any tags are specified, only items which have one or more of the specified
     # tags will be returned.
+    #
+    # This will not reflect any unsaved changes to items.
 
     def recommended(tags=Set.new)
       document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(','))
       list(document, 'recommended')
     end
 
-    # Returns the id of the item.
+    # Returns the ID of the item.
 
     def to_s
-      name
+      @id
     end
 
     private
+
+    # Returns an array of the elements from the document matching the given
+    # element name.
 
     def list(document, element)
       values = []
       document.elements.each("//#{element}") { |v| values.push(v.text) }
       values
     end
+
+    # Reads the tags / links / properties from the server if they are not
+    # already cached.
 
     def read
       if !@cached
@@ -236,9 +262,15 @@ module DirectedEdge
       end
     end
 
+    # Uploads the changes to the Directed Edge database.  The optional method
+    # parameter may be used for either add or remove which do only incremental
+    # updates to the item.
+
     def put(document, method='')
       @resource[method].put(document.to_s, :content_type => 'text/xml')
     end
+
+    # Reads an item from the database and puts it into an XML document.
 
     def read_document(method='')
       REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
