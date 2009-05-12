@@ -28,10 +28,6 @@ require 'cgi'
 
 module DirectedEdge
 
-  class ItemNotFound < StandardError ; end
-  class ConnectionError < StandardError ; end
-  class AuthenticationError < StandardError ; end
-
   # Represents a Directed Edge database, simply a collection of items.  Most
   # require a password.  The protocal may either be http (the default) or https
   # for a secured (but higher latency) connection.
