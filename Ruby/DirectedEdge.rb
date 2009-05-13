@@ -91,7 +91,7 @@ module DirectedEdge
   #   item = DirectedEdge::Item.new(exporter.database, 'product_1')
   #   item.add_tag('product')
   #   exporter.export(item)
-  #   exporter.finish
+  #   exporter.finished
   #
   # <tt>mydatabase.xml</tt> now contains:
   #
