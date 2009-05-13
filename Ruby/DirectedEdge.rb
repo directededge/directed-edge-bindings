@@ -33,7 +33,15 @@ module DirectedEdge
   # for a secured (but higher latency) connection.
 
   class Database
-    attr_accessor :name, :resource
+
+    # The name of the database.
+
+    attr_reader :name
+
+    # The REST resource used for connecting to the database.
+
+    attr_reader :resource
+
     def initialize(name, password='', protocol='http')
       @name = name
       host = ENV['DIRECTEDEDGE_HOST']
@@ -54,7 +62,7 @@ module DirectedEdge
   end
 
   # Used to export a collection of items to an XML file.  The resulting file can
-  # be used with
+  # be used with.
 
   class Exporter
 
@@ -69,13 +77,13 @@ module DirectedEdge
       @file.write("<directededge version=\"0.1\">\n")
     end
 
-    # Exports the given item to the file passed to the constructor
+    # Exports the given item to the file passed to the constructor.
 
     def export(item)
       @file.write("#{item.to_xml}\n")
     end
 
-    # Writes a closing XML element to the document and closes the file
+    # Writes a closing XML element to the document and closes the file.
 
     def finished
       @file.write("</directededge>\n")
@@ -86,7 +94,11 @@ module DirectedEdge
   # Represents an item in a Directed Edge database
 
   class Item
-    attr_accessor :id
+
+    # The unique item identifier used by the database and specified in the item's
+    # constructor.
+
+    attr_reader :id
 
     # Initializes the item with the value id.
     # * Note this does not create the item in the database if it does not exist
