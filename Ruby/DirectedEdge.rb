@@ -151,6 +151,13 @@ module DirectedEdge
   #   product['price'] = '$42'
   #   product.save
   #
+  # Note here that items have tags and properties.  Tags are a free-form set of
+  # text identifiers that can be associated with an item, e.g. "user", "product",
+  # "page", "science fiction", etc.
+  #
+  # Properties are a set of key-value pairs associated with the item.  For example,
+  # <tt>product['price'] = '$42'</tt>, or <tt>user['first name'] = 'Bob'</tt>.
+  #
   # If we wanted to link the user to the product, for instance, indicating that the
   # user had purchased the product we can use:
   #
