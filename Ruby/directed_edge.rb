@@ -289,9 +289,24 @@ module DirectedEdge
 
     # Creates a link from this item to other.
     #
-    # The changes will not be reflected in the database until save is called.
+    # Weighted links are typically used to encode ratings.  For instance, if
+    # a user has rated a given product that can be specified via:
+    #
+    #   user = DirectedEdge::Item(database, 'user_1')
+    #   product = DirectedEdge::Item(database, 'product_1') # preexisting item
+    #   user.link_to(product, 5)
+    #   user.save
+    #
+    # If no link is specified then a tradtional, unweighted link will be
+    # created.  This is typical to, for instance, incidate a purchase or click
+    # from a user to a page or item.
+    #
+    # Weights may be in the range of 1 to 10.
 
     def link_to(other, weight=0)
+      if weight < 0 || weight > 10
+        raise RangeError
+      end
       @links[other.to_s] = weight
     end
 
