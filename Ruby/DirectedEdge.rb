@@ -48,8 +48,38 @@ module DirectedEdge
     #
     # See http://developer.directededge.com/ for more information on the XML format.
 
-    def import(file)
-      @resource.put(File.read(file), :content_type => 'text/xml')
+    def import(file_name)
+      @resource.put(File.read(file_name), :content_type => 'text/xml')
+    end
+  end
+
+  # Used to export a collection of items to an XML file.  The resulting file can
+  # be used with
+
+  class Exporter
+
+    # Provides a dummy database for use when creating new items to be exported.
+
+    attr_reader :database
+
+    def initialize(file_name)
+      @database = Database.new('exporter')
+      @file = File.new(file_name, 'w')
+      @file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
+      @file.write("<directededge version=\"0.1\">\n")
+    end
+
+    # Exports the given item to the file passed to the constructor
+
+    def export(item)
+      @file.write("#{item.to_xml}\n")
+    end
+
+    # Writes a closing XML element to the document and closes the file
+
+    def finished
+      @file.write("</directededge>\n")
+      @file.close
     end
   end
 
@@ -236,6 +266,10 @@ module DirectedEdge
       @id
     end
 
+    def to_xml
+      insert_item(REXML::Document.new).to_s
+    end
+
     private
 
     # Returns an array of the elements from the document matching the given
@@ -290,6 +324,10 @@ module DirectedEdge
 
     def complete_document
       document = REXML::Document.new
+      insert_item(document)
+    end
+
+    def insert_item(document)
       item = setup_document(document)
       @links.each { |link| item.add_element('link').add_text(link.to_s) }
       @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
@@ -298,7 +336,7 @@ module DirectedEdge
         property.add_attribute('name', key.to_s)
         property.add_text(value.to_s)
       end
-      document
+      item
     end
 
     # Creates a skeleton of an XML document for a given item.
