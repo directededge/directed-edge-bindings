@@ -379,10 +379,20 @@ module DirectedEdge
       values
     end
 
+    # Returns a hash of the elements from the document matching the given
+    # element name.  If the specified attribute is present, its value will
+    # be assigned to the hash, otherwise the default value given will be
+    # used.
+
     def hash_from_document(document, element, attribute, default=0)
       values = {}
       document.elements.each("//#{element}") do |v|
-        values[v.text] = v.attribute(attribute) || default
+        value = v.attribute(attribute).to_s || default
+        if value.to_i.to_s == value.to_s
+          values[v.text] = value.to_i
+        else
+          values[v.text] = value.to_s
+        end
       end
       values
     end
