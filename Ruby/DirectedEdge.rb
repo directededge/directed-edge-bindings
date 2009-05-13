@@ -44,6 +44,10 @@ module DirectedEdge
   # The Database class has an import method which can be used to import data using
   # Directed Edge's XML format.  Files formatted in that way may be created with
   # the Exporter.
+  #
+  # A database is typically instantiated via:
+  #
+  #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
 
   class Database
 
@@ -80,8 +84,6 @@ module DirectedEdge
     end
   end
   
-  # = Exporter
-  #
   # A very simple class for creating Directed Edge XML files.  This can be done for
   # example with:
   #
