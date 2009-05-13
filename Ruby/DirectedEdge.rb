@@ -26,11 +26,24 @@ require 'rest_client'
 require 'rexml/document'
 require 'cgi'
 
-module DirectedEdge
+# The DirectedEdge module contains three classes:
+#
+# - Database - encapsulation of connection a database hosted by Directed Edge.
+# - Exporter - simple mechanism for exporting data from existing data sources.
+# - Item - item (user, product, page) in a Directed Edge database.
 
-  # Represents a Directed Edge database, simply a collection of items.  Most
-  # require a password.  The protocal may either be http (the default) or https
-  # for a secured (but higher latency) connection.
+module DirectedEdge
+  
+  # A Database is an encapsulation of a database being accessed via the Directed
+  # Edge web-services API.  You can request database creation by visiting
+  # http://www.directededge.com and will recieve a user name and password which
+  # are then used to connect to your DirectedEdge::Database instance.
+  #
+  # Usually when getting started with a DirectedEdge database, users would like to
+  # import some pre-existing data, usually from their web application's database.
+  # The Database class has an import method which can be used to import data using
+  # Directed Edge's XML format.  Files formatted in that way may be created with
+  # the Exporter.
 
   class Database
 
@@ -41,6 +54,11 @@ module DirectedEdge
     # The REST resource used for connecting to the database.
 
     attr_reader :resource
+
+    # Creates a connection to a Directed Edge database.  The name and password
+    # should have been provided when the account was created.  The protocol
+    # parameter is optional and may be <tt>http</tt> or <tt>https</tt>.
+    # <tt>http</tt> is used by default as it is somewhat lower latency.
 
     def initialize(name, password='', protocol='http')
       @name = name
@@ -54,21 +72,47 @@ module DirectedEdge
 
     # Imports a Directed Edge XML file to the database.
     #
-    # See http://developer.directededge.com/ for more information on the XML format.
+    # See http://developer.directededge.com for more information on the XML format or the
+    # Exporter for help on creating a file for importing.
 
     def import(file_name)
       @resource.put(File.read(file_name), :content_type => 'text/xml')
     end
   end
-
-  # Used to export a collection of items to an XML file.  The resulting file can
-  # be used with.
+  
+  # = Exporter
+  #
+  # A very simple class for creating Directed Edge XML files.  This can be done for
+  # example with:
+  #
+  #   exporter = DirectedEdge::Exporter.new('mydatabase.xml')
+  #   item = DirectedEdge::Item.new(exporter.database, 'product_1')
+  #   item.add_tag('product')
+  #   exporter.export(item)
+  #   exporter.finish
+  #
+  # <tt>mydatabase.xml</tt> now contains:
+  #
+  #   <?xml version="1.0" encoding="UTF-8"?>
+  #   <directededge version="0.1">
+  #   <item id='product_1'><tag>product</tag></item>
+  #   </directededge>
+  #
+  # Which can then be imported to a database on the server with:
+  #
+  #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
+  #   database.import('mydatabase.xml')
+  #
+  # Items may also be exported from existing databases.
 
   class Exporter
 
     # Provides a dummy database for use when creating new items to be exported.
 
     attr_reader :database
+
+    # Begins exporting a collection of items to the given file_name.  Any
+    # existing contents will be overwritten.
 
     def initialize(file_name)
       @database = Database.new('exporter')
@@ -91,7 +135,28 @@ module DirectedEdge
     end
   end
 
-  # Represents an item in a Directed Edge database
+  # Represents an item in a Directed Edge database.  Items can be products, pages
+  # or users, for instance.  Usually items groups are differentiated from one
+  # another by a set of tags that are provided.
+  #
+  # For instance, a user in the Directed Edge database could be modeled as:
+  #
+  #   user = DirectedEdge::Item.new(database, 'user_1')
+  #   user.add_tag('user')
+  #   user.save
+  #
+  # Similarly a product could be:
+  #
+  #   product = DirectedEdge::Item.new(database, 'product_1')
+  #   product.add_tag('product')
+  #   product['price'] = '$42'
+  #   product.save
+  #
+  # If we wanted to link the user to the product, for instance, indicating that the
+  # user had purchased the product we can use:
+  #
+  #   user.link_to(product)
+  #   user.save
 
   class Item
 
