@@ -66,10 +66,7 @@ module DirectedEdge
 
     def initialize(name, password='', protocol='http')
       @name = name
-      host = ENV['DIRECTEDEDGE_HOST']
-      if host.nil?
-        host = 'webservices.directededge.com'
-      end
+      host = ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
       @resource =
         RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}")
     end
