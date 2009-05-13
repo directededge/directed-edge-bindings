@@ -179,7 +179,7 @@ module DirectedEdge
       @database = database
 
       @id = id
-      @links = Set.new
+      @links = {}
       @tags = Set.new
       @properties = {}
 
@@ -207,7 +207,7 @@ module DirectedEdge
     # Creates an item if it does not already exist in the database or overwrites
     # an existing item if one does.
 
-    def create(links=Set.new, tags=Set.new, properties={})
+    def create(links={}, tags=Set.new, properties={})
       @links = links
       @tags = tags
       @properties = properties
@@ -237,8 +237,8 @@ module DirectedEdge
     def reload
       document = read_document
 
-      @links = Set.new(list(document, 'link'))
-      @tags = Set.new(list(document, 'tag'))
+      @links = hash_from_document(document, 'link', 'rating')
+      @tags = Set.new(list_from_document(document, 'tag'))
       @properties = {}
 
       document.elements.each('//property') do |element|
@@ -292,7 +292,7 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def link_to(other, weight=0)
-      @links.add(other.to_s)
+      @links[other.to_s] = weight
     end
 
     # Deletes a link from this item to other.
@@ -328,7 +328,7 @@ module DirectedEdge
 
     def related(tags=Set.new)
       document = read_document('related?tags=' + tags.to_a.join(','))
-      list(document, 'related')
+      list_from_document(document, 'related')
     end
 
     # Returns the list of items recommended for this item, usually a user.
@@ -340,7 +340,7 @@ module DirectedEdge
 
     def recommended(tags=Set.new)
       document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(','))
-      list(document, 'recommended')
+      list_from_document(document, 'recommended')
     end
 
     # Returns the ID of the item.
@@ -358,9 +358,17 @@ module DirectedEdge
     # Returns an array of the elements from the document matching the given
     # element name.
 
-    def list(document, element)
+    def list_from_document(document, element)
       values = []
       document.elements.each("//#{element}") { |v| values.push(v.text) }
+      values
+    end
+
+    def hash_from_document(document, element, attribute, default=0)
+      values = {}
+      document.elements.each("//#{element}") do |v|
+        values[v.text] = v.attribute(attribute) || default
+      end
       values
     end
 
@@ -371,8 +379,8 @@ module DirectedEdge
       if !@cached
         begin
           document = read_document
-          @links.merge(list(document, 'link'))
-          @tags.merge(list(document, 'tag'))
+          @links.merge!(hash_from_document(document, 'link', 'rating'))
+          @tags.merge(list_from_document(document, 'tag'))
 
           document.elements.each('//property') do |element|
             name = element.attribute('name').value
@@ -412,7 +420,13 @@ module DirectedEdge
 
     def insert_item(document)
       item = setup_document(document)
-      @links.each { |link| item.add_element('link').add_text(link.to_s) }
+      @links.each do |link, rating|
+        element = item.add_element('link')
+        if rating != 0
+          element.add_attribute('rating', rating.to_s)
+        end
+        element.add_text(link.to_s)
+      end
       @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
       @properties.each do |key, value|
         property = item.add_element('property')
