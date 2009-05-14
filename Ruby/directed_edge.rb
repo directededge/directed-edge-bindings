@@ -388,9 +388,14 @@ module DirectedEdge
       values = {}
       document.elements.each("//#{element}") do |v|
         value = v.attribute(attribute).to_s || default
-        if value.to_i.to_s == value.to_s
+        if value.empty?
+          puts "as empty"
+          values[v.text] = default
+        elsif value.to_i.to_s == value.to_s
+          puts "as int"
           values[v.text] = value.to_i
         else
+          puts "as string"
           values[v.text] = value.to_s
         end
       end
