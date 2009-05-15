@@ -318,6 +318,14 @@ module DirectedEdge
       @links.delete(other.to_s)
     end
 
+    # If there is a link for "other" then it returns the weight for the given
+    # item.  Zero indicates that no weight is assigned.
+
+    def weight_for(other)
+      read
+      @links[other.to_s]
+    end
+
     # Adds a tag to this item.
     #
     # The changes will not be reflected in the database until save is called.
