@@ -237,7 +237,7 @@ module DirectedEdge
     def reload
       document = read_document
 
-      @links = hash_from_document(document, 'link', 'rating')
+      @links = hash_from_document(document, 'link', 'weight')
       @tags = Set.new(list_from_document(document, 'tag'))
       @properties = {}
 
@@ -406,7 +406,7 @@ module DirectedEdge
       if !@cached
         begin
           document = read_document
-          @links.merge!(hash_from_document(document, 'link', 'rating'))
+          @links.merge!(hash_from_document(document, 'link', 'weight'))
           @tags.merge(list_from_document(document, 'tag'))
 
           document.elements.each('//property') do |element|
@@ -447,10 +447,10 @@ module DirectedEdge
 
     def insert_item(document)
       item = setup_document(document)
-      @links.each do |link, rating|
+      @links.each do |link, weight|
         element = item.add_element('link')
-        if rating != 0
-          element.add_attribute('rating', rating.to_s)
+        if weight != 0
+          element.add_attribute('weight', weight.to_s)
         end
         element.add_text(link.to_s)
       end
