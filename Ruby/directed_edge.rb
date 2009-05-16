@@ -230,7 +230,21 @@ module DirectedEdge
       if @cached
         put(complete_document)
       else
-        put(complete_document, 'add')
+
+        # The web services API allows to add or remove things incrementally.
+        # Since we're not in the cached case, let's check to see which action(s)
+        # are appropriate.
+
+        if !@links.empty? || !@tags.empty? || !@properties.empty?
+          put(complete_document, 'add')
+        end
+
+        if !@links_to_remove.empty? || !@tags_to_remove.empty? || !@properties_to_remove.empty?
+          put(removal_document, 'remove')
+          @links_to_remove.clear
+          @tags_to_remove.clear
+          @properties_to_remove.clear
+        end
       end
       self
     end
@@ -250,7 +264,7 @@ module DirectedEdge
       @properties_to_remove.clear
 
       document.elements.each('//property') do |element|
-        @properties[element.property('name').value] = element.text
+        @properties[element.attribute('name').value] = element.text
       end
       @cached = true
     end
@@ -486,6 +500,16 @@ module DirectedEdge
     def complete_document
       document = REXML::Document.new
       insert_item(document)
+    end
+
+    def removal_document
+      item = setup_document(REXML::Document.new)
+      @links_to_remove.each { |link| item.add_element('link').add_text(link.to_s) }
+      @tags_to_remove.each { |tag| item.add_element('tag').add_text(tag.to_s) }
+      @properties_to_remove.each do |property|
+        item.add_element('property').add_attribute('name', property.to_s)
+      end
+      item
     end
 
     def insert_item(document)
