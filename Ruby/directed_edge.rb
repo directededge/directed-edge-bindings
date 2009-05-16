@@ -183,6 +183,10 @@ module DirectedEdge
       @tags = Set.new
       @properties = {}
 
+      @links_to_remove = Set.new
+      @tags_to_remove = Set.new
+      @properties_to_remove = Set.new
+
       @resource = @database.resource[@id]
       @cached = false
     end
@@ -241,6 +245,10 @@ module DirectedEdge
       @tags = Set.new(list_from_document(document, 'tag'))
       @properties = {}
 
+      @links_to_remove.clear
+      @tags_to_remove.clear
+      @properties_to_remove.clear
+
       document.elements.each('//property') do |element|
         @properties[element.property('name').value] = element.text
       end
@@ -275,9 +283,20 @@ module DirectedEdge
     end
 
     # Assigns value to the given property_name.
+    #
+    # This will not be written back to the database until save is called.
 
     def []=(property_name, value)
       @properties[property_name] = value
+    end
+
+    # Remove the given property_name.
+
+    def clear_property(property_name)
+      if !@cached
+        @properties_to_remove.add(property_name)
+      end
+      @properties.delete(property_name)
     end
 
     # Removes an item from the database, including deleting all links to and
@@ -307,6 +326,7 @@ module DirectedEdge
       if weight < 0 || weight > 10
         raise RangeError
       end
+      @links_to_remove.delete(other)
       @links[other.to_s] = weight
     end
 
@@ -315,6 +335,9 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def unlink_from(other)
+      if !@cached
+        @links_to_remove.add(other.to_s)
+      end
       @links.delete(other.to_s)
     end
 
@@ -331,6 +354,7 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def add_tag(tag)
+      @tags_to_remove.delete(tag)
       @tags.add(tag)
     end
 
@@ -339,6 +363,9 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def remove_tag(tag)
+      if !@cached
+        @tags_to_remove.add(tag)
+      end
       @tags.delete(tag)
     end
 
@@ -422,8 +449,16 @@ module DirectedEdge
             if !@properties.has_key?(name)
               @properties[name] = element.text
             end
-
           end
+
+          @links_to_remove.each { |link| @links.delete(link) }
+          @tags_to_remove.each { |tag| @tags.delete(tag) }
+          @properties_to_remove.each { |property| @properties.delete(property) }
+
+          @links_to_remove.clear
+          @tags_to_remove.clear
+          @properties_to_remove.clear
+
           @cached = true
         rescue
           puts "Couldn't read \"#{@id}\" from the database."
