@@ -302,6 +302,7 @@ module DirectedEdge
     # This will not be written back to the database until save is called.
 
     def []=(property_name, value)
+      @properties_to_remove.delete(property_name)
       @properties[property_name] = value
     end
 
