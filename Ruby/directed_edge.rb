@@ -293,6 +293,7 @@ module DirectedEdge
     # Returns the property for the name specified.
 
     def [](property_name)
+      read
       @properties[property_name]
     end
 
