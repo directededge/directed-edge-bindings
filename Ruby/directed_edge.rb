@@ -414,6 +414,10 @@ module DirectedEdge
       @id
     end
 
+    # Returns an XML representation of the item as a string not including the
+    # usual document regalia, e.g. starting with <item> (used for exporting the
+    # item to a file)
+
     def to_xml
       insert_item(REXML::Document.new).to_s
     end
