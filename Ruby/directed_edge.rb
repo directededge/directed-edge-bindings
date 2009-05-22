@@ -187,7 +187,7 @@ module DirectedEdge
       @tags_to_remove = Set.new
       @properties_to_remove = Set.new
 
-      @resource = @database.resource[@id]
+      @resource = @database.resource[URI.escape(@id)]
       @cached = false
     end
 
