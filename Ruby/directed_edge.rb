@@ -88,7 +88,7 @@ module DirectedEdge
   #   item = DirectedEdge::Item.new(exporter.database, 'product_1')
   #   item.add_tag('product')
   #   exporter.export(item)
-  #   exporter.finished
+  #   exporter.finish
   #
   # <tt>mydatabase.xml</tt> now contains:
   #
@@ -128,7 +128,7 @@ module DirectedEdge
 
     # Writes a closing XML element to the document and closes the file.
 
-    def finished
+    def finish
       @file.write("</directededge>\n")
       @file.close
     end
