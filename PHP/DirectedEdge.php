@@ -80,6 +80,12 @@ class DirectedEdgeItem
         return $this->id;
     }
 
+    public function links()
+    {
+        $this->read();
+        return $this->links;
+    }
+
     public function tags()
     {
         $this->read();
@@ -147,6 +153,29 @@ class DirectedEdgeItem
         }
 
         $content = $this->resource->get();
+        $document = new DOMDocument();
+        $document->loadXML($content);
+
+        $linkNodes = $document->getElementsByTagName('link');
+
+        for($i = 0; $i < $linkNodes->length; $i++)
+        {
+            $this->links[] = $linkNodes->item($i)->textContent;
+        }
+
+        $tagNodes = $document->getElementsByTagName('tag');
+
+        for($i = 0; $i < $tagNodes->length; $i++)
+        {
+            $this->tags[] = $tagNodes->item($i)->textContent;
+        }
+
+        $propertyNodes = $document->getElementsByTagName('property');
+
+        for($i = 0; $i < $propertyNodes; $i++)
+        {
+            # Add property reading
+        }
 
         $this->cached = true;
     }
@@ -159,10 +188,6 @@ class DirectedEdgeExporter
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
 $item = new DirectedEdgeItem($database, 'Socrates');
-$item->tags();
-
-# echo $database->resource()->path('Socrates') . "\n";
-# echo $database->resource()->get('Socrates') . "\n";
-
+print_r($item->links());
 
 ?>
