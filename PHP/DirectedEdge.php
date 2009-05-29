@@ -13,7 +13,7 @@ class DirectedEdgeResource
     
     public function path($path = "")
     {
-        return "$this->base/$path";
+        return $this->base . '/' . urlencode($path);
     }
 
     public function get($path = "")
@@ -160,7 +160,15 @@ class DirectedEdgeItem
 
         for($i = 0; $i < $linkNodes->length; $i++)
         {
-            $this->links[] = $linkNodes->item($i)->textContent;
+            $link = $linkNodes->item($i)->textContent;
+
+            # Don't overwrite links that the user has created.
+
+            if(!isset($this->links[$link]))
+            {
+                $weight = $linkNodes->item($i)->attributes->getNamedItem('weight');
+                $this->links[$link] = $weight ? $weight : 0;
+            }
         }
 
         $tagNodes = $document->getElementsByTagName('tag');
@@ -172,9 +180,16 @@ class DirectedEdgeItem
 
         $propertyNodes = $document->getElementsByTagName('property');
 
-        for($i = 0; $i < $propertyNodes; $i++)
+        for($i = 0; $i < $propertyNodes->length; $i++)
         {
-            # Add property reading
+            $property = $propertyNodes->item($i)->attributes->getNamedItem('name');
+
+            # Again, don't overwrite things the user has specified.
+
+            if(!isset($this->properties[$property]))
+            {
+                $this->properties[$property] = $propertyNodes->item($i)->textContent;
+            }
         }
 
         $this->cached = true;
@@ -189,5 +204,5 @@ class DirectedEdgeExporter
 $database = new DirectedEdgeDatabase('testdb', 'test');
 $item = new DirectedEdgeItem($database, 'Socrates');
 print_r($item->links());
-
+print_r($item->tags());
 ?>
