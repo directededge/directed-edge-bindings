@@ -1,5 +1,7 @@
 <?php
 
+require_once('HTTP/Request2.php');
+
 class DirectedEdgeResource
 {
     private $base;
@@ -9,9 +11,16 @@ class DirectedEdgeResource
         $this->base = $base;
     }
     
-    public function path($path)
+    public function path($path = "")
     {
         return "$this->base/$path";
+    }
+
+    public function get($path = "")
+    {
+        $request = new HTTP_Request2($this->path($path));
+        $response = $request->send();
+        return $response->getBody();
     }
 
     public function __toString()
@@ -53,6 +62,7 @@ class DirectedEdgeItem
 {
     private $database;
     private $id;
+    private $resource;
     private $links = array();
     private $tags = array();
     private $properties = array();
@@ -61,6 +71,7 @@ class DirectedEdgeItem
     public function __construct($database, $id)
     {
         $this->database = $database;
+        $this->resource = new DirectedEdgeResource($database->resource()->path($id));
         $this->id = $id;
     }
 
@@ -71,19 +82,19 @@ class DirectedEdgeItem
 
     public function tags()
     {
-        read();
+        $this->read();
         return $this->tags;
     }
 
     public function properties()
     {
-        read();
+        $this->read();
         return $this->properties;
     }
 
     public function property($name)
     {
-        read();
+        $this->read();
         return $this->properties[$name];
     }
 
@@ -135,6 +146,8 @@ class DirectedEdgeItem
             return;
         }
 
+        $content = $this->resource->get();
+
         $this->cached = true;
     }
 }
@@ -145,11 +158,11 @@ class DirectedEdgeExporter
 }
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
+$item = new DirectedEdgeItem($database, 'Socrates');
+$item->tags();
 
-$resource = new DirectedEdgeResource($database->resource());
+# echo $database->resource()->path('Socrates') . "\n";
+# echo $database->resource()->get('Socrates') . "\n";
 
-echo $resource->path('foo') . "\n";
-
-echo $database->resource()->path("foo") . "\n";
 
 ?>
