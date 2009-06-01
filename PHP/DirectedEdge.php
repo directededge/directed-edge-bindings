@@ -89,30 +89,30 @@ class DirectedEdgeItem
         $this->id = $id;
     }
 
-    public function name()
+    public function getName()
     {
         return $this->id;
     }
 
-    public function links()
+    public function getLinks()
     {
         $this->read();
         return $this->links;
     }
 
-    public function tags()
+    public function getTags()
     {
         $this->read();
         return $this->tags;
     }
 
-    public function properties()
+    public function getProperties()
     {
         $this->read();
         return $this->properties;
     }
 
-    public function property($name)
+    public function getProperty($name)
     {
         $this->read();
         return $this->properties[$name];
@@ -138,7 +138,7 @@ class DirectedEdgeItem
         unset($this->links[$other]);
     }
 
-    public function weightFor($other)
+    public function getWeightFor($other)
     {
         return $this->links[$other];
     }
@@ -175,7 +175,7 @@ class DirectedEdgeItem
         $this->resource->delete();
     }
 
-    public function related($tags = array())
+    public function getRelated($tags = array())
     {
         $content = $this->resource->get('related?tags=' .
                                         (is_array($tags) ? join($tags, ',') : $tags));
@@ -184,7 +184,7 @@ class DirectedEdgeItem
         return $this->getValuesByTagName($document, 'related');
     }
 
-    public function recommended($tags = array())
+    public function getRecommended($tags = array())
     {
         $content = $this->resource->get('recommended?excludeLinked=true&tags=' .
                                         (is_array($tags) ? join($tags, ',') : $tags));
@@ -314,16 +314,16 @@ class DirectedEdgeExporter
 $database = new DirectedEdgeDatabase('testdb', 'test');
 $item = new DirectedEdgeItem($database, 'Socrates');
 
-print_r($item->links());
-print_r($item->tags());
-print_r($item->properties());
-print_r($item->related());
-print_r($item->recommended());
+print_r($item->getLinks());
+print_r($item->getTags());
+print_r($item->getProperties());
+print_r($item->getRelated());
+print_r($item->getRecommended());
 
 $item->addTag('all your tag');
 $item->setProperty('foo', 'bar');
 $item->save();
 $item->reload();
-print_r($item->tags());
+print_r($item->getTags());
 
 ?>
