@@ -164,29 +164,26 @@ class DirectedEdgeItem
 
     public function setProperty($name, $value)
     {
-        $this->propertiesToRemove = array_remove($this->propertiesToRemove, $name);
+        unset($this->propertiesToRemove[$name]);
         $this->properties[$name] = $value;
     }
 
     public function clearProperty($name)
     {
-        $this->propertiesToRemove = array_insert($this->propertiesToRemove, $name);
+        $this->propertiesToRemove[$name] = "";
         unset($this->properties[$name]);
     }
 
     public function linkTo($other, $weight = 0)
     {
         ### Throw an error if this is out of range.
-        $this->linksToRemove = array_remove($this->linksToRemove, $other);
+        unset($this->linksToRemove[$other]);
         $this->links[$other] = $weight;
     }
 
     public function unlinkFrom($other)
     {
-        if(!$this->isCached)
-        {
-            $this->linksToRemove = array_insert($this->linksToRemove, $other);
-        }
+        $this->linksToRemove[$other] = 0;
         unset($this->links[$other]);
     }
 
@@ -208,14 +205,35 @@ class DirectedEdgeItem
         {
             $this->tagsToRemove = array_insert($this->tagsToRemove, $tag);
         }
+
         $this->tags = array_remove($this->tags, $tag);
     }
 
     public function save()
     {
-        print $this->resource . "\n";
-        print $this->toDocument();
-        $this->resource->put($this->toDocument(), $this->isCached ? "" : "add");
+        if($this->isCached)
+        {
+            $this->resource->put($this->toDocument());
+        }
+        else
+        {
+            if(!empty($this->links) ||
+               !empty($this->tags) ||
+               !empty($this->properties))
+            {
+                $this->resource->put($this->toDocument(), 'add');
+            }
+
+            if(!empty($this->linksToRemove) ||
+               !empty($this->tagsToRemove) ||
+               !empty($this->propertiesToRemove))
+            {
+                $this->resource->put($this->toDocument($this->linksToRemove,
+                                                       $this->tagsToRemove,
+                                                       $this->propertiesToRemove),
+                                     'remove');
+            }
+        }
     }
 
     public function reload()
@@ -389,6 +407,12 @@ print_r($item->getRecommended());
 
 $item->addTag('all your tag');
 $item->setProperty('foo', 'bar');
+$item->save();
+$item->reload();
+print_r($item->getTags());
+
+$item = new DirectedEdgeItem($database, 'Socrates');
+$item->removeTag('Dude');
 $item->save();
 $item->reload();
 print_r($item->getTags());
