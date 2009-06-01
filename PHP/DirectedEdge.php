@@ -2,6 +2,44 @@
 
 require_once('HTTP/Request2.php');
 
+function array_contains($haystack, $needle)
+{
+    foreach($haystack as $value)
+    {
+        if($value == $needle)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function array_remove($haystack, $needle)
+{
+    $result = array();
+
+    foreach($haystack as $value)
+    {
+        if($value != $needle)
+        {
+            $result[] = $value;
+        }
+    }
+
+    return $result;
+}
+
+function array_insert($haystack, $needle)
+{
+    if(!array_contains($haystack, $needle))
+    {
+        $haystack[] = $needle;
+    }
+
+    return $haystack;
+}
+
 class DirectedEdgeResource
 {
     private $base;
@@ -77,9 +115,15 @@ class DirectedEdgeItem
     private $database;
     private $id;
     private $resource;
+
     private $links = array();
     private $tags = array();
     private $properties = array();
+
+    private $linksToRemove = array();
+    private $tagsToRemove = array();
+    private $propertiesToRemove = array();
+
     private $isCached = false;
 
     public function __construct($database, $id)
@@ -120,38 +164,51 @@ class DirectedEdgeItem
 
     public function setProperty($name, $value)
     {
+        $this->propertiesToRemove = array_remove($this->propertiesToRemove, $name);
         $this->properties[$name] = $value;
     }
 
     public function clearProperty($name)
     {
+        $this->propertiesToRemove = array_insert($this->propertiesToRemove, $name);
         unset($this->properties[$name]);
     }
 
     public function linkTo($other, $weight = 0)
     {
+        ### Throw an error if this is out of range.
+        $this->linksToRemove = array_remove($this->linksToRemove, $other);
         $this->links[$other] = $weight;
     }
 
     public function unlinkFrom($other)
     {
+        if(!$this->isCached)
+        {
+            $this->linksToRemove = array_insert($this->linksToRemove, $other);
+        }
         unset($this->links[$other]);
     }
 
     public function getWeightFor($other)
     {
+        $this->read();
         return $this->links[$other];
     }
 
     public function addTag($tag)
     {
-        $this->tags[] = $tag;
+        $this->tagsToRemove = array_remove($this->tagsToRemove, $tag);
+        $this->tags = array_insert($this->tags, $tag);
     }
 
     public function removeTag($tag)
     {
-        function filter($item) { return $item == $tag; }
-        $this->tags = array_filter($this->tags, filter);
+        if(!$this->isCached)
+        {
+            $this->tagsToRemove = array_insert($this->tagsToRemove, $tag);
+        }
+        $this->tags = array_remove($this->tags, $tag);
     }
 
     public function save()
@@ -166,6 +223,11 @@ class DirectedEdgeItem
         $this->links = array();
         $this->tags = array();
         $this->properties = array();
+
+        $this->linksToRemove = array();
+        $this->tagsToRemove = array();
+        $this->propertiesToRemove = array();
+
         $this->isCached = false;
         $this->read();
     }
@@ -254,7 +316,12 @@ class DirectedEdgeItem
             }
             else
             {
-                $values[] = $nodes->item($i)->textContent;
+                $value = $nodes->item($i)->textContent;
+
+                if(!array_contains($values, $value))
+                {
+                    $values[] = $nodes->item($i)->textContent;
+                }
             }
         }
 
