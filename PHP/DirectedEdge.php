@@ -171,28 +171,44 @@ class DirectedEdgeItem
             }
         }
 
-        $tagNodes = $document->getElementsByTagName('tag');
+        $this->tags =
+            $this->getValuesByTagName($document, 'tag', null, $this->tags);
+        $this->properties =
+            $this->getValuesByTagName($document, 'property', 'name', $this->properties);
 
-        for($i = 0; $i < $tagNodes->length; $i++)
+        $this->cached = true;
+    }
+
+    /**
+     * @param XMLDocument The document to search in.
+     * @param string The element name to extract.
+     * @param string The name of the attribute to use as the key.  If none, then a normal (non-hash)
+     * array is created.
+     * @param array Existing values.  Will not be overwritten if they exits.
+     */
+
+    private function getValuesByTagName($document, $element, $attribute = null, $values = array())
+    {
+        $nodes = $document->getElementsByTagName($element);
+
+        for($i = 0; $i < $nodes->length; $i++)
         {
-            $this->tags[] = $tagNodes->item($i)->textContent;
-        }
-
-        $propertyNodes = $document->getElementsByTagName('property');
-
-        for($i = 0; $i < $propertyNodes->length; $i++)
-        {
-            $property = $propertyNodes->item($i)->attributes->getNamedItem('name');
-
-            # Again, don't overwrite things the user has specified.
-
-            if(!isset($this->properties[$property]))
+            if($attribute)
             {
-                $this->properties[$property] = $propertyNodes->item($i)->textContent;
+                $key = $nodes->item($i)->attributes->getNamedItem($attribute)->textContent;
+
+                if(!isset($values[$key]))
+                {
+                    $values[$key] = $nodes->item($i)->textContent;
+                }
+            }
+            else
+            {
+                $values[] = $nodes->item($i)->textContent;
             }
         }
 
-        $this->cached = true;
+        return $values;
     }
 }
 
@@ -205,4 +221,5 @@ $database = new DirectedEdgeDatabase('testdb', 'test');
 $item = new DirectedEdgeItem($database, 'Socrates');
 print_r($item->links());
 print_r($item->tags());
+print_r($item->properties());
 ?>
