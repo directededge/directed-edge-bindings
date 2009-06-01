@@ -128,11 +128,6 @@ class DirectedEdgeItem
         unset($this->properties[$name]);
     }
 
-    public function destroy()
-    {
-
-    }
-
     public function linkTo($other, $weight = 0)
     {
         $this->links[$other] = $weight;
@@ -157,6 +152,27 @@ class DirectedEdgeItem
     {
         function filter($item) { return $item == $tag; }
         $this->tags = array_filter($this->tags, filter);
+    }
+
+    public function save()
+    {
+        print $this->resource . "\n";
+        print $this->toDocument();
+        $this->resource->put($this->toDocument(), $this->isCached ? "" : "add");
+    }
+
+    public function reload()
+    {
+        $this->links = array();
+        $this->tags = array();
+        $this->properties = array();
+        $this->isCached = false;
+        $this->read();
+    }
+
+    public function destroy()
+    {
+        $this->resource->delete();
     }
 
     public function related($tags = array())
@@ -245,7 +261,7 @@ class DirectedEdgeItem
         return $values;
     }
 
-    public function toDocument($links = null, $tags = null, $properties = null)
+    private function toDocument($links = null, $tags = null, $properties = null)
     {
         $links || $links = $this->links;
         $tags || $tags = $this->tags;
@@ -304,6 +320,10 @@ print_r($item->properties());
 print_r($item->related());
 print_r($item->recommended());
 
-print_r($item->toDocument());
+$item->addTag('all your tag');
+$item->setProperty('foo', 'bar');
+$item->save();
+$item->reload();
+print_r($item->tags());
 
 ?>
