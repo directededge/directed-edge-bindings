@@ -24,6 +24,19 @@ class DirectedEdgeResource
         return $response->getBody();
     }
 
+    public function put($content, $path = "")
+    {
+        $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
+        $request->setBody($content);
+        $response = $request->send();
+    }
+
+    public function delete($path = "")
+    {
+        $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_DELETE);
+        $response = $request->send();
+    }
+
     public function __toString()
     {
         return $this->base;
