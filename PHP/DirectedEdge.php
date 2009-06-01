@@ -18,7 +18,8 @@ class DirectedEdgeResource
 
     public function get($path = "")
     {
-        $request = new HTTP_Request2($this->path($path));
+        # print "Get: " . $this->path() . $path . "\n";
+        $request = new HTTP_Request2($this->path() . $path);
         $response = $request->send();
         return $response->getBody();
     }
@@ -145,6 +146,26 @@ class DirectedEdgeItem
         $this->tags = array_filter($this->tags, filter);
     }
 
+    public function related($tags = array())
+    {
+        $content = $this->resource->get('related?tags=' .
+                                        (is_array($tags) ? join($tags, ',') : $tags));
+        $document = new DOMDocument();
+        $document->loadXML($content);
+        return $this->getValuesByTagName($document, 'related');
+    }
+
+    public function recommended($tags = array())
+    {
+        $content = $this->resource->get('recommended?excludeLinked=true&tags=' .
+                                        (is_array($tags) ? join($tags, ',') : $tags));
+        $document = new DOMDocument();
+        $document->loadXML($content);
+        return $this->getValuesByTagName($document, 'recommended');
+    }
+
+    /* PRIVATE */
+
     private function read()
     {
         if($this->cached)
@@ -180,7 +201,7 @@ class DirectedEdgeItem
     }
 
     /**
-     * @param XMLDocument The document to search in.
+     * @param DOMDocument The document to search in.
      * @param string The element name to extract.
      * @param string The name of the attribute to use as the key.  If none, then a normal (non-hash)
      * array is created.
@@ -219,7 +240,11 @@ class DirectedEdgeExporter
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
 $item = new DirectedEdgeItem($database, 'Socrates');
+
 print_r($item->links());
 print_r($item->tags());
 print_r($item->properties());
+print_r($item->related());
+print_r($item->recommended());
+
 ?>
