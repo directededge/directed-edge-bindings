@@ -231,6 +231,46 @@ class DirectedEdgeItem
 
         return $values;
     }
+
+    public function toDocument($links, $tags, $properties)
+    {
+        $document = new DOMDocument();
+
+        $directededge = $document->createElement('directededge');
+        $directededge->setAttribute('version', 0.1);
+        $document->appendChild($directededge);
+
+        $item = $document->createElement('item');
+        $item->setAttribute('id', $this->id);
+        $directededge->appendChild($item);
+
+        foreach($links as $name => $weight)
+        {
+            $element = $document->createElement('link', $name);
+
+            if($links[$name] > 0)
+            {
+                $element->setAttribute('weight', $weight);
+            }
+
+            $item->appendChild($element);
+        }
+
+        foreach($tags as $tag)
+        {
+            $element = $document->createElement('tag', $tag);
+            $item->appendChild($element);
+        }
+
+        foreach($properties as $key => $value)
+        {
+            $element = $document->createElement('property', $value);
+            $element->setAttribute('name', $key);
+            $item->appendChild($element);
+        }
+
+        return $document->saveXML();
+    }
 }
 
 class DirectedEdgeExporter
@@ -246,5 +286,7 @@ print_r($item->tags());
 print_r($item->properties());
 print_r($item->related());
 print_r($item->recommended());
+
+print $item->toDocument(array('a' => 5), array('foo'), array('name' => 'scott'));
 
 ?>
