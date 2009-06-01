@@ -232,8 +232,12 @@ class DirectedEdgeItem
         return $values;
     }
 
-    public function toDocument($links, $tags, $properties)
+    public function toDocument($links = null, $tags = null, $properties = null)
     {
+        $links || $links = $this->links;
+        $tags || $tags = $this->tags;
+        $properties || $properties = $this->properties;
+
         $document = new DOMDocument();
 
         $directededge = $document->createElement('directededge');
@@ -287,6 +291,6 @@ print_r($item->properties());
 print_r($item->related());
 print_r($item->recommended());
 
-print $item->toDocument(array('a' => 5), array('foo'), array('name' => 'scott'));
+print_r($item->toDocument());
 
 ?>
