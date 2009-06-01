@@ -80,7 +80,7 @@ class DirectedEdgeItem
     private $links = array();
     private $tags = array();
     private $properties = array();
-    private $cached = false;
+    private $isCached = false;
 
     public function __construct($database, $id)
     {
@@ -181,7 +181,7 @@ class DirectedEdgeItem
 
     private function read()
     {
-        if($this->cached)
+        if($this->isCached)
         {
             return;
         }
@@ -210,7 +210,7 @@ class DirectedEdgeItem
         $this->properties =
             $this->getValuesByTagName($document, 'property', 'name', $this->properties);
 
-        $this->cached = true;
+        $this->isCached = true;
     }
 
     /**
