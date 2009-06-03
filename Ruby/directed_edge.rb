@@ -171,9 +171,8 @@ module DirectedEdge
 
     attr_reader :id
 
-    # Initializes the item with the value id.
-    # * Note this does not create the item in the database if it does not exist
-    # * See also create
+    # Creates a handle to an item in the DirectedEdge database which may be
+    # manipulated locally and then saved back to the database by calling save.
 
     def initialize(database, id)
       @database = database
