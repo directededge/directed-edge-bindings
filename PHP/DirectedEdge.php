@@ -213,7 +213,7 @@ class DirectedEdgeItem
     {
         if($this->isCached)
         {
-            $this->resource->put($this->toDocument());
+            $this->resource->put($this->toXML());
         }
         else
         {
@@ -221,16 +221,16 @@ class DirectedEdgeItem
                !empty($this->tags) ||
                !empty($this->properties))
             {
-                $this->resource->put($this->toDocument(), 'add');
+                $this->resource->put($this->toXML(), 'add');
             }
 
             if(!empty($this->linksToRemove) ||
                !empty($this->tagsToRemove) ||
                !empty($this->propertiesToRemove))
             {
-                $this->resource->put($this->toDocument($this->linksToRemove,
-                                                       $this->tagsToRemove,
-                                                       $this->propertiesToRemove),
+                $this->resource->put($this->toXML($this->linksToRemove,
+                                                  $this->tagsToRemove,
+                                                  $this->propertiesToRemove),
                                      'remove');
             }
         }
@@ -271,6 +271,57 @@ class DirectedEdgeItem
         $document = new DOMDocument();
         $document->loadXML($content);
         return $this->getValuesByTagName($document, 'recommended');
+    }
+
+    public function toXML($links = null, $tags = null, $properties = null, $includeBody = true)
+    {
+        $links || $links = $this->links;
+        $tags || $tags = $this->tags;
+        $properties || $properties = $this->properties;
+
+        $document = new DOMDocument();
+
+        $directededge = $document->createElement('directededge');
+        $directededge->setAttribute('version', 0.1);
+        $document->appendChild($directededge);
+
+        $item = $document->createElement('item');
+        $item->setAttribute('id', $this->id);
+        $directededge->appendChild($item);
+
+        foreach($links as $name => $weight)
+        {
+            $element = $document->createElement('link', $name);
+
+            if($links[$name] > 0)
+            {
+                $element->setAttribute('weight', $weight);
+            }
+
+            $item->appendChild($element);
+        }
+
+        foreach($tags as $tag)
+        {
+            $element = $document->createElement('tag', $tag);
+            $item->appendChild($element);
+        }
+
+        foreach($properties as $key => $value)
+        {
+            $element = $document->createElement('property', $value);
+            $element->setAttribute('name', $key);
+            $item->appendChild($element);
+        }
+
+        if($includeBody)
+        {
+            return $document->saveXML();
+        }
+        else
+        {
+            return $item->C14N();
+        }
     }
 
     /* PRIVATE */
@@ -345,50 +396,6 @@ class DirectedEdgeItem
 
         return $values;
     }
-
-    private function toDocument($links = null, $tags = null, $properties = null)
-    {
-        $links || $links = $this->links;
-        $tags || $tags = $this->tags;
-        $properties || $properties = $this->properties;
-
-        $document = new DOMDocument();
-
-        $directededge = $document->createElement('directededge');
-        $directededge->setAttribute('version', 0.1);
-        $document->appendChild($directededge);
-
-        $item = $document->createElement('item');
-        $item->setAttribute('id', $this->id);
-        $directededge->appendChild($item);
-
-        foreach($links as $name => $weight)
-        {
-            $element = $document->createElement('link', $name);
-
-            if($links[$name] > 0)
-            {
-                $element->setAttribute('weight', $weight);
-            }
-
-            $item->appendChild($element);
-        }
-
-        foreach($tags as $tag)
-        {
-            $element = $document->createElement('tag', $tag);
-            $item->appendChild($element);
-        }
-
-        foreach($properties as $key => $value)
-        {
-            $element = $document->createElement('property', $value);
-            $element->setAttribute('name', $key);
-            $item->appendChild($element);
-        }
-
-        return $document->saveXML();
-    }
 }
 
 class DirectedEdgeExporter
@@ -404,9 +411,14 @@ class DirectedEdgeExporter
         fwrite($this->file, "<directededge version=\"0.1\">\n");
     }
 
+    public function getDatabase()
+    {
+        return $this->database;
+    }
+
     public function export($item)
     {
-        
+        fwrite($this->file, $item->toXML(null, null, null, false) . "\n");
     }
 
     public function finish()
@@ -417,6 +429,10 @@ class DirectedEdgeExporter
 }
 
 $exporter = new DirectedEdgeExporter('export.xml');
+$item = new DirectedEdgeItem($exporter->getDatabase(), 'fubar');
+$item->addTag('flubber');
+$item->setProperty('foo', 'bar');
+$exporter->export($item);
 $exporter->finish();
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
