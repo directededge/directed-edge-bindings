@@ -65,7 +65,7 @@ class DirectedEdgeResource
     public function put($content, $path = "")
     {
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
-        $request->setBody($content);
+        $request->setBody($content, file_exists($content));
         $response = $request->send();
     }
 
@@ -106,7 +106,7 @@ class DirectedEdgeDatabase
 
     public function import($fileName)
     {
-
+        $this->resource->put($fileName);
     }
 }
 
@@ -397,6 +397,9 @@ class DirectedEdgeExporter
 }
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
+
+$database->import('testdb.xml');
+
 $item = new DirectedEdgeItem($database, 'Socrates');
 
 print_r($item->getLinks());
@@ -406,13 +409,14 @@ print_r($item->getRelated());
 print_r($item->getRecommended());
 
 $item->addTag('all your tag');
+$item->addTag('dude');
 $item->setProperty('foo', 'bar');
 $item->save();
 $item->reload();
 print_r($item->getTags());
 
 $item = new DirectedEdgeItem($database, 'Socrates');
-$item->removeTag('Dude');
+$item->removeTag('all your tag');
 $item->save();
 $item->reload();
 print_r($item->getTags());
