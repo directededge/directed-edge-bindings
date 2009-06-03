@@ -166,7 +166,7 @@ class DirectedEdgeDatabase
     }
 
     /**
-     * The REST resource used for connecting to the database.
+     * @return DirectedEdgeResource The REST resource used for connecting to the database.
      */
 
     public function resource()
@@ -189,6 +189,43 @@ class DirectedEdgeDatabase
     }
 }
 
+/**
+ * Represents an item in a Directed Edge database.  Items can be products, pages
+ * or users, for instance.  Usually items groups are differentiated from one
+ * another by a set of tags that are provided.
+ *
+ * For instance, a user in the Directed Edge database could be modeled as:
+ *
+ * <code>
+ * $user = new DirectedEdgeItem(database, 'user_1');
+ * $user->addTag('user');
+ * $user->save();
+ * </code>
+ *
+ * Similarly a product could be:
+ *
+ * $product = new DirectedEdgeItem($database, 'product_1');
+ * $product->addTag('product');
+ * $product->setProperty('price', '$42');
+ * $product->save();
+ *
+ * Note here that items have tags and properties.  Tags are a free-form set of
+ * text identifiers that can be associated with an item, e.g. "user", "product",
+ * "page", "science fiction", etc.
+ *
+ * Properties are a set of key-value pairs associated with the item.  For example,
+ * <tt>$product->setProperty('price', '$42')</tt>, or
+ * <tt>$product->setProperty('first name', 'Bob')</tt>.
+ *
+ * If we wanted to link the user to the product, for instance, indicating that the
+ * user had purchased the product we can use:
+ *
+ * <code>
+ * $user->linkTo($product);
+ * $user->save();
+ * </code>
+ */
+
 class DirectedEdgeItem
 {
     private $database;
@@ -205,6 +242,14 @@ class DirectedEdgeItem
 
     private $isCached = false;
 
+    /*
+     * Creates a handle to an item in the DirectedEdgeDatabase.  Changes made to
+     * this item will not be reflected in the database until save() is called.
+     *
+     * @param DirectedEdgeDatabase The database that this item is (or will be) a part of.
+     * @param string The unique identifier for the item (e.g. 'product12345')
+     */
+
     public function __construct($database, $id)
     {
         $this->database = $database;
@@ -212,10 +257,31 @@ class DirectedEdgeItem
         $this->id = $id;
     }
 
-    public function getName()
+    /**
+     * @return string The unique identifier passed into the constructor when the
+     * item was created.
+     */
+
+    public function getId()
     {
         return $this->id;
     }
+
+    /**
+     * @return Array An array with a mapping from link names (unique identifiers
+     * of other items) to their weights.  An unweighted link will have zero as its
+     * weight.
+     *
+     * For example:
+     *
+     * <tt>
+     * Array
+     * (
+     *     [product1] => 0
+     *     [product2] => 0
+     * )
+     * </tt>
+     */
 
     public function getLinks()
     {
@@ -223,11 +289,19 @@ class DirectedEdgeItem
         return $this->links;
     }
 
+    /**
+     * @return Array Simple list of all tags associated with this item.
+     */
+
     public function getTags()
     {
         $this->read();
         return $this->tags;
     }
+
+    /**
+     * @return Array Key-value map for each property.
+     */
 
     public function getProperties()
     {
@@ -235,11 +309,28 @@ class DirectedEdgeItem
         return $this->properties;
     }
 
+    /**
+     * Gets the value of one of the item's properties.
+     *
+     * @param string The name of the property to fetch.
+     * @return string The value of the given property.
+     */
+
     public function getProperty($name)
     {
         $this->read();
         return $this->properties[$name];
     }
+
+    /**
+     * Creates or overwrites an existing property of the item.
+     *
+     * @param string Name of the property to set.
+     * @param string Value to set.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
 
     public function setProperty($name, $value)
     {
@@ -247,11 +338,32 @@ class DirectedEdgeItem
         $this->properties[$name] = $value;
     }
 
+    /**
+     * Removes a property from the item.
+     *
+     * @param string The name of the property be cleared from this items
+     * properties.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
+
     public function clearProperty($name)
     {
         $this->propertiesToRemove[$name] = "";
         unset($this->properties[$name]);
     }
+
+    /**
+     * Creates a link from this item to another item.
+     *
+     * @param string The ID of the item to link to.
+     * @param integer The weight to be used, from 1 to 10 or 0 for an unweighted
+     * link.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
 
     public function linkTo($other, $weight = 0)
     {
@@ -260,11 +372,25 @@ class DirectedEdgeItem
         $this->links[$other] = $weight;
     }
 
+    /**
+     * Unlinks the item from another item.
+     *
+     * @param string The unique ID of another item.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
+
     public function unlinkFrom($other)
     {
         $this->linksToRemove[$other] = 0;
         unset($this->links[$other]);
     }
+
+    /**
+     * @param string The unique ID of an item that this item is linked to.
+     * @return integer The weight of the link from this item to @a other.
+     */
 
     public function getWeightFor($other)
     {
@@ -272,11 +398,29 @@ class DirectedEdgeItem
         return $this->links[$other];
     }
 
+    /**
+     * Adds a tag to the item.
+     *
+     * @param string The name of the tag to be added.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
+
     public function addTag($tag)
     {
         $this->tagsToRemove = array_remove($this->tagsToRemove, $tag);
         $this->tags = array_insert($this->tags, $tag);
     }
+
+    /**
+     * Removes a tag from the item.
+     *
+     * @param string The name of the tag to be removed.
+     *
+     * @note Changes will not be reflected in the database until save() is
+     * called.
+     */
 
     public function removeTag($tag)
     {
@@ -287,6 +431,10 @@ class DirectedEdgeItem
 
         $this->tags = array_remove($this->tags, $tag);
     }
+
+    /**
+     * Writes all pending changes back to the database.
+     */
 
     public function save()
     {
@@ -315,6 +463,11 @@ class DirectedEdgeItem
         }
     }
 
+    /**
+     * Re-reads all links, tags and properties from the database and overwrites
+     * any local changes.
+     */
+
     public function reload()
     {
         $this->links = array();
@@ -329,10 +482,25 @@ class DirectedEdgeItem
         $this->read();
     }
 
+    /**
+     * Removes the item from the Directed Edge Database.  Acts immediately.
+     */
+
     public function destroy()
     {
         $this->resource->delete();
     }
+
+    /**
+     * Finds related products, users, etc.  Note that there is a difference between
+     * "related" and "recommended" methods -- related is used for similar products,
+     * recommended for personalized recommendations.
+     *
+     * These related items may include items that this one is already linked to.
+     *
+     * @param Array Matches must have at least one of the tags specified.
+     * @return Array A list of related items sorted by relevance.
+     */
 
     public function getRelated($tags = array())
     {
@@ -343,6 +511,17 @@ class DirectedEdgeItem
         return $this->getValuesByTagName($document, 'related');
     }
 
+    /**
+     * Finds recommended products, users, etc.  Note that there is a difference between
+     * "related" and "recommended" methods -- related is used for similar products,
+     * recommended for personalized recommendations.
+     *
+     * This will not show any items that this item is already linked to.
+     *
+     * @param Array Matches must have at least one of the tags specified.
+     * @return A list of recommended items sorted by relevance.
+     */
+
     public function getRecommended($tags = array())
     {
         $content = $this->resource->get('recommended?excludeLinked=true&tags=' .
@@ -351,6 +530,17 @@ class DirectedEdgeItem
         $document->loadXML($content);
         return $this->getValuesByTagName($document, 'recommended');
     }
+
+    /**
+     * @return An XML representation of the item.
+     *
+     * @param Array Links to be included, defaults to this item's links.
+     * @param Array Tags to be included, defaults to this item's tags.
+     * @param Array Properties to be included, defaults to this item's properties.
+     * @param bool Specifies if the full document should be returned or just item element
+     * that's creates.
+     * @return string XML representation of the item.
+     */
 
     public function toXML($links = null, $tags = null, $properties = null, $includeBody = true)
     {
@@ -403,7 +593,19 @@ class DirectedEdgeItem
         }
     }
 
-    /* PRIVATE */
+    /**
+     * @return The item's unique identifier.
+     */
+
+    public function __toString()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Checks to see if the item is already cached locally and if not reads it
+     * from the Directed Edge server.
+     */
 
     private function read()
     {
