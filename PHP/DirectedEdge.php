@@ -428,36 +428,4 @@ class DirectedEdgeExporter
     }
 }
 
-$exporter = new DirectedEdgeExporter('export.xml');
-$item = new DirectedEdgeItem($exporter->getDatabase(), 'fubar');
-$item->addTag('flubber');
-$item->setProperty('foo', 'bar');
-$exporter->export($item);
-$exporter->finish();
-
-$database = new DirectedEdgeDatabase('testdb', 'test');
-
-$database->import('testdb.xml');
-
-$item = new DirectedEdgeItem($database, 'Socrates');
-
-print_r($item->getLinks());
-print_r($item->getTags());
-print_r($item->getProperties());
-print_r($item->getRelated());
-print_r($item->getRecommended());
-
-$item->addTag('all your tag');
-$item->addTag('dude');
-$item->setProperty('foo', 'bar');
-$item->save();
-$item->reload();
-print_r($item->getTags());
-
-$item = new DirectedEdgeItem($database, 'Socrates');
-$item->removeTag('all your tag');
-$item->save();
-$item->reload();
-print_r($item->getTags());
-
 ?>
