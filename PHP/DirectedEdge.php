@@ -40,27 +40,59 @@ function array_insert($haystack, $needle)
     return $haystack;
 }
 
+/**
+ * Simple conceptualization of a REST resource, with support for GET, PUT and
+ * DELETE HTTP methods.
+ */
+
 class DirectedEdgeResource
 {
     private $base;
+
+    /**
+     * Constructs a resource.
+     * @param string The base URL from which further resources are considered
+     * sub-resources.
+     */
 
     public function __construct($base)
     {
         $this->base = $base;
     }
     
+    /**
+     * Indexes into a sub-resource.
+     *
+     * @param string Just the sub-resource itself's name (e.g. 'related')
+     * @return string The full path to a subresource.
+     */
+
     public function path($path = "")
     {
         return $this->base . '/' . urlencode($path);
     }
 
+    /**
+     * Performs an HTTP GET on the resource and returns the contents.
+     *
+     * @param string A sub-resource to fetch.
+     * @return string The contents of the resource.
+     */
+
     public function get($path = "")
     {
-        # print "Get: " . $this->path() . $path . "\n";
         $request = new HTTP_Request2($this->path() . $path);
         $response = $request->send();
         return $response->getBody();
     }
+
+    /**
+     * Performs an HTTP PUT on the resource.
+     *
+     * @param string The data to upload to the (sub-) resource. May be a file
+     * name or the content itself.
+     * @param string The sub-resource to upload to.
+     */
 
     public function put($content, $path = "")
     {
@@ -68,6 +100,12 @@ class DirectedEdgeResource
         $request->setBody($content, file_exists($content));
         $response = $request->send();
     }
+
+    /**
+     * Performs an HTTP DELETE on the resource.
+     *
+     * @param string The sub-resource to be deleted.
+     */
 
     public function delete($path = "")
     {
