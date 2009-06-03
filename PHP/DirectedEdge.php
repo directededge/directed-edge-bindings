@@ -119,9 +119,37 @@ class DirectedEdgeResource
     }
 }
 
+/**
+ *
+ * A Database is an encapsulation of a database being accessed via the Directed
+ * Edge web-services API.  You can request database creation by visiting
+ * http://www.directededge.com/ and will recieve a user name and password which
+ * are then used to connect to your DirectedEdgeDatabase instance.
+ *
+ * Usually when getting started with a DirectedEdge database, users would like to
+ * import some pre-existing data, usually from their web application's database.
+ * The Database class has an import method which can be used to import data using
+ * Directed Edge's XML format.  Files formatted in that way may be created with
+ * the Exporter.
+ *
+ * A database is typically instantiated via:
+ *
+ * <code>
+ * $database = new DirectedEdgeDatabase('mydatabase', 'mypassword');
+ * </code>
+ */
+
 class DirectedEdgeDatabase
 {
     private $resource;
+
+    /**
+     * Creates a connection to a Directed Edge database.
+     *
+     * @param string The account / database name for the database.
+     * @param string The password for the account.
+     * @param string The protocol to be used -- http or https.
+     */
 
     public function __construct($name, $password = '', $protocol = 'http')
     {
@@ -137,10 +165,23 @@ class DirectedEdgeDatabase
         $this->resource = new DirectedEdgeResource($base);
     }
 
+    /**
+     * The REST resource used for connecting to the database.
+     */
+
     public function resource()
     {
         return $this->resource;
     }
+
+    /**
+     * Imports a Directed Edge XML file to the database.
+     *
+     * See http://developer.directededge.com/ for more information on the XML format or the
+     * Exporter for help on creating a file for importing.
+     *
+     * @param string File name with the contents to be imported.
+     */
 
     public function import($fileName)
     {
