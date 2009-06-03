@@ -85,7 +85,7 @@ class DirectedEdgeDatabase
 {
     private $resource;
 
-    public function __construct($name, $password, $protocol = 'http')
+    public function __construct($name, $password = '', $protocol = 'http')
     {
         $host = $_ENV['DIRECTEDEDGE_HOST'];
 
@@ -393,8 +393,31 @@ class DirectedEdgeItem
 
 class DirectedEdgeExporter
 {
+    private $database;
+    private $file;
 
+    public function __construct($fileName)
+    {
+        $this->database = new DirectedEdgeDatabase('export');
+        $this->file = fopen($fileName, 'w');
+        fwrite($this->file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+        fwrite($this->file, "<directededge version=\"0.1\">\n");
+    }
+
+    public function export($item)
+    {
+        
+    }
+
+    public function finish()
+    {
+        fwrite($this->file, "</directededge>\n");
+        fclose($this->file);
+    }
 }
+
+$exporter = new DirectedEdgeExporter('export.xml');
+$exporter->finish();
 
 $database = new DirectedEdgeDatabase('testdb', 'test');
 
