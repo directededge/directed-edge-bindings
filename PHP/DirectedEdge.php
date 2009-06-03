@@ -679,10 +679,43 @@ class DirectedEdgeItem
     }
 }
 
+/*
+ * A very simple class for creating Directed Edge XML files.  This can be done for
+ * example with:
+ *
+ * <code>
+ * $exporter = new DirectedEdgeExporter('mydatabase.xml');
+ * $item = new DirectedEdgeItem($exporter->getDatabase(), 'product_1');
+ * $item->addTag('product');
+ * $exporter->export($item);
+ * $exporter->finish();
+ * </code>
+ *
+ * <tt>mydatabase.xml</tt> now contains:
+ *
+ * <?xml version="1.0" encoding="UTF-8"?>
+ * <directededge version="0.1">
+ * <item id='product_1'><tag>product</tag></item>
+ * </directededge>
+ *
+ * Which can then be imported to a database on the server with:
+ *
+ * <code>
+ * $database = new DirectedEdgeDatabase('mydatabase', 'mypassword');
+ * $database->import('mydatabase.xml');
+ * </code>
+ *
+ * Items may also be exported from existing databases.
+ */
+
 class DirectedEdgeExporter
 {
     private $database;
     private $file;
+
+    /**
+     * @param string The file name to export the data to.
+     */
 
     public function __construct($fileName)
     {
@@ -692,15 +725,28 @@ class DirectedEdgeExporter
         fwrite($this->file, "<directededge version=\"0.1\">\n");
     }
 
+    /**
+     * @return DirectedEdgeDatabase A handle to the dummy database used for
+     * creating items with the explicit intent of exporting them.
+     */
+
     public function getDatabase()
     {
         return $this->database;
     }
 
+    /**
+     * @param DirectedEdgeItem An item to be added to the XML output from the exporter.
+     */
+
     public function export($item)
     {
         fwrite($this->file, $item->toXML(null, null, null, false) . "\n");
     }
+
+    /**
+     * Tells the exporter to finish up the XML output and close the output file.
+     */
 
     public function finish()
     {
