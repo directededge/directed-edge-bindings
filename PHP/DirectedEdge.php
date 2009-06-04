@@ -41,6 +41,30 @@ function array_insert($haystack, $needle)
 }
 
 /**
+ * Simple exception class that is used when there is a problem communicating
+ * with the Directed Edge web services or if an item can not be found.
+ */
+
+class DirectedEdgeException extends Exception
+{
+    /**
+     * @param integer HTTP status code
+     * @param string HTTP text message
+     */
+    public function __construct($code, $reason)
+    {
+        if($code == 404)
+        {
+            parent::__construct("Could not find item.");
+        }
+        else
+        {
+            parent::__construct($reason);
+        }
+    }
+}
+
+/**
  * Simple conceptualization of a REST resource, with support for GET, PUT and
  * DELETE HTTP methods.
  */
@@ -77,12 +101,21 @@ class DirectedEdgeResource
      *
      * @param string A sub-resource to fetch.
      * @return string The contents of the resource.
+     * @throws DirectedEdgeException Thrown if there is a connection problem or the resource
+     * could not be found.
      */
 
     public function get($path = "")
     {
         $request = new HTTP_Request2($this->path() . $path);
         $response = $request->send();
+
+        if($response->getStatus() != 200)
+        {
+            throw new DirectedEdgeException($response->getStatus(),
+                                            $response->getReasonPhrase());
+        }
+
         return $response->getBody();
     }
 
@@ -92,6 +125,8 @@ class DirectedEdgeResource
      * @param string The data to upload to the (sub-) resource. May be a file
      * name or the content itself.
      * @param string The sub-resource to upload to.
+     * @throws DirectedEdgeException Thrown if there is a connection problem or the resource
+     * could not be found.
      */
 
     public function put($content, $path = "")
@@ -99,18 +134,32 @@ class DirectedEdgeResource
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
         $request->setBody($content, file_exists($content));
         $response = $request->send();
+
+        if($response->getStatus() != 200)
+        {
+            throw new DirectedEdgeException($response->getStatus(),
+                                            $response->getReasonPhrase());
+        }
     }
 
     /**
      * Performs an HTTP DELETE on the resource.
      *
      * @param string The sub-resource to be deleted.
+     * @throws DirectedEdgeException Thrown if there is a connection problem or the resource
+     * could not be found.
      */
 
     public function delete($path = "")
     {
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_DELETE);
         $response = $request->send();
+
+        if($response->getStatus() != 200)
+        {
+            throw new DirectedEdgeException($response->getStatus(),
+                                            $response->getReasonPhrase());
+        }
     }
 
     public function __toString()
