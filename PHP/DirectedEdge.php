@@ -728,7 +728,7 @@ class DirectedEdgeItem
     }
 }
 
-/*
+/**
  * A very simple class for creating Directed Edge XML files.  This can be done for
  * example with:
  *
