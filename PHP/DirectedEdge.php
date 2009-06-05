@@ -303,7 +303,7 @@ class DirectedEdgeItem
 
     private $isCached = false;
 
-    /*
+    /**
      * Creates a handle to an item in the DirectedEdgeDatabase.  Changes made to
      * this item will not be reflected in the database until save() is called.
      *
