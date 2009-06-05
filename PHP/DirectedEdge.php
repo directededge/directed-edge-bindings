@@ -2,19 +2,6 @@
 
 require_once('HTTP/Request2.php');
 
-function array_contains($haystack, $needle)
-{
-    foreach($haystack as $value)
-    {
-        if($value == $needle)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 function array_remove($haystack, $needle)
 {
     $result = array();
@@ -32,7 +19,7 @@ function array_remove($haystack, $needle)
 
 function array_insert($haystack, $needle)
 {
-    if(!array_contains($haystack, $needle))
+    if(!in_array($needle, $haystack))
     {
         $haystack[] = $needle;
     }
@@ -717,7 +704,7 @@ class DirectedEdgeItem
             {
                 $value = $nodes->item($i)->textContent;
 
-                if(!array_contains($values, $value))
+                if(!in_array($value, $values))
                 {
                     $values[] = $nodes->item($i)->textContent;
                 }
