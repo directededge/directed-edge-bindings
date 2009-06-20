@@ -91,10 +91,17 @@ HTTP.postXML = function(url, cb, data)
     request.send(data);
 }
 
-function Resource(base)
+function Resource(base, hasQuestionMark)
 {
 	this.base = base;
-	this.hasQuestionMark = false;
+	if (arguments.length > 1)
+	{
+		this.hasQuestionMark = hasQuestionMark;
+	}
+	else
+	{
+		this.hasQuestionMark = false;
+	}
 }
 
 Resource.prototype.addResource = function(r)
@@ -104,15 +111,13 @@ Resource.prototype.addResource = function(r)
 
 Resource.prototype.addKeyValuePair = function(k, v)
 {
-	if(this.hasQuerstionMark)
+	if(this.hasQuestionMark)
 	{
-		var rb = new Resource(this.base + "&" + k + "=" + v);
-		rb.hasQuestionMark = true;
+		var rb = new Resource(this.base + "&" + k + "=" + v, true);
 		return rb;
 	}
 
-	var rb = new Resource(this.base + "?" + k + "=" + v);
-	rb.hasQuestionMark = true;
+	var rb = new Resource(this.base + "?" + k + "=" + v, true);
 	return rb;
 }
 
@@ -204,10 +209,34 @@ Item.prototype.recommendedItems = function(callback)
     HTTP.getXML(this.resource.addResource("recommended").url(), {obj: this, callback: this.relatedHandler}, callback);
 }
 
-Item.prototype.relatedItems = function(callback)
+Item.prototype.relatedItems = function(callback, excludeLinked, maxResults, tags)
 {
+	var res = this.resource.addResource("related");
+	if(arguments.length > 1)
+	{
+		res = res.addKeyValuePair("excludeLinked", excludeLinked).addKeyValuePair("maxResults", maxResults);
+		if(typeof(tags) == "object")
+		{
+			res = res.addKeyValuePair("tags", tags.join(","));
+		}
+		else
+		{
+			var tagsA = new Array();
+			var t = arguments.length - 3;
+			for(var i=3; i < arguments.length; i++)
+			{
+				tagsA.push(arguments[i]);
+			}
+			
+			res = res.addKeyValuePair("tags", tags.join(","));
+		}
+		Debug.debug("relatedItems tags type: " + typeof(tags));
+	}
+
+	Debug.debug("relatedItems: query: " + res.url());
+
     getR = HTTP.newRequest();
-    HTTP.getXML(this.resource.addResource("related").url(), {obj: this, callback: this.relatedHandler}, callback);
+    HTTP.getXML(res.url(), {obj: this, callback: this.relatedHandler}, callback);
 }
 
 Item.prototype.read = function(callback)
