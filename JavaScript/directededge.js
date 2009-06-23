@@ -71,20 +71,21 @@ HTTP.getXML = function(url, cb, parameter)
     request.send(null);
 }
 
-HTTP.postXML = function(url, cb, data)
+HTTP.postXML = function(url, callback, data)
 {
     var request = HTTP.newRequest();
 
-    
-
-    request.onreadystatechange = function()
-    {
-        Debug.debug("postXML: state: " + request.readyState + " status: " + request.status);
-        if(request.readyState == 4 && request.status == 200)
-        {
-            cb.callback.call(cb.obj);
-        }
-    }
+    if(callback != undefined)
+	{
+    	request.onreadystatechange = function()
+    	{
+    	    Debug.debug("postXML: state: " + request.readyState + " status: " + request.status);
+    	    if(request.readyState == 4 && request.status == 200)
+    	    {
+   		         callback();
+        	}
+    	}
+	}
 
     request.open("PUT", url);
     request.setRequestHeader("Content-Type", "text/xml");
@@ -143,6 +144,14 @@ function Database() {
     }
 }
 
+function Link(source, target)
+{
+	this.source = source;
+	this.target = target;
+	this.weight = 0;
+	this.type = "";
+}
+
 function Item(database, id)
 {
     this.id = id;
@@ -166,13 +175,32 @@ Item.prototype.readHandler = function(text, cb)
     var rlinks = text.getElementsByTagName("link");
     for(var i=0; i < rlinks.length; i++)
     {
-        this.links.push(new Item(this.database, rlinks.item(i).childNodes[0].nodeValue));
-    }
+		var l = new Link(this.id, rlinks.item(i).childNodes[0].nodeValue);
+
+		var weight = rlinks.item(i).attributes['weight'];
+		var type = rlinks.item(i).attributes['type'];
+
+		if(weight != undefined)
+		{
+			l.weight = weight;	
+		}
+		
+		if(type != undefined)
+		{
+			l.type = type;	
+		}
+
+		this.links.push(l);
+	}
 
     var rtags = text.getElementsByTagName("tag");
     for(var i=0; i < rtags.length; i++)
     {
-        this.tags.push(rtags.item(i).childNodes[0].nodeValue);
+		//ignore "" tags
+		if(rtags.item(i).childNodes[0] != undefined)
+		{
+        	this.addTag(rtags.item(i).childNodes[0].nodeValue);
+		}
     }
 
     var rproperties = text.getElementsByTagName("property");
@@ -203,40 +231,38 @@ Item.prototype.relatedHandler = function(text, callback)
 	callback(related);
 }
 
-Item.prototype.recommendedItems = function(callback)
+Item.prototype.recommendedHandler = function(text, callback)
 {
-    getR = HTTP.newRequest();
-    HTTP.getXML(this.resource.addResource("recommended").url(), {obj: this, callback: this.relatedHandler}, callback);
-}
+	var recommended = new Array();
+	var ritems = text.getElementsByTagName("recommended");
 
-Item.prototype.relatedItems = function(callback, excludeLinked, maxResults, tags)
-{
-	var res = this.resource.addResource("related");
-	if(arguments.length > 1)
+	for(var i=0; i < ritems.length; i++)
 	{
-		res = res.addKeyValuePair("excludeLinked", excludeLinked).addKeyValuePair("maxResults", maxResults);
-		if(typeof(tags) == "object")
-		{
-			res = res.addKeyValuePair("tags", tags.join(","));
-		}
-		else
-		{
-			var tagsA = new Array();
-			var t = arguments.length - 3;
-			for(var i=3; i < arguments.length; i++)
-			{
-				tagsA.push(arguments[i]);
-			}
-			
-			res = res.addKeyValuePair("tags", tags.join(","));
-		}
-		Debug.debug("relatedItems tags type: " + typeof(tags));
+		recommended.push(new Item(this.database, ritems.item(i).childNodes[0].nodeValue));
 	}
 
-	Debug.debug("relatedItems: query: " + res.url());
+	callback(recommended);
+}
 
-    getR = HTTP.newRequest();
-    HTTP.getXML(res.url(), {obj: this, callback: this.relatedHandler}, callback);
+Item.prototype.recommendedItems = function(qParameters, callback)
+{
+	this.query(callback, "recommended", this.recommendedHandler, qParameters);
+}
+
+Item.prototype.relatedItems = function(qParameters, callback)
+{
+	this.query(callback, "related", this.relatedHandler, qParameters);
+}
+
+Item.prototype.query = function(callback, method, handler, qParameters)
+{
+	var res = this.resource.addResource(method);
+
+		res = res.addKeyValuePair("excludeLinked", qParameters.excludeLinked)
+			.addKeyValuePair("maxResults", qParameters.maxResults)
+			.addKeyValuePair("tags", qParameters.tags.join(","));
+
+    HTTP.getXML(res.url(), {obj: this, callback: handler}, callback);
 }
 
 Item.prototype.read = function(callback)
@@ -249,8 +275,20 @@ Item.prototype.read = function(callback)
         return;
     }
 
-    getR = HTTP.newRequest();
     HTTP.getXML(this.resource.url(), {obj: this, callback: this.readHandler}, callback);
+}
+
+Item.prototype.reload = function(callback)
+{
+	delete this.tags;
+	delete this.properties;
+	delete this.links;
+	
+	this.tags = new Array();
+	this.properties = new Array();
+	this.links = new Array();
+	
+	this.read(callback);
 }
 
 Item.prototype.getLinks = function(callback)
@@ -281,10 +319,30 @@ Item.prototype.getTags = function(callback)
     }
 }
 
+Item.prototype.removeTag = function(tag)
+{
+	for(var i=0; i < this.tags.length; i++)
+	{
+		if(this.tags[i] == tag)
+		{
+			this.tags.splice(i, 1);
+			return;
+		}
+	}
+}
+
 Item.prototype.addTag = function(tag)
 {
-    Debug.debug("addTag " + tag);
-    this.tags.push(tag);
+	for(var t in this.tags)
+	{
+		if(t == tag)
+		{
+			return false;	
+		}
+	}
+
+	this.tags.push(tag);
+	return true;
 }
 
 Item.prototype.setProperty = function(key, value)
@@ -312,43 +370,29 @@ Item.prototype.getProperties = function(callback)
     }
 }
 
+Item.prototype.removeProperty = function(property)
+{
+	if(this.properties[property] != undefined)
+	{
+		delete this.properties[property];	
+	}
+}
+
 Item.prototype.save = function(callback)
 {
     Debug.debug("save");
-    HTTP.postXML(this.resource.url(), {obj: this, callback: callback}, this.toXML());
+    HTTP.postXML(this.resource.url(), callback, this.toXML());
 }
 
 Item.prototype.toXML = function()
 {
-/*
-    //var xmlstring = '<?xml version="1.0" encoding="UTF-8"?>';
-    var xmlstring = '';
-    var xmlobject = (new DOMParser()).parseFromString(xmlstring, "text/xml");
-    var de = xmlobject.createElement("directededge");
-    de.setAttribute("version", "1.0");
-    //xmlobject.appendChild(de);
-
-    var item = xmlobject.createElement("item");
-    item.setAttribute("id", this.id);
-
-    for(var i=0; i < this.links.length; i++)
-    {
-        var li = xmlobject.createElement("link");
-        li.appendChild(xmlobject.createTextNode(this.links[i]));
-        item.appendChild(li);
-    }
-
-    de.appendChild(item);
-    xmlobject.appendChild(de);
-*/
-
     var xmlstring = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xmlstring += '<directededge version="1.0">\n';
     xmlstring += '<item id="' + this.id + '">\n';
 
     for(var i=0; i < this.links.length; i++)
     {
-        xmlstring += '<link>'+this.links[i].id+'</link>\n';
+        xmlstring += '<link weight="'+this.links[i].weight+'" type="'+this.links[i].type+'">'+this.links[i].target+'</link>\n';
     }
  
     for(var i=0; i < this.tags.length; i++)
@@ -365,3 +409,33 @@ Item.prototype.toXML = function()
     return xmlstring;
 }
 
+Item.prototype.linkTo = function(target, weight, type)
+{
+	var link = new Link(this.id, target);
+	if(weight != undefined)
+	{
+		link.weight = weight;	
+	}
+	
+	if(type != undefined)
+	{
+		link.type = type;	
+	}
+	
+	this.links.push(link);
+}
+
+Item.prototype.unlink = function(target, type)
+{
+	var t = type != undefined ? type : "";
+	
+	for(var i=0; this.links; i++)
+	{
+		var it = this.links[i];
+		if(it.target == target && it.type == t)
+		{
+			delete this.links[i];
+			return;
+		}
+	}
+}
