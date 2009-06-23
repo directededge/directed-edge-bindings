@@ -258,9 +258,14 @@ Item.prototype.query = function(callback, method, handler, qParameters)
 {
 	var res = this.resource.addResource(method);
 
-		res = res.addKeyValuePair("excludeLinked", qParameters.excludeLinked)
-			.addKeyValuePair("maxResults", qParameters.maxResults)
-			.addKeyValuePair("tags", qParameters.tags.join(","));
+	res = res.addKeyValuePair("excludeLinked", qParameters.excludeLinked)
+		.addKeyValuePair("maxResults", qParameters.maxResults)
+		.addKeyValuePair("tags", qParameters.tags.join(","))
+		
+	if(qParameters.popularity != undefined)
+	{
+		res = res.addKeyValuePair("popularity", qParameters.popularity);
+	}
 
     HTTP.getXML(res.url(), {obj: this, callback: handler}, callback);
 }
