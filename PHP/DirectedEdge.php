@@ -601,6 +601,11 @@ class DirectedEdgeItem
 
         foreach($linkWeights as $type => $weight)
         {
+            if($type == '')
+            {
+                $type = 'default';
+            }
+
             $weights .= "&${type}Weight=$weight";
         }
 
