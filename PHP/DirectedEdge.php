@@ -603,26 +603,7 @@ class DirectedEdgeItem
 
     public function getRelated($tags = array(), $linkWeights = array())
     {
-        $weights = '';
-
-        foreach($linkWeights as $type => $weight)
-        {
-            if($type == '')
-            {
-                $type = 'default';
-            }
-
-            $weights .= "&${type}Weight=$weight";
-        }
-
-        $content = $this->resource->get('related?tags=' .
-                                        (is_array($tags) ? join($tags, ',') : $tags) .
-                                        $weights);
-
-        $document = new DOMDocument();
-        $document->loadXML($content);
-
-        return $this->getValuesByTagName($document, 'related');
+        return $this->query('related', $tags, $linkWeights);
     }
 
     /**
@@ -636,13 +617,9 @@ class DirectedEdgeItem
      * @return A list of recommended items sorted by relevance.
      */
 
-    public function getRecommended($tags = array(), $linkWeights)
+    public function getRecommended($tags = array(), $linkWeights = array())
     {
-        $content = $this->resource->get('recommended?excludeLinked=true&tags=' .
-                                        (is_array($tags) ? join($tags, ',') : $tags));
-        $document = new DOMDocument();
-        $document->loadXML($content);
-        return $this->getValuesByTagName($document, 'recommended');
+        return $this->query('recommended', $tags, $linkWeights);
     }
 
     /**
@@ -801,6 +778,30 @@ class DirectedEdgeItem
         }
 
         return $values;
+    }
+
+    private function query($method, $tags = array(), $linkWeights = array())
+    {
+        $weights = '';
+
+        foreach($linkWeights as $type => $weight)
+        {
+            if($type == '')
+            {
+                $type = 'default';
+            }
+
+            $weights .= "&${type}Weight=$weight";
+        }
+
+        $content = $this->resource->get("${method}?tags=" .
+                                        (is_array($tags) ? join($tags, ',') : $tags) .
+                                        $weights);
+
+        $document = new DOMDocument();
+        $document->loadXML($content);
+
+        return $this->getValuesByTagName($document, $method);
     }
 }
 
