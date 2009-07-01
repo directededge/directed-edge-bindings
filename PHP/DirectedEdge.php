@@ -103,7 +103,7 @@ class DirectedEdgeResource
      * @return string The full path to a subresource.
      */
 
-    public function path($path = "")
+    public function path($path = '')
     {
         return $this->base . '/' . urlencode($path);
     }
@@ -117,7 +117,7 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function get($path = "")
+    public function get($path = '')
     {
         $request = new HTTP_Request2($this->path() . $path);
         $response = $request->send();
@@ -141,7 +141,7 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function put($content, $path = "")
+    public function put($content, $path = '')
     {
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
         $request->setBody($content, file_exists($content));
@@ -162,7 +162,7 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function delete($path = "")
+    public function delete($path = '')
     {
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_DELETE);
         $response = $request->send();
@@ -351,7 +351,7 @@ class DirectedEdgeItem
      * @see getLinkTypes()
      */
 
-    public function getLinks($type = "")
+    public function getLinks($type = '')
     {
         $this->read();
         return $this->links[$type];
@@ -438,7 +438,7 @@ class DirectedEdgeItem
 
     public function clearProperty($name)
     {
-        $this->propertiesToRemove[$name] = "";
+        $this->propertiesToRemove[$name] = '';
         unset($this->properties[$name]);
     }
 
@@ -454,7 +454,7 @@ class DirectedEdgeItem
      * called.
      */
 
-    public function linkTo($other, $weight = 0, $type = "")
+    public function linkTo($other, $weight = 0, $type = '')
     {
         ### Throw an error if this is out of range.
         unset($this->linksToRemove[$type][$other]);
@@ -472,7 +472,7 @@ class DirectedEdgeItem
      * called.
      */
 
-    public function unlinkFrom($other, $type = "")
+    public function unlinkFrom($other, $type = '')
     {
         $this->linksToRemove[$type][$other] = 0;
         unset($this->links[$type][$other]);
@@ -484,7 +484,7 @@ class DirectedEdgeItem
      * @return integer The weight of the link from this item to @a other.
      */
 
-    public function getWeightFor($other, $type = "")
+    public function getWeightFor($other, $type = '')
     {
         $this->read();
         return $this->links[$type][$other];
@@ -597,7 +597,7 @@ class DirectedEdgeItem
 
     public function getRelated($tags = array(), $linkWeights = array())
     {
-        $weights = "";
+        $weights = '';
 
         foreach($linkWeights as $type => $weight)
         {
@@ -741,7 +741,7 @@ class DirectedEdgeItem
         for($i = 0; $i < $linkNodes->length; $i++)
         {
             $link = $linkNodes->item($i)->textContent;
-            $type = $linkNodes->item($i)->attributes->getNamedItem('type') || "";
+            $type = $linkNodes->item($i)->attributes->getNamedItem('type') || '';
 
             # Don't overwrite links that the user has created.
 
