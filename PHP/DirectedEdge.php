@@ -342,12 +342,39 @@ class DirectedEdgeItem
      *     [product2] => 0
      * )
      * </tt>
+     *
+     * An item may have multiple link types, e.g. "purchase" or "rating" in
+     * to the default type.  If no type argument is given the list of non-typed
+     * links will be returned; if it is given the links of that type will be
+     * returned.
+     *
+     * @see getLinkTypes()
      */
 
-    public function getLinks()
+    public function getLinks($type = "")
     {
         $this->read();
-        return $this->links;
+        return $this->links[$type];
+    }
+
+    /**
+     * Link types are used to encode different sorts of relationships in the
+     * Directed Edge engine.  For example, types might include:
+     *
+     * - Purchases
+     * - Ratings
+     * - Viewed Items
+     * - Favorited
+     *
+     * And so on.  These link types may be encoded in into the Directed Edge
+     * system and later used to influence related / recommended queries.
+     *
+     * @return Array A list of all link types in use by this item.
+     */
+
+    public function getLinkTypes()
+    {
+        return array_keys($this->links);
     }
 
     /**
@@ -421,42 +448,46 @@ class DirectedEdgeItem
      * @param string The ID of the item to link to.
      * @param integer The weight to be used, from 1 to 10 or 0 for an unweighted
      * link.
+     * @param string An optional link type, e.g. "purchase" or "rating".
      *
      * @note Changes will not be reflected in the database until save() is
      * called.
      */
 
-    public function linkTo($other, $weight = 0)
+    public function linkTo($other, $weight = 0, $type = "")
     {
         ### Throw an error if this is out of range.
-        unset($this->linksToRemove[$other]);
-        $this->links[$other] = $weight;
+        unset($this->linksToRemove[$type][$other]);
+        $this->links[$type][$other] = $weight;
     }
 
     /**
      * Unlinks the item from another item.
      *
      * @param string The unique ID of another item.
+     * @param string The link type to be removed.
+     * @param string Link type to be removed.
      *
      * @note Changes will not be reflected in the database until save() is
      * called.
      */
 
-    public function unlinkFrom($other)
+    public function unlinkFrom($other, $type = "")
     {
-        $this->linksToRemove[$other] = 0;
-        unset($this->links[$other]);
+        $this->linksToRemove[$type][$other] = 0;
+        unset($this->links[$type][$other]);
     }
 
     /**
      * @param string The unique ID of an item that this item is linked to.
+     * @param string The link type to get the weight for.
      * @return integer The weight of the link from this item to @a other.
      */
 
-    public function getWeightFor($other)
+    public function getWeightFor($other, $type = "")
     {
         $this->read();
-        return $this->links[$other];
+        return $this->links[$type][$other];
     }
 
     /**
@@ -594,7 +625,7 @@ class DirectedEdgeItem
      * @return A list of recommended items sorted by relevance.
      */
 
-    public function getRecommended($tags = array())
+    public function getRecommended($tags = array(), $linkWeights)
     {
         $content = $this->resource->get('recommended?excludeLinked=true&tags=' .
                                         (is_array($tags) ? join($tags, ',') : $tags));
@@ -612,6 +643,8 @@ class DirectedEdgeItem
      * @param bool Specifies if the full document should be returned or just item element
      * that's creates.
      * @return string XML representation of the item.
+     *
+     * @internal
      */
 
     public function toXML($links = null, $tags = null, $properties = null, $includeBody = true)
@@ -630,16 +663,24 @@ class DirectedEdgeItem
         $item->setAttribute('id', $this->id);
         $directededge->appendChild($item);
 
-        foreach($links as $name => $weight)
+        foreach($links as $type => $values)
         {
-            $element = $document->createElement('link', $name);
-
-            if($links[$name] > 0)
+            foreach($values as $name => $weight)
             {
-                $element->setAttribute('weight', $weight);
-            }
+                $element = $document->createElement('link', $name);
 
-            $item->appendChild($element);
+                if(strlen($type) > 0)
+                {
+                    $element->setAttribute('type', $type);
+                }
+
+                if($values[$name] > 0)
+                {
+                    $element->setAttribute('weight', $weight);
+                }
+
+                $item->appendChild($element);
+            }
         }
 
         foreach($tags as $tag)
@@ -695,13 +736,14 @@ class DirectedEdgeItem
         for($i = 0; $i < $linkNodes->length; $i++)
         {
             $link = $linkNodes->item($i)->textContent;
+            $type = $linkNodes->item($i)->attributes->getNamedItem('type') || "";
 
             # Don't overwrite links that the user has created.
 
-            if(!isset($this->links[$link]))
+            if(!isset($this->links[$type][$link]))
             {
                 $weight = $linkNodes->item($i)->attributes->getNamedItem('weight');
-                $this->links[$link] = $weight ? $weight : 0;
+                $this->links[$type][$link] = $weight ? $weight : 0;
             }
         }
 
