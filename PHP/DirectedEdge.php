@@ -457,6 +457,12 @@ class DirectedEdgeItem
     public function linkTo($other, $weight = 0, $type = '')
     {
         ### Throw an error if this is out of range.
+
+        if(!is_string($other))
+        {
+            $other = $other->getId();
+        }
+
         unset($this->linksToRemove[$type][$other]);
         $this->links[$type][$other] = $weight;
     }
