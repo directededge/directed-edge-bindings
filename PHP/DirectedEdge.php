@@ -560,15 +560,26 @@ class DirectedEdgeItem
      * These related items may include items that this one is already linked to.
      *
      * @param Array Matches must have at least one of the tags specified.
+     * @param Array An array of link types and link weights.
      * @return Array A list of related items sorted by relevance.
      */
 
-    public function getRelated($tags = array())
+    public function getRelated($tags = array(), $linkWeights = array())
     {
+        $weights = "";
+
+        foreach($linkWeights as $type => $weight)
+        {
+            $weights .= "&${type}Weight=$weight";
+        }
+
         $content = $this->resource->get('related?tags=' .
-                                        (is_array($tags) ? join($tags, ',') : $tags));
+                                        (is_array($tags) ? join($tags, ',') : $tags) .
+                                        $weights);
+
         $document = new DOMDocument();
         $document->loadXML($content);
+
         return $this->getValuesByTagName($document, 'related');
     }
 
