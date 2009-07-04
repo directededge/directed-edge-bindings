@@ -724,13 +724,13 @@ class DirectedEdgeItem
         for($i = 0; $i < $linkNodes->length; $i++)
         {
             $link = $linkNodes->item($i)->textContent;
-            $type = $linkNodes->item($i)->attributes->getNamedItem('type');
+            $type = $linkNodes->item($i)->attributes->getNamedItem('type')->value;
 
             # Don't overwrite links that the user has created.
 
             if(!isset($this->links[$type][$link]))
             {
-                $weight = $linkNodes->item($i)->attributes->getNamedItem('weight');
+                $weight = $linkNodes->item($i)->attributes->getNamedItem('weight')->value;
                 $this->links[$type][$link] = $weight ? $weight : 0;
             }
         }
