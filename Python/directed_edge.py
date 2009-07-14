@@ -45,7 +45,7 @@ class Resource:
 
 class Database:
     def __init__(self, name, password="", protocol="http"):
-        if 'DIRECTEDEDGE_HOST' in os.environ.keys():
+        if "DIRECTEDEDGE_HOST" in os.environ.keys():
             host = os.environ["DIRECTEDEDGE_HOST"]
         else:
             host = "webservices.directededge.com"
@@ -67,16 +67,20 @@ class Item:
         return self.id
 
     def links(self):
-        values = []
-        for linkNode in self.__document().getElementsByTagName("link"):
-            values.append(linkNode.firstChild.data)
-        return values
+        return self.__read_list("link")
 
     def tags(self):
-        values = []
-        for tagNode in self.__document().getElementsByTagName("tag"):
-            values.append(tagNode.firstChild.data)
-        return values
+        return self.__read_list("tag")
 
-    def __document(self):
-        return xml.dom.minidom.parseString(self.database.resource.get(self.id))
+    def related(self):
+        return self.__read_list("related", "related")
+
+    def __document(self, sub=""):
+        content = self.database.resource.get(self.id + "/" + sub)
+        return xml.dom.minidom.parseString(content)
+
+    def __read_list(self, element_name, sub=""):
+        values = []
+        for node in self.__document(sub).getElementsByTagName(element_name):
+            values.append(node.firstChild.data)
+        return values
