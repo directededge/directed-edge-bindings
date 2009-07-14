@@ -391,8 +391,8 @@ module DirectedEdge
     #
     # This will not reflect any unsaved changes to items.
 
-    def related(tags=Set.new)
-      document = read_document('related?tags=' + tags.to_a.join(','))
+    def related(tags=Set.new, max_results=20)
+      document = read_document('related?tags=' + tags.to_a.join(',') + "&maxResults=#{max_results}")
       list_from_document(document, 'related')
     end
 
@@ -403,8 +403,9 @@ module DirectedEdge
     #
     # This will not reflect any unsaved changes to items.
 
-    def recommended(tags=Set.new)
-      document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(','))
+    def recommended(tags=Set.new, max_results=20)
+      document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(',') +
+                               "&maxResults=#{max_results}")
       list_from_document(document, 'recommended')
     end
 
