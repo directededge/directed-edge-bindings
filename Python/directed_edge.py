@@ -28,20 +28,20 @@ import xml.dom.minidom
 
 class Resource:
     def __init__(self, base_url, user=None, password=None):
-        self.base_url = base_url
-        self.http = httplib2.Http()
+        self.__base_url = base_url
+        self.__http = httplib2.Http()
         if user:
-            self.http.add_credentials(user, password)
+            self.__http.add_credentials(user, password)
 
     def path(self, sub=""):
-        return self.base_url + "/" + urllib2.quote(sub)
+        return self.__base_url + "/" + urllib2.quote(sub)
 
     def get(self, sub=""):
-        response, content = self.http.request(self.path(sub), "GET")
+        response, content = self.__http.request(self.path(sub), "GET")
         return content
 
     def put(self, data, sub=""):
-        response, content = self.http.request(self.path(sub), "PUT", data)
+        response, content = self.__http.request(self.path(sub), "PUT", data)
 
 class Database:
     def __init__(self, name, password="", protocol="http"):
