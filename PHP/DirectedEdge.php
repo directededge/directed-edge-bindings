@@ -849,7 +849,6 @@ class DirectedEdgeExporter
         }
         else
         {
-            echo "data: $this->data\n";
             $this->database->resource()->put($this->data, "add?createMissingLinks=true");
             $this->data = "";
         }
