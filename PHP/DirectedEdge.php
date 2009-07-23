@@ -741,8 +741,8 @@ class DirectedEdgeItem
 }
 
 /**
- * A very simple class for creating Directed Edge XML files.  This can be done for
- * example with:
+ * A very simple class for creating Directed Edge XML files or exporting items
+ * in batch to a DirectedEdgeDatabase.  This can be done for example with:
  *
  * <code>
  * $exporter = new DirectedEdgeExporter('mydatabase.xml');
@@ -767,28 +767,53 @@ class DirectedEdgeItem
  * </code>
  *
  * Items may also be exported from existing databases.
+ *
+ * Alternatively (in smaller batches) you can export items directly to
+ * a DirectedEdgeDatabase:
+ *
+ * <code>
+ * $database = new DirectedEdgeDatabase('user', 'pass');
+ * $exporter = new DirectedEdgeExporter($database);
+ * $item = new DirectedEdgeItem($database, 'product_1');
+ * $item->addTag('product');
+ * $exporter->export($item);
+ * $exporter->finish();
+ * </code>
  */
 
 class DirectedEdgeExporter
 {
     private $database;
-    private $file;
+    private $file = null;
+    private $data = "";
 
     /**
-     * @param string The file name to export the data to.
+     * @param string The file name or database to export the data to.
      */
 
-    public function __construct($fileName)
+    public function __construct($destination)
     {
-        $this->database = new DirectedEdgeDatabase('export');
-        $this->file = fopen($fileName, 'w');
-        fwrite($this->file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
-        fwrite($this->file, "<directededge version=\"0.1\">\n");
+        if(is_string($destination))
+        {
+            $this->database = new DirectedEdgeDatabase('export');
+            $this->file = fopen($destination, 'w');
+        }
+        else if(is_a($destination, "DirectedEdgeDatabase"))
+        {
+            $this->database = $destination;
+        }
+        else
+        {
+            throw new Exception("Exporter destination must be a file name or database object.");
+        }
+
+        $this->write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+        $this->write("<directededge version=\"0.1\">\n");
     }
 
     /**
-     * @return DirectedEdgeDatabase A handle to the dummy database used for
-     * creating items with the explicit intent of exporting them.
+     * @return DirectedEdgeDatabase The database backing the exporter.  If the
+     * exporter is outputting to a file, this is a dummy database.
      */
 
     public function getDatabase()
@@ -802,17 +827,44 @@ class DirectedEdgeExporter
 
     public function export($item)
     {
-        fwrite($this->file, $item->toXML(null, null, null, false) . "\n");
+        $this->write($item->toXML(null, null, null, false) . "\n");
     }
 
     /**
-     * Tells the exporter to finish up the XML output and close the output file.
+     * If the exporter is exporting to a file, then this tells the exporter to
+     * finish up the XML output and close the output file.
+     *
+     * If the exporter is exporting to a database, this adds the updated content
+     * and writes it to the database and resets the internal storage for item
+     * content.
      */
 
     public function finish()
     {
-        fwrite($this->file, "</directededge>\n");
-        fclose($this->file);
+        $this->write("</directededge>\n");
+
+        if($this->file)
+        {
+            fclose($this->file);
+        }
+        else
+        {
+            echo "data: $this->data\n";
+            $this->database->resource()->put($this->data, "add?createMissingLinks=true");
+            $this->data = "";
+        }
+    }
+
+    private function write($data)
+    {
+        if($this->file)
+        {
+            fwrite($this->file, $data);
+        }
+        else
+        {
+            $this->data .= $data;
+        }
     }
 }
 
