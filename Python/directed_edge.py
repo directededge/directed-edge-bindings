@@ -22,6 +22,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import urllib
 import urllib2
 import httplib2
 import xml.dom.minidom
@@ -33,15 +34,17 @@ class Resource:
         if user:
             self.__http.add_credentials(user, password)
 
-    def path(self, sub=""):
-        return self.__base_url + "/" + urllib2.quote(sub)
+    def path(self, sub="", params={}):
+        return self.__base_url + "/" + urllib2.quote(sub) + "?" + urllib.urlencode(params)
 
-    def get(self, sub=""):
-        response, content = self.__http.request(self.path(sub), "GET")
+    def get(self, sub="", params={}):
+        response, content = self.__http.request(self.path(sub, params), "GET")
         return content
 
-    def put(self, data, sub=""):
-        response, content = self.__http.request(self.path(sub), "PUT", data)
+    def put(self, data, sub="", params={}):
+        response, content = self.__http.request(self.path(sub, params), "PUT", data)
+
+
 
 class Database:
     def __init__(self, name, password="", protocol="http"):
@@ -75,11 +78,14 @@ class Item:
     def related(self):
         return self.__read_list("related", "related")
 
+    def recommended(self):
+        return self.__read_list("recommended", "recommended", { "excludeLinked" : "true" })
+
     def __document(self, sub=""):
         content = self.database.resource.get(self.id + "/" + sub)
         return xml.dom.minidom.parseString(content)
 
-    def __read_list(self, element_name, sub=""):
+    def __read_list(self, element_name, sub="", params={}):
         values = []
         for node in self.__document(sub).getElementsByTagName(element_name):
             values.append(node.firstChild.data)
