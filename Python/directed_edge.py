@@ -76,12 +76,16 @@ class Item:
     def tags(self):
         return self.__read_list("tag")
 
-    def related(self, tags=[]):
-        return self.__read_list("related", "related", { "tags" : ",".join(Set(tags)) })
+    def related(self, tags=[], max_results=20):
+        return self.__read_list("related", "related",
+                                { "tags" : ",".join(Set(tags)),
+                                  "maxResults" : max_results })
 
-    def recommended(self, tags=[]):
+    def recommended(self, tags=[], max_results=20):
         return self.__read_list("recommended", "recommended",
-                                { "excludeLinked" : "true", "tags" : ",".join(Set(tags)) })
+                                { "excludeLinked" : "true",
+                                  "tags" : ",".join(Set(tags)),
+                                  "maxResults" : max_results })
 
     def __document(self, sub="", params={}):
         content = self.database.resource.get(self.id + "/" + sub, params)
