@@ -26,6 +26,7 @@ import urllib
 import urllib2
 import httplib2
 import xml.dom.minidom
+from sets import Set
 
 class Resource:
     def __init__(self, base_url, user=None, password=None):
@@ -75,18 +76,19 @@ class Item:
     def tags(self):
         return self.__read_list("tag")
 
-    def related(self):
-        return self.__read_list("related", "related")
+    def related(self, tags=[]):
+        return self.__read_list("related", "related", { "tags" : ",".join(Set(tags)) })
 
-    def recommended(self):
-        return self.__read_list("recommended", "recommended", { "excludeLinked" : "true" })
+    def recommended(self, tags=[]):
+        return self.__read_list("recommended", "recommended",
+                                { "excludeLinked" : "true", "tags" : ",".join(Set(tags)) })
 
-    def __document(self, sub=""):
-        content = self.database.resource.get(self.id + "/" + sub)
+    def __document(self, sub="", params={}):
+        content = self.database.resource.get(self.id + "/" + sub, params)
         return xml.dom.minidom.parseString(content)
 
     def __read_list(self, element_name, sub="", params={}):
         values = []
-        for node in self.__document(sub).getElementsByTagName(element_name):
+        for node in self.__document(sub, params).getElementsByTagName(element_name):
             values.append(node.firstChild.data)
         return values
