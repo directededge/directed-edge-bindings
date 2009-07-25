@@ -69,7 +69,7 @@ class Item:
         self.__tags = Set()
         self.__properties = {}
 
-        self.__link_to_remove = Set()
+        self.__links_to_remove = Set()
         self.__tags_to_remove = Set()
         self.__properties_to_remove = Set()
 
@@ -89,6 +89,46 @@ class Item:
     def properties(self):
         self.__read()
         return self.__properties
+
+    def link_to(self, other, weight=0):
+        if isinstance(other, Item):
+            other = other.name()
+        self.__links[other] = weight
+        if other in self.__links_to_remove:
+            del self.__links_to_remove[other]
+
+    def unlink_from(self, other):
+        if isinstance(other, Item):
+            other = other.name()
+        if self.__cached:
+            if other in self.__links:
+                del self.__links[other]
+        else:
+            self.__links_to_remove.add(other)
+
+    def weight_for(self, other):
+        self.__read()
+        if isinstance(other, Item):
+            other = other.name()
+        return self.__links[other]
+
+    def add_tag(self, tag):
+        self.__tags.add(tag)
+        self.__tags_to_remove.discard(tag)
+
+    def remove_tag(self, tag):
+        if self.__cached:
+            self.__tags.discard(tag)
+        else:
+            self.__tags_to_remove.add(tag)
+
+    def __setitem__(self, key, value):
+        self.__properties[key] = value
+        self.__properties_to_remove.discard(key)
+
+    def __getitem__(self, key):
+        self.__read()
+        return self.__properties[key]
 
     def related(self, tags=[], max_results=20):
         return self.__read_list(self.__document("related",
