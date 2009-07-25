@@ -105,7 +105,7 @@ class Item:
         if not self.__cached:
             document = self.__document()
 
-            for node in self.__document().getElementsByTagName("link"):
+            for node in document.getElementsByTagName("link"):
                 name = node.firstChild.data
                 weight = 0
                 if node.attributes.has_key("weight"):
@@ -115,7 +115,7 @@ class Item:
 
             self.__tags.update(self.__read_list(document, "tag"))
 
-            for node in self.__document().getElementsByTagName("property"):
+            for node in document.getElementsByTagName("property"):
                 name = node.attributes["name"].value
                 if name not in self.__properties:
                     self.__properties[name] = node.firstChild.data
