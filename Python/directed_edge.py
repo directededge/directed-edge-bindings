@@ -65,39 +65,60 @@ class Item:
         self.database = database
         self.id = id
 
+        self.__links = {}
+        self.__tags = Set()
+        self.__properties = {}
+
+        self.__link_to_remove = Set()
+        self.__tags_to_remove = Set()
+        self.__properties_to_remove = Set()
+
+        self.__cached = False
+        
     def name(self):
         return self.id
 
     def links(self):
-        return self.__read_list("link")
+        self.__read()
+        return self.__links
 
     def tags(self):
-        return self.__read_list("tag")
+        self.__read()
+        return self.__tags
 
     def properties(self):
-        values = {}
-        for node in self.__document().getElementsByTagName("property"):
-            values[node.attributes["name"].value] = node.firstChild.data
-        return values
-            
+        self.__read()
+        return self.__properties
 
     def related(self, tags=[], max_results=20):
-        return self.__read_list("related", "related",
-                                { "tags" : ",".join(Set(tags)),
-                                  "maxResults" : max_results })
+        return self.__read_list(self.__document("related",
+                                                { "tags" : ",".join(Set(tags)),
+                                                  "maxResults" : max_results }), "related")
 
     def recommended(self, tags=[], max_results=20):
-        return self.__read_list("recommended", "recommended",
-                                { "excludeLinked" : "true",
-                                  "tags" : ",".join(Set(tags)),
-                                  "maxResults" : max_results })
+        return self.__read_list(self.__document("recommended",
+                                                { "excludeLinked" : "true",
+                                                  "tags" : ",".join(Set(tags)),
+                                                  "maxResults" : max_results }), "recommended")
+
+    def __read(self):
+        if not self.__cached:
+            document = self.__document()
+            
+            self.__links = self.__read_list(document, "link")
+            self.__tags = self.__read_list(document, "tag")
+
+            for node in self.__document().getElementsByTagName("property"):
+                self.__properties[node.attributes["name"].value] = node.firstChild.data
+
+            self.__cached = True
 
     def __document(self, sub="", params={}):
         content = self.database.resource.get(self.id + "/" + sub, params)
         return xml.dom.minidom.parseString(content)
 
-    def __read_list(self, element_name, sub="", params={}):
+    def __read_list(self, document, element_name):
         values = []
-        for node in self.__document(sub, params).getElementsByTagName(element_name):
+        for node in document.getElementsByTagName(element_name):
             values.append(node.firstChild.data)
         return values
