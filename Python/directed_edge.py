@@ -45,8 +45,6 @@ class Resource:
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data)
 
-
-
 class Database:
     def __init__(self, name, password="", protocol="http"):
         if "DIRECTEDEDGE_HOST" in os.environ.keys():
@@ -75,6 +73,13 @@ class Item:
 
     def tags(self):
         return self.__read_list("tag")
+
+    def properties(self):
+        values = {}
+        for node in self.__document().getElementsByTagName("property"):
+            values[node.attributes["name"].value] = node.firstChild.data
+        return values
+            
 
     def related(self, tags=[], max_results=20):
         return self.__read_list("related", "related",
