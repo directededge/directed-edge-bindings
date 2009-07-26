@@ -140,6 +140,12 @@ class Item:
         if self.__properties.has_key(key):
             del self.__properties[key]
 
+    def get_property(self, key):
+        self.__read()
+        if not self.has_property(key):
+            return None
+        return self.__properties[key]
+
     def related(self, tags=[], max_results=20):
         return self.__read_list(self.__document("related",
                                                 { "tags" : ",".join(Set(tags)),
