@@ -40,12 +40,15 @@ class Resource:
 
     def get(self, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "GET")
+        if response["status"] != "200":
+            return "<directededge/>"
         return content
 
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data)
 
 class Database:
+    """A database on the Directed Edge server"""
     def __init__(self, name, password="", protocol="http"):
         if "DIRECTEDEDGE_HOST" in os.environ.keys():
             host = os.environ["DIRECTEDEDGE_HOST"]
