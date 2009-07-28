@@ -157,6 +157,58 @@ class Item:
                                                   "tags" : ",".join(Set(tags)),
                                                   "maxResults" : max_results }), "recommended")
 
+    def to_xml(self, tags=None, links=None, properties=None):
+        if not tags:
+            tags = self.__tags
+        if not links:
+            links = self.__links
+        if not properties:
+            properties = self.__properties
+
+        implementation = xml.dom.minidom.getDOMImplementation()
+        document = implementation.createDocument(None, "directededge", None)
+        document.documentElement.setAttribute("version", "0.1")
+        item_element = document.createElement("item")
+        item_element.setAttribute("id", self.id)
+
+        for tag in tags:
+            tag_element = document.createElement("tag")
+            item_element.appendChild(tag_element)
+            tag_element.appendChild(document.createTextNode(tag))
+
+        for link in links:
+            link_element = document.createElement("link")
+            item_element.appendChild(link_element)
+            if self.__links[link] > 0:
+                link_element.setAttribute("weight", str(links[link]))
+            link_element.appendChild(document.createTextNode(link))
+
+        for property in properties:
+            property_element = document.createElement("property")
+            item_element.appendChild(property_element)
+            property_element.setAttribute("name", property)
+            property_element.appendChild(document.createTextNode(properties[property]))
+
+        document.documentElement.appendChild(item_element)
+        return document.toxml("utf-8")
+
+    def save(self):
+        if self.__cached:
+            self.database.resource.put(self.to_xml(), self.id)
+        else:
+            if self.__links or self.__tags or self.__properties:
+                self.database.resource.put(self.to_xml(), self.id + "/add")
+            if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
+                to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
+                self.database.resource.put(self.to_xml(self.__tags_to_remove,
+                                                       to_dict(self.__links_to_remove, 0),
+                                                       to_dict(self.__properties_to_remove, "")),
+                                           self.id + "/remove")
+
+                self.__links_to_remove.clear()
+                self.__tags_to_remove.clear()
+                self.__properties_to_remove.clear()
+
     def __read(self):
         if not self.__cached:
             document = self.__document()
@@ -165,7 +217,7 @@ class Item:
                 name = node.firstChild.data
                 weight = 0
                 if node.attributes.has_key("weight"):
-                    weight = node.attributes["weight"].value
+                    weight = int(node.attributes["weight"].value)
                 if name not in self.__links:
                     self.__links[name] = weight
 
