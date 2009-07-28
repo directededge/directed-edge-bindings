@@ -29,6 +29,8 @@ import xml.dom.minidom
 from sets import Set
 
 class Resource:
+    """REST resource used in the Directed Edge API"""
+
     def __init__(self, base_url, user=None, password=None):
         self.__base_url = base_url
         self.__http = httplib2.Http()
@@ -49,6 +51,7 @@ class Resource:
 
 class Database:
     """A database on the Directed Edge server"""
+
     def __init__(self, name, password="", protocol="http"):
         if "DIRECTEDEDGE_HOST" in os.environ.keys():
             host = os.environ["DIRECTEDEDGE_HOST"]
@@ -60,10 +63,16 @@ class Database:
     def import_from_file(self, file_name):
         file = open(file_name, "r")
         data = file.read()
-        
         self.resource.put(data)
 
 class Item:
+    """An item in a Directed Edge database
+
+    There are of a collection of methods here for reading and writing to items.
+    In general as few reads from the remote database as required will be used,
+    specifically items cache all values when any of them are read and writes
+    will not be made to the remote database until save() is called."""
+
     def __init__(self, database, id):
         self.database = database
         self.id = id
@@ -79,21 +88,36 @@ class Item:
         self.__cached = False
         
     def name(self):
+        """The ID of the item used to identify it in the database."""
+
         return self.id
 
     def links(self):
+        """A dict mapping from link-names to link-weights."""
+
         self.__read()
         return self.__links
 
     def tags(self):
+        """The list of tags for the item."""
+
         self.__read()
         return self.__tags
 
     def properties(self):
+        """A dict of key-value pair associated with this item."""
+
         self.__read()
         return self.__properties
 
     def link_to(self, other, weight=0):
+        """Links this item to another item with the given weight.
+
+        "Other" can be either another item object or the (string) ID of a second
+        item.
+
+        The default weight is 0, which indicates an unweighted link."""
+
         if isinstance(other, Item):
             other = other.name()
         self.__links[other] = weight
@@ -101,6 +125,8 @@ class Item:
             del self.__links_to_remove[other]
 
     def unlink_from(self, other):
+        """Removes a link from this item to "other", also may be an Item or string."""
+
         if isinstance(other, Item):
             other = other.name()
         if self.__cached:
@@ -110,6 +136,8 @@ class Item:
             self.__links_to_remove.add(other)
 
     def weight_for(self, link):
+        """The corresponding weight for the given link, or 0 if there is no weight."""
+
         self.__read()
         if isinstance(link, Item):
             link = link.name()
@@ -126,10 +154,14 @@ class Item:
             self.__tags_to_remove.add(tag)
 
     def __setitem__(self, key, value):
+        """May be used to set properties for the item via item["foo"] = "bar"."""
+
         self.__properties[key] = value
         self.__properties_to_remove.discard(key)
 
     def __getitem__(self, key):
+        """May be used to read properties from the item via item["foo"]."""
+
         self.__read()
         return self.__properties[key]
 
@@ -150,11 +182,19 @@ class Item:
         return self.__properties[key]
 
     def related(self, tags=[], max_results=20):
+        """Returns a list of up to max_results related items.
+
+        Items matching any of the given tags may be returned."""
+
         return self.__read_list(self.__document("related",
                                                 { "tags" : ",".join(Set(tags)),
                                                   "maxResults" : max_results }), "related")
 
     def recommended(self, tags=[], max_results=20):
+        """Returns a list of up to max_results recommended items.
+
+        Items matching any of the given tags may be returned."""
+
         return self.__read_list(self.__document("recommended",
                                                 { "excludeLinked" : "true",
                                                   "tags" : ",".join(Set(tags)),
@@ -200,6 +240,8 @@ class Item:
             return item_element.toxml("utf-8")
 
     def save(self):
+        """Writes any local changes to the item back to the remote database."""
+
         if self.__cached:
             self.database.resource.put(self.to_xml(), self.id)
         else:
@@ -248,12 +290,12 @@ class Item:
         return values
 
 class Exporter:
+    """A simple tool to export items to an XML file"""
     def __init__(self, file_name):
         self.__database = Database("export")
         self.__file = open(file_name, "w")
         self.__file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
         self.__file.write("<directededge version=\"0.1\">\n")
-
 
     def database(self):
         return self.__database
