@@ -157,7 +157,7 @@ class Item:
                                                   "tags" : ",".join(Set(tags)),
                                                   "maxResults" : max_results }), "recommended")
 
-    def to_xml(self, tags=None, links=None, properties=None):
+    def to_xml(self, tags=None, links=None, properties=None, include_document=True):
         if not tags:
             tags = self.__tags
         if not links:
@@ -190,7 +190,11 @@ class Item:
             property_element.appendChild(document.createTextNode(properties[property]))
 
         document.documentElement.appendChild(item_element)
-        return document.toxml("utf-8")
+
+        if include_document:
+            return document.toxml("utf-8")
+        else:
+            return item_element.toxml("utf-8")
 
     def save(self):
         if self.__cached:
@@ -239,3 +243,21 @@ class Item:
         for node in document.getElementsByTagName(element_name):
             values.append(node.firstChild.data)
         return values
+
+class Exporter:
+    def __init__(self, file_name):
+        self.__database = Database("export")
+        self.__file = open(file_name, "w")
+        self.__file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
+        self.__file.write("<directededge version=\"0.1\">\n")
+
+
+    def database(self):
+        return self.__database
+
+    def export(self, item):
+        self.__file.write(item.to_xml(None, None, None, False) + "\n")
+
+    def finish(self):
+        self.__file.write("</directededge>\n")
+        self.__file.close()
