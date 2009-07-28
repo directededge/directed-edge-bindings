@@ -109,11 +109,11 @@ class Item:
         else:
             self.__links_to_remove.add(other)
 
-    def weight_for(self, other):
+    def weight_for(self, link):
         self.__read()
-        if isinstance(other, Item):
-            other = other.name()
-        return self.__links[other]
+        if isinstance(link, Item):
+            link = link.name()
+        return self.__links[link]
 
     def add_tag(self, tag):
         self.__tags.add(tag)
