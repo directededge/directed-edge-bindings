@@ -28,7 +28,7 @@ import httplib2
 import xml.dom.minidom
 from sets import Set
 
-class Resource:
+class Resource(object):
     """REST resource used in the Directed Edge API"""
 
     def __init__(self, base_url, user=None, password=None):
@@ -49,7 +49,7 @@ class Resource:
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data)
 
-class Database:
+class Database(object):
     """A database on the Directed Edge server"""
 
     def __init__(self, name, password="", protocol="http"):
@@ -65,7 +65,7 @@ class Database:
         data = file.read()
         self.resource.put(data)
 
-class Item:
+class Item(object):
     """An item in a Directed Edge database
 
     There are of a collection of methods here for reading and writing to items.
@@ -87,23 +87,27 @@ class Item:
 
         self.__cached = False
         
+    @property
     def name(self):
         """The ID of the item used to identify it in the database."""
 
         return self.id
 
+    @property
     def links(self):
         """A dict mapping from link-names to link-weights."""
 
         self.__read()
         return self.__links
 
+    @property
     def tags(self):
         """The list of tags for the item."""
 
         self.__read()
         return self.__tags
 
+    @property
     def properties(self):
         """A dict of key-value pair associated with this item."""
 
@@ -119,7 +123,7 @@ class Item:
         The default weight is 0, which indicates an unweighted link."""
 
         if isinstance(other, Item):
-            other = other.name()
+            other = other.name
         self.__links[other] = weight
         if other in self.__links_to_remove:
             del self.__links_to_remove[other]
@@ -128,7 +132,7 @@ class Item:
         """Removes a link from this item to "other", also may be an Item or string."""
 
         if isinstance(other, Item):
-            other = other.name()
+            other = other.name
         if self.__cached:
             if other in self.__links:
                 del self.__links[other]
@@ -140,7 +144,7 @@ class Item:
 
         self.__read()
         if isinstance(link, Item):
-            link = link.name()
+            link = link.name
         return self.__links[link]
 
     def add_tag(self, tag):
@@ -289,7 +293,7 @@ class Item:
             values.append(node.firstChild.data)
         return values
 
-class Exporter:
+class Exporter(object):
     """A simple tool to export items to an XML file"""
     def __init__(self, file_name):
         self.__database = Database("export")
