@@ -120,7 +120,10 @@ class Item(object):
         "Other" can be either another item object or the (string) ID of a second
         item.
 
-        The default weight is 0, which indicates an unweighted link."""
+        The default weight is 0, which indicates an unweighted link.
+
+        Note that items you are linking to must already exist and must have been
+        saved before this item is saved or they will be ignored."""
 
         if isinstance(other, Item):
             other = other.name
