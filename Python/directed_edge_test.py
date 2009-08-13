@@ -78,11 +78,22 @@ class QueryTest(unittest.TestCase):
 
     def testExport(self):
         exporter = directed_edge.Exporter("exported.xml")
-        foo = directed_edge.Item(exporter.database(), "Foo")
+        foo = directed_edge.Item(exporter.database, "Foo")
         foo.add_tag("blah")
         foo["baz"] = "quux"
         exporter.export(foo)
         exporter.finish()
+
+    def testAdd(self):
+        exporter = directed_edge.Exporter(self.database)
+        foo = directed_edge.Item(exporter.database, "Foo")
+        foo.add_tag("blah")
+        foo["baz"] = "quux"
+        exporter.export(foo)
+        exporter.finish()
+
+        foo = directed_edge.Item(exporter.database, "Foo")
+        self.assert_(foo["baz"] == "quux")
 
     def testNonexistant(self):
         item = directed_edge.Item(self.database, "Asdf")

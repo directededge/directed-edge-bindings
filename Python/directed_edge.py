@@ -298,18 +298,42 @@ class Item(object):
 
 class Exporter(object):
     """A simple tool to export items to an XML file"""
-    def __init__(self, file_name):
-        self.__database = Database("export")
-        self.__file = open(file_name, "w")
-        self.__file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
-        self.__file.write("<directededge version=\"0.1\">\n")
+    def __init__(self, destination):
 
+        self.__database = Database("export")
+
+        self.__file = None
+        self.__data = ""
+
+        if isinstance(destination, str):
+            self.__file = open(destination, "w")
+        elif isinstance(destination, Database):
+            self.__database = destination
+        else:
+            print "The exporter has to be called on a file name or Database instance."
+
+        self.__write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
+        self.__write("<directededge version=\"0.1\">\n")
+
+    @property
     def database(self):
         return self.__database
 
     def export(self, item):
-        self.__file.write(item.to_xml(None, None, None, False) + "\n")
+        self.__write(item.to_xml(None, None, None, False) + "\n")
 
     def finish(self):
-        self.__file.write("</directededge>\n")
-        self.__file.close()
+        self.__write("</directededge>\n")
+
+        if self.__file:
+            self.__file.close()
+        else:
+            self.database.resource.put(self.__data, "add", { "createMissingLinks" : "true" })
+
+    def __write(self, data):
+        if self.__file:
+            self.__file.write(data)
+        else:
+            self.__data += data
+        
+        
