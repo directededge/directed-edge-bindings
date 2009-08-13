@@ -452,6 +452,11 @@ class DirectedEdgeItem
      *
      * @note Changes will not be reflected in the database until save() is
      * called.
+     *
+     * @warning $other must exist in the database or must have save() called on
+     * it before it is called on this item or the link will be ignored.  This
+     * is because the engine tries to detect (and discard) \em broken links that
+     * do not terminate at a valid node.
      */
 
     public function linkTo($other, $weight = 0, $type = '')

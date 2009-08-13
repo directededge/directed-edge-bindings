@@ -336,6 +336,10 @@ module DirectedEdge
     # from a user to a page or item.
     #
     # Weights may be in the range of 1 to 10.
+    #
+    # Note that 'other' must exist in the database or must be saved before this
+    # item is saved.  Otherwise the link will be ignored as the engine tries
+    # to detect 'broken' links that do not terminate at a valid item.
 
     def link_to(other, weight=0)
       if weight < 0 || weight > 10
