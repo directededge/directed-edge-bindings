@@ -11,11 +11,11 @@ class QueryTest(unittest.TestCase):
         self.product = directed_edge.Item(self.database, "product1")
 
     def testLinks(self):
-        self.assert_(len(self.customer.links) == 15)
-        self.assert_("product4" in self.customer.links)
+        self.assert_(len(self.customer.links()) == 15)
+        self.assert_("product4" in self.customer.links())
         customer3 = directed_edge.Item(self.database, "customer3")
         self.customer.link_to(customer3, 10)
-        self.assert_("customer3" in self.customer.links)
+        self.assert_("customer3" in self.customer.links())
         self.assert_(self.customer.weight_for("customer3") == 10)
 
     def testTags(self):
@@ -70,18 +70,24 @@ class QueryTest(unittest.TestCase):
         bar.link_to(foo, 10)
         bar.save()
         bar = item("Bar")
-        self.assert_(bar.links["Foo"] == 10)
+        self.assert_(bar.links()["Foo"] == 10)
         bar.unlink_from(foo)
         bar.save()
         bar = item("Bar")
-        self.assert_("Foo" not in bar.links)
+        self.assert_("Foo" not in bar.links())
 
     def testExport(self):
         exporter = directed_edge.Exporter("exported.xml")
+
         foo = directed_edge.Item(exporter.database, "Foo")
         foo.add_tag("blah")
         foo["baz"] = "quux"
         exporter.export(foo)
+
+        bar = directed_edge.Item(exporter.database, "Bar")
+        bar.link_to(foo, 5, "magic")
+        exporter.export(bar)
+
         exporter.finish()
 
     def testAdd(self):
@@ -98,6 +104,20 @@ class QueryTest(unittest.TestCase):
     def testNonexistant(self):
         item = directed_edge.Item(self.database, "Asdf")
         self.assert_(not item.tags)
+
+    def testLinkTypes(self):
+        foo = directed_edge.Item(self.database, "Foo")
+        bar = directed_edge.Item(self.database, "Bar")
+
+        foo.link_to(bar, 0, "thinger")
+
+        bar.save()
+        foo.save()
+
+        foo = directed_edge.Item(self.database, "Foo")
+        bar = directed_edge.Item(self.database, "Bar")
+
+        self.assert_("thinger" in foo.link_types)
 
 if __name__ == '__main__':
     unittest.main()

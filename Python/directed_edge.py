@@ -93,12 +93,21 @@ class Item(object):
 
         return self.id
 
-    @property
-    def links(self):
+    def links(self, type=""):
         """A dict mapping from link-names to link-weights."""
 
         self.__read()
-        return self.__links
+
+        if type not in self.__links:
+            return {}
+        else:
+            return self.__links[type]
+
+    @property
+    def link_types(self):
+        """Returns the link types that are in use on this item."""
+        self.__read()
+        return self.__links.keys()
 
     @property
     def tags(self):
@@ -114,7 +123,7 @@ class Item(object):
         self.__read()
         return self.__properties
 
-    def link_to(self, other, weight=0):
+    def link_to(self, other, weight=0, type=""):
         """Links this item to another item with the given weight.
 
         "Other" can be either another item object or the (string) ID of a second
@@ -127,28 +136,28 @@ class Item(object):
 
         if isinstance(other, Item):
             other = other.name
-        self.__links[other] = weight
+        self.__set_link(type, other, weight)
         if other in self.__links_to_remove:
             del self.__links_to_remove[other]
 
-    def unlink_from(self, other):
+    def unlink_from(self, other, type=""):
         """Removes a link from this item to "other", also may be an Item or string."""
 
         if isinstance(other, Item):
             other = other.name
         if self.__cached:
-            if other in self.__links:
-                del self.__links[other]
+            if (type in self.__links) and (other in self.__links[type]):
+                del self.__links[type][other]
         else:
             self.__links_to_remove.add(other)
 
-    def weight_for(self, link):
+    def weight_for(self, link, type=""):
         """The corresponding weight for the given link, or 0 if there is no weight."""
 
         self.__read()
         if isinstance(link, Item):
             link = link.name
-        return self.__links[link]
+        return self.__links[type][link]
 
     def add_tag(self, tag):
         self.__tags.add(tag)
@@ -226,12 +235,15 @@ class Item(object):
             item_element.appendChild(tag_element)
             tag_element.appendChild(document.createTextNode(tag))
 
-        for link in links:
-            link_element = document.createElement("link")
-            item_element.appendChild(link_element)
-            if self.__links[link] > 0:
-                link_element.setAttribute("weight", str(links[link]))
-            link_element.appendChild(document.createTextNode(link))
+        for type in links:
+            for link in links[type]:
+                link_element = document.createElement("link")
+                item_element.appendChild(link_element)
+                if type:
+                    link_element.setAttribute("type", type)
+                if self.__links[type][link] > 0:
+                    link_element.setAttribute("weight", str(links[type][link]))
+                link_element.appendChild(document.createTextNode(link))
 
         for property in properties:
             property_element = document.createElement("property")
@@ -265,17 +277,27 @@ class Item(object):
                 self.__tags_to_remove.clear()
                 self.__properties_to_remove.clear()
 
+    def __set_link(self, type, target, weight=0):
+        if type not in self.__links:
+            self.__links[type] = {}
+        self.__links[type][target] = weight;
+
     def __read(self):
         if not self.__cached:
             document = self.__document()
 
             for node in document.getElementsByTagName("link"):
                 name = node.firstChild.data
+
+                type = ""
+                if node.attributes.has_key("type"):
+                    type = node.attributes["type"].value
+
                 weight = 0
                 if node.attributes.has_key("weight"):
                     weight = int(node.attributes["weight"].value)
-                if name not in self.__links:
-                    self.__links[name] = weight
+                if (type not in self.__links) or (name not in self.__links[type]):
+                    self.__set_link(type, name, weight)
 
             self.__tags.update(self.__read_list(document, "tag"))
 
