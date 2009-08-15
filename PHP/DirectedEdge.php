@@ -547,12 +547,7 @@ class DirectedEdgeItem
         }
         else
         {
-            if(!empty($this->links) ||
-               !empty($this->tags) ||
-               !empty($this->properties))
-            {
-                $this->resource->put($this->toXML(), 'add');
-            }
+            $this->resource->put($this->toXML(), 'add');
 
             if(!empty($this->linksToRemove) ||
                !empty($this->tagsToRemove) ||
