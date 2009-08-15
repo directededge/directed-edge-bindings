@@ -234,9 +234,7 @@ module DirectedEdge
         # Since we're not in the cached case, let's check to see which action(s)
         # are appropriate.
 
-        if !@links.empty? || !@tags.empty? || !@properties.empty?
-          put(complete_document, 'add')
-        end
+        put(complete_document, 'add')
 
         if !@links_to_remove.empty? || !@tags_to_remove.empty? || !@properties_to_remove.empty?
           put(removal_document, 'remove')

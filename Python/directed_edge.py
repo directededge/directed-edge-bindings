@@ -252,8 +252,7 @@ class Item(object):
         if self.__cached:
             self.database.resource.put(self.to_xml(), self.id)
         else:
-            if self.__links or self.__tags or self.__properties:
-                self.database.resource.put(self.to_xml(), self.id + "/add")
+            self.database.resource.put(self.to_xml(), self.id + "/add")
             if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
                 to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
                 self.database.resource.put(self.to_xml(self.__tags_to_remove,
