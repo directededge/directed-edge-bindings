@@ -7,17 +7,14 @@ package com.directededge;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.restlet.Application;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class Item
@@ -76,6 +73,9 @@ public class Item
             InputStream stream = new ByteArrayInputStream(database.get(id).getBytes());
             Document doc = builder.parse(stream);
 
+            links = readList(doc, "link");
+            tags = readList(doc, "tag");
+
             isCached = true;
         }
         catch (ParserConfigurationException ex)
@@ -90,5 +90,16 @@ public class Item
         {
             Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private String [] readList(Document doc, String element)
+    {
+        NodeList nodes = doc.getElementsByTagName(element);
+        String [] values = new String[nodes.getLength()];
+        for(int i = 0; i < nodes.getLength(); i++)
+        {
+            values[i] = nodes.item(i).getTextContent();
+        }
+        return values;
     }
 }
