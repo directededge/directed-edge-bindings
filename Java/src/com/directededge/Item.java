@@ -14,6 +14,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -35,6 +36,7 @@ public class Item
         this.id = id;
 
         isCached = false;
+        properties = new HashMap<String, String>();
     }
 
     public String name()
@@ -75,6 +77,20 @@ public class Item
 
             links = readList(doc, "link");
             tags = readList(doc, "tag");
+
+            NodeList nodes = doc.getElementsByTagName("property");
+            properties.clear();
+            for(int i = 0; i < nodes.getLength(); i++)
+            {
+                Node node = nodes.item(i);
+                Node attribute = node.getAttributes().getNamedItem("name");
+
+                if(attribute != null)
+                {
+                    System.out.println(attribute.getTextContent() + " : " + node.getTextContent());
+                    properties.put(attribute.getTextContent(), node.getTextContent());
+                }
+            }
 
             isCached = true;
         }
