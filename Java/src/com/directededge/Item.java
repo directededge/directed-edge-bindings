@@ -62,41 +62,56 @@ public class Item
         return properties;
     }
 
+    public String [] related()
+    {
+        return related(new String[0]);
+    }
+
+    public String [] related(String [] tags)
+    {
+        return related(tags, 20);
+    }
+
+    public String [] related(String [] tags, int maxResults)
+    {
+        return readList(document("related"), "related");
+    }
+
     private void read()
+    {
+        if(isCached)
+        {
+            return;
+        }
+
+        Document doc = document(id);
+
+        links = readList(doc, "link");
+        tags = readList(doc, "tag");
+
+        NodeList nodes = doc.getElementsByTagName("property");
+        properties.clear();
+        for(int i = 0; i < nodes.getLength(); i++)
+        {
+            Node node = nodes.item(i);
+            Node attribute = node.getAttributes().getNamedItem("name");
+
+            if(attribute != null)
+            {
+                properties.put(attribute.getTextContent(), node.getTextContent());
+            }
+        }
+
+        isCached = true;
+    }
+
+    private Document document(String resource)
     {
         try
         {
-            if(isCached)
-            {
-                return;
-            }
-
             DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-            InputStream stream = new ByteArrayInputStream(database.get(id).getBytes());
-            Document doc = builder.parse(stream);
-
-            links = readList(doc, "link");
-            tags = readList(doc, "tag");
-
-            NodeList nodes = doc.getElementsByTagName("property");
-            properties.clear();
-            for(int i = 0; i < nodes.getLength(); i++)
-            {
-                Node node = nodes.item(i);
-                Node attribute = node.getAttributes().getNamedItem("name");
-
-                if(attribute != null)
-                {
-                    System.out.println(attribute.getTextContent() + " : " + node.getTextContent());
-                    properties.put(attribute.getTextContent(), node.getTextContent());
-                }
-            }
-
-            isCached = true;
-        }
-        catch (ParserConfigurationException ex)
-        {
-            Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
+            InputStream stream = new ByteArrayInputStream(database.get(resource).getBytes());
+            return builder.parse(stream);
         }
         catch (SAXException ex)
         {
@@ -106,6 +121,11 @@ public class Item
         {
             Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
         }
+        catch (ParserConfigurationException ex)
+        {
+            Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     private String [] readList(Document doc, String element)

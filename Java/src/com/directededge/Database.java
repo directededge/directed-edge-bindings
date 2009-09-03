@@ -41,11 +41,6 @@ public class Database
         client = new Client(Protocol.HTTP);
     }
 
-    public String get()
-    {
-        return get("");
-    }
-
     public String get(String resource)
     {
         Request request = new Request(Method.GET, url(resource));
