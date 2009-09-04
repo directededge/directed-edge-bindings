@@ -7,15 +7,13 @@ package com.directededge;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 public class Item
@@ -36,6 +34,8 @@ public class Item
         this.id = id;
 
         isCached = false;
+        links = new String[0];
+        tags = new String[0];
         properties = new HashMap<String, String>();
     }
 
@@ -79,7 +79,51 @@ public class Item
 
     public String toXML()
     {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return toXML(tags, links, properties, false);
+    }
+
+    public String toXML(String [] tags, String [] links,
+            HashMap<String, String> properties, boolean includeDocument)
+    {
+        try
+        {
+            Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+            Element root = doc.createElement("directededge");
+            root.setAttribute("version", "0.1");
+            Element itemElement = doc.createElement("item");
+            itemElement.setAttribute("id", id);
+
+            for(int i = 0; i < tags.length; i++)
+            {
+                Element tagElement = doc.createElement("tag");
+                tagElement.setTextContent(tags[i]);
+                itemElement.appendChild(tagElement);
+            }
+
+            for(int i = 0; i < links.length; i++)
+            {
+                Element linkElement = doc.createElement("link");
+                linkElement.setTextContent(links[i]);
+                itemElement.appendChild(linkElement);
+            }
+
+            for(String key : properties.keySet())
+            {
+                Element propertyElement = doc.createElement("property");
+                propertyElement.setAttribute("name", key);
+                propertyElement.setTextContent(properties.get(key));
+                itemElement.appendChild(propertyElement);
+            }
+
+            root.appendChild(itemElement);
+
+            return includeDocument ? toString(root) : toString(itemElement);
+        }
+        catch (ParserConfigurationException ex)
+        {
+            Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "";
     }
 
     private void read()
@@ -114,8 +158,11 @@ public class Item
     {
         try
         {
-            DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-            InputStream stream = new ByteArrayInputStream(database.get(resource).getBytes());
+            DocumentBuilder builder =
+                    documentBuilderFactory.newDocumentBuilder();
+            InputStream stream =
+                    new ByteArrayInputStream(database.get(resource).getBytes());
+
             return builder.parse(stream);
         }
         catch (SAXException ex)
@@ -130,6 +177,7 @@ public class Item
         {
             Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         return null;
     }
 
@@ -137,10 +185,32 @@ public class Item
     {
         NodeList nodes = doc.getElementsByTagName(element);
         String [] values = new String[nodes.getLength()];
+
         for(int i = 0; i < nodes.getLength(); i++)
         {
             values[i] = nodes.item(i).getTextContent();
         }
+
         return values;
+    }
+
+    private String toString(Node node)
+    {
+        try
+        {
+            DOMSource domSource = new DOMSource(node);
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.transform(domSource, result);
+            return writer.toString();
+        }
+        catch(TransformerException ex)
+        {
+            ex.printStackTrace();
+            return null;
+        }
     }
 }
