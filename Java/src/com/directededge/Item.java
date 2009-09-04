@@ -77,6 +77,11 @@ public class Item
         return readList(document("related"), "related");
     }
 
+    public String toXML()
+    {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
     private void read()
     {
         if(isCached)
