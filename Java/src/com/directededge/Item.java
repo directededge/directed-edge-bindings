@@ -39,40 +39,40 @@ public class Item
         properties = new HashMap<String, String>();
     }
 
-    public String name()
+    public String getName()
     {
         return id;
     }
 
-    public String [] links()
+    public String [] getLinks()
     {
         read();
         return links;
     }
 
-    public String [] tags()
+    public String [] getTags()
     {
         read();
         return tags;
     }
 
-    public HashMap<String, String> properties()
+    public HashMap<String, String> getProperties()
     {
         read();
         return properties;
     }
 
-    public String [] related()
+    public String [] getRelated()
     {
-        return related(new String[0]);
+        return getRelated(new String[0]);
     }
 
-    public String [] related(String [] tags)
+    public String [] getRelated(String [] tags)
     {
-        return related(tags, 20);
+        return getRelated(tags, 20);
     }
 
-    public String [] related(String [] tags, int maxResults)
+    public String [] getRelated(String [] tags, int maxResults)
     {
         return readList(document("related"), "related");
     }
