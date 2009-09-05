@@ -65,7 +65,8 @@ public class Database
         request.setChallengeResponse(
                 new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
         Response response = client.handle(request);
-        if(response.getStatus() == Status.SUCCESS_OK)
+
+        if(response.getStatus().isSuccess())
         {
             try
             {
