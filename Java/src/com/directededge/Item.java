@@ -32,6 +32,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ *  An item in a Directed Edge database
+ *
+ * There are of a collection of methods here for reading and writing to items.
+ * In general as few reads from the remote database as required will be used,
+ * specifically items cache all values when any of them are read and writes
+ * will not be made to the remote database until save() is called.
+ */
 public class Item
 {
     private Database database;
@@ -195,7 +203,38 @@ public class Item
 
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
-        return readList(document("related"), "related");
+        return readList(document(id + "/related"), "related");
+    }
+
+    public void save()
+    {
+        if(isCached)
+        {
+            database.put(id, toXML());
+        }
+        else
+        {
+            database.put(id + "/add", toXML());
+            if(!linksToRemove.isEmpty() ||
+               !tagsToRemove.isEmpty() ||
+               !propertiesToRemove.isEmpty())
+            {
+                HashMap linkMap = new HashMap<String, Integer>();
+                for(String link : linksToRemove)
+                {
+                    linkMap.put(link, 0);
+                }
+
+                HashMap propertyMap = new HashMap<String, String>();
+                for(String property : propertiesToRemove)
+                {
+                    propertyMap.put(property, "");
+                }
+
+                database.put(id + "/remove",
+                        toXML(tagsToRemove, linkMap, propertyMap, true));
+            }
+        }
     }
 
     public String toXML()
