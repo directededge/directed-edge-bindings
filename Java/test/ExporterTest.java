@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import com.directededge.Exporter;
 import com.directededge.Item;
 import java.io.File;
@@ -20,10 +15,6 @@ import org.w3c.dom.NodeList;
 import static org.junit.Assert.*;
 import org.xml.sax.SAXException;
 
-/**
- *
- * @author scott
- */
 public class ExporterTest
 {
     private Exporter exporter;

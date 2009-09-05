@@ -52,7 +52,6 @@ public class DatabaseTest
         assertEquals(product49.getLinks().size(), 0);
         assertTrue(product49.getTags().contains("product"));
         assertFalse(product49.getTags().contains("user"));
-
     }
 
 }
