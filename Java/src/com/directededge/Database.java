@@ -95,13 +95,18 @@ public class Database
      * @param fileName The file path of a Directed Edge XML file.
      * @see Exporter
      */
-    public void importFromFile(String fileName)
+    public void importFromFile(String fileName) throws ResourceException
     {
+        System.out.println(url(""));
         Request request = new Request(Method.PUT, url(""),
                 new FileRepresentation(fileName, MediaType.TEXT_XML));
         request.setChallengeResponse(
                 new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        client.handle(request);
+        Response response = client.handle(request);
+        if(!response.getStatus().isSuccess())
+        {
+            throw new ResourceException(Method.PUT, url(""));
+        }
     }
 
     /**
