@@ -55,6 +55,14 @@ public class Item
     private final DocumentBuilderFactory documentBuilderFactory =
             DocumentBuilderFactory.newInstance();
 
+    /**
+     * Creates a reference to an item in the Directed Edge database.
+     * If the item does not exist it will be created when save() is called.
+     * Items are referred to by a unique identifier.
+     *
+     * @param database The database that this item belongs to.
+     * @param id The unique identifier for the item.
+     */
     public Item(Database database, String id)
     {
         this.database = database;
@@ -69,11 +77,18 @@ public class Item
         propertiesToRemove = new HashSet<String>();
     }
 
+    /**
+     * @return The unique identifier for the item.
+     */
     public String getName()
     {
         return id;
     }
 
+    /**
+     * @return A map of links and their respective weights for the item.
+     * A weight of zero indicates an unweighted link.
+     */
     public Map<String, Integer> getLinks()
     {
         read();
@@ -90,7 +105,7 @@ public class Item
     }
 
     /**
-     * Creates a link from this item to @a other.
+     * Creates a weighted link from this item to @a other.
      * @param other The ID of another item in the database.
      * @param weight A weight, 1-10 or 0 for no weight for the link.
      */
@@ -100,16 +115,29 @@ public class Item
         linksToRemove.remove(other);
     }
 
+    /**
+     * Creates an unweighted link to @a other.
+     * @param other Another item in the database.
+     */
     public void linkTo(Item other)
     {
         linkTo(other.getName());
     }
 
+    /**
+     * Creates a weighted link from this item to @a other.
+     * @param other Another item in the database.
+     * @param weight A weight, 1-10 or 0 for no weight for the link.
+     */
     public void linkTo(Item other, int weight)
     {
         linkTo(other.getName(), weight);
     }
 
+    /**
+     * Removes a link from this item to @a other.
+     * @param other The ID of another item in the database.
+     */
     public void unlinkFrom(String other)
     {
         if(isCached)
@@ -122,6 +150,10 @@ public class Item
         }
     }
 
+    /**
+     * Remove a link from this item to @a other.
+     * @param other Another item in the database.
+     */
     public void unlinkFrom(Item other)
     {
         unlinkFrom(other.getName());
@@ -138,23 +170,39 @@ public class Item
         return links.containsKey(other) ? links.get(other) : 0;
     }
 
+    /**
+     * @param other Another item that this item is linked to.
+     * @return The weight for @a other if found, or zero if the link is
+     * unweighted or no link exists.
+     */
     public int weightFor(Item item)
     {
         return weightFor(item.getName());
     }
 
+    /**
+     * @return The set of tags on this item.
+     */
     public Set<String> getTags()
     {
         read();
         return tags;
     }
 
+    /**
+     * Adds a tag to this item.
+     * @param name The name of a tag to add to this item.
+     */
     public void addTag(String name)
     {
         tags.add(name);
         tagsToRemove.remove(name);
     }
 
+    /**
+     * Removes a tag from this item.
+     * @param name The name of a tag to remove from this item.
+     */
     public void removeTag(String name)
     {
         if(isCached)
@@ -167,18 +215,30 @@ public class Item
         }
     }
 
+    /**
+     * @return The map of key-value pairs for the properties for this item.
+     */
     public Map<String, String> getProperties()
     {
         read();
         return properties;
     }
 
+    /**
+     * Sets a property, a key-value pair, for this item.
+     * @param name The key for the property.
+     * @param value The value.
+     */
     public void setProperty(String name, String value)
     {
         properties.put(name, value);
         propertiesToRemove.remove(name);
     }
 
+    /**
+     * Removes a property from the item.
+     * @param name The key of the property to be removed.
+     */
     public void clearProperty(String name)
     {
         if(isCached)
@@ -191,21 +251,37 @@ public class Item
         }
     }
 
+    /**
+     * @return A list of item IDs related to this item.
+     */
     public List<String> getRelated()
     {
         return getRelated(new HashSet<String>());
     }
 
+    /**
+     * @param tags Tags used in filtering the results.
+     * @return A list of item IDs with one or more of the given tags.
+     */
     public List<String> getRelated(Set<String> tags)
     {
         return getRelated(tags, 20);
     }
 
+    /**
+     * @param tags Tags used in filtering the results.
+     * @param maxResults The maximum number of items to return.
+     * @return A list of item IDs with one or more of the given tags.
+     * @return
+     */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
         return readList(document(id + "/related"), "related");
     }
 
+    /**
+     * Saves all changes made to the item back to the database.
+     */
     public void save()
     {
         if(isCached)
@@ -237,12 +313,15 @@ public class Item
         }
     }
 
+    /**
+     * @return An XML representation of the item.
+     */
     public String toXML()
     {
         return toXML(tags, links, properties, false);
     }
 
-    public String toXML(Set<String> tags, Map<String, Integer> links,
+    private String toXML(Set<String> tags, Map<String, Integer> links,
             Map<String, String> properties, boolean includeDocument)
     {
         try
