@@ -40,7 +40,7 @@ public class Exporter
     {
         try
         {
-            output.write(item.toXML());
+            output.write(item.toXML() + "\n");
         }
         catch (IOException ex)
         {
