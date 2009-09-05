@@ -31,7 +31,7 @@ public class Database
     private String name;
     private String password;
     private String host;
-    private String protocol;
+    private Protocol protocol;
     private Client client;
 
     /**
@@ -54,12 +54,14 @@ public class Database
      * Initializes a Directed Edge database.  You should have received a user
      * name and account name from Directed Edge.
      *
+     * @param protocol The protocol used in communication - supported protocols
+     * are HTTP and HTTPS.
      * @param username The user / database name.
      * @param password Your password.
      */
-    public Database(String username, String password)
+    public Database(Protocol protocol, String username, String password)
     {
-        protocol = "http";
+        this.protocol = protocol;
         name = username;
         this.password = password;
 
@@ -71,6 +73,20 @@ public class Database
         }
 
         client = new Client(Protocol.HTTP);
+    }
+
+    /**
+     * Initializes a Directed Edge database.  You should have received a user
+     * name and account name from Directed Edge.
+     *
+     * @param protocol The protocol used in communication - supported protocols
+     * are HTTP and HTTPS.
+     * @param username The user / database name.
+     * @param password Your password.
+     */
+    public Database(String username, String password)
+    {
+        this(Protocol.HTTP, username, password);
     }
 
     /**
@@ -132,7 +148,7 @@ public class Database
     {
         try
         {
-            URL url = new URL(protocol, host, "/api/v1/" + name + "/" + resource);
+            URL url = new URL(protocol.getName(), host, "/api/v1/" + name + "/" + resource);
             return url.toString();
         }
         catch (MalformedURLException ex)
