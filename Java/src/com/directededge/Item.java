@@ -269,10 +269,15 @@ public class Item
                 weight = Integer.parseInt(weightAttribute.getTextContent());
             }
 
-            links.put(nodes.item(i).getTextContent(), weight);
+            String target = nodes.item(i).getTextContent();
+
+            if(!links.containsKey(target))
+            {
+                links.put(target, weight);
+            }
         }
 
-        tags = new HashSet(readList(doc, "tag"));
+        tags.addAll(readList(doc, "tag"));
 
         nodes = doc.getElementsByTagName("property");
         properties.clear();
@@ -281,7 +286,8 @@ public class Item
             Node node = nodes.item(i);
             Node attribute = node.getAttributes().getNamedItem("name");
 
-            if(attribute != null)
+            if(attribute != null &&
+               !properties.containsKey(attribute.getTextContent()))
             {
                 properties.put(attribute.getTextContent(), node.getTextContent());
             }
