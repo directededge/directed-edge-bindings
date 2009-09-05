@@ -50,8 +50,7 @@ public class Database
         
         if(host == null)
         {
-            // host = "webservices.directededge.com";
-            host = "localhost";
+            host = "webservices.directededge.com";
         }
 
         client = new Client(Protocol.HTTP);
@@ -98,7 +97,6 @@ public class Database
         request.setChallengeResponse(
                 new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
         Response response = client.handle(request);
-
     }
 
     private String url(String resource)
