@@ -323,7 +323,24 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
-        return readList(document(Reference.encode(id) + "/related"), "related");
+        return readList(document(Reference.encode(id) + "/related" +
+                queryString(tags, false, maxResults)), "related");
+    }
+
+    public List<String> getRecommended()
+    {
+        return getRecommended(new HashSet<String>());
+    }
+
+    public List<String> getRecommended(Set<String> tags)
+    {
+        return getRecommended(tags, 20);
+    }
+
+    public List<String> getRecommended(Set<String> tags, int maxResults)
+    {
+         return readList(document(Reference.encode(id) + "/recommended" +
+                 queryString(tags, true, maxResults)), "recommended");
     }
 
     /**
@@ -531,5 +548,26 @@ public class Item
             ex.printStackTrace();
             return null;
         }
+    }
+
+    private String queryString(Set<String> tags, boolean excludeLinked,
+            int maxResults)
+    {
+        String query = "?tags=";
+
+        for(String tag : tags)
+        {
+            query += tag + ",";
+        }
+
+        if(tags.size() > 0)
+        {
+            query = query.substring(0, query.length() - 1);
+        }
+
+        query += "&excludeLinked=" + Boolean.toString(excludeLinked);
+        query += "&maxResults=" + Integer.toString(maxResults);
+
+        return query;
     }
 }
