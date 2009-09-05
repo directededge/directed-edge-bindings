@@ -4,6 +4,7 @@
 
 package com.directededge;
 
+import com.directededge.Database.ResourceNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -190,8 +191,15 @@ public class Item
         {
             DocumentBuilder builder =
                     documentBuilderFactory.newDocumentBuilder();
-            InputStream stream =
-                    new ByteArrayInputStream(database.get(resource).getBytes());
+            InputStream stream;
+            try
+            {
+                stream = new ByteArrayInputStream(database.get(resource).getBytes());
+            }
+            catch (ResourceNotFoundException ex)
+            {
+                return builder.newDocument();
+            }
 
             return builder.parse(stream);
         }

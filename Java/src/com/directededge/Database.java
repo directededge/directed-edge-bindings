@@ -12,9 +12,13 @@ import java.util.logging.Logger;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
+import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
+import org.restlet.data.Response;
+import org.restlet.data.Status;
+import org.restlet.resource.FileRepresentation;
 
 public class Database
 {
@@ -23,6 +27,11 @@ public class Database
     private String host;
     private String protocol;
     private Client client;
+
+    public class ResourceNotFoundException extends Exception
+    {
+        
+    }
 
     public Database(String username, String password)
     {
@@ -41,19 +50,36 @@ public class Database
         client = new Client(Protocol.HTTP);
     }
 
-    public String get(String resource)
+    public void importFromFile(String fileName)
+    {
+        Request request = new Request(Method.PUT, url(""),
+                new FileRepresentation(fileName, MediaType.TEXT_XML));
+        request.setChallengeResponse(
+                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
+        client.handle(request);
+    }
+
+    public String get(String resource) throws ResourceNotFoundException
     {
         Request request = new Request(Method.GET, url(resource));
         request.setChallengeResponse(
                 new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        try
+        Response response = client.handle(request);
+        if(response.getStatus() == Status.SUCCESS_OK)
         {
-            System.out.println(url(resource));
-            return client.handle(request).getEntity().getText();
+            try
+            {
+                return response.getEntity().getText();
+            }
+            catch (IOException ex)
+            {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+                return "";
+            }
         }
-        catch(IOException ex)
+        else
         {
-            return "";
+            throw new ResourceNotFoundException();
         }
     }
 
