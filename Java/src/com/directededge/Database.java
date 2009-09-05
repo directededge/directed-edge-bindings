@@ -20,6 +20,12 @@ import org.restlet.data.Response;
 import org.restlet.resource.FileRepresentation;
 import org.restlet.resource.StringRepresentation;
 
+/**
+ * Represents a database on the Directed Edge servers.  A database is simply
+ * a collection of items.  See developer.directededge.com for more information
+ * on the concepts in place here and throughout the Directed Edge API.
+ */
+
 public class Database
 {
     private String name;
@@ -28,6 +34,9 @@ public class Database
     private String protocol;
     private Client client;
 
+    /**
+     * This is thrown when a resource cannot be read or written for some reason.
+     */
     public class ResourceException extends Exception
     {
         public Method method;
@@ -35,11 +44,19 @@ public class Database
 
         ResourceException(Method method, String url)
         {
+            super("Error doing " + method.getName() + " on " + url);
             this.method = method;
             this.url = url;
         }
     }
 
+    /**
+     * Initializes a Directed Edge database.  You should have received a user
+     * name and account name from Directed Edge.
+     *
+     * @param username The user / database name.
+     * @param password Your password.
+     */
     public Database(String username, String password)
     {
         protocol = "http";
@@ -56,6 +73,12 @@ public class Database
         client = new Client(Protocol.HTTP);
     }
 
+    /**
+     * Used to import a Directed Edge XML file.  Usually used in conjunction
+     * with the Exporter.
+     * @param fileName The file path of a Directed Edge XML file.
+     * @see Exporter
+     */
     public void importFromFile(String fileName)
     {
         Request request = new Request(Method.PUT, url(""),
@@ -65,6 +88,9 @@ public class Database
         client.handle(request);
     }
 
+    /**
+     * @internal
+     */
     public String get(String resource) throws ResourceException
     {
         Request request = new Request(Method.GET, url(resource));
@@ -90,6 +116,9 @@ public class Database
         }
     }
 
+    /**
+     * @internal
+     */
     public void put(String resource, String data)
     {
         Request request = new Request(Method.PUT, url(resource),

@@ -88,6 +88,8 @@ public class Item
     /**
      * @return A map of links and their respective weights for the item.
      * A weight of zero indicates an unweighted link.
+     * @see linkTo()
+     * @see unlinkFrom()
      */
     public Map<String, Integer> getLinks()
     {
@@ -98,6 +100,7 @@ public class Item
     /**
      * Creates an unweighted link.
      * @param other The ID of another item in the database.
+     * @see unlinkFrom()
      */
     public void linkTo(String other)
     {
@@ -108,6 +111,7 @@ public class Item
      * Creates a weighted link from this item to @a other.
      * @param other The ID of another item in the database.
      * @param weight A weight, 1-10 or 0 for no weight for the link.
+     * @see unlinkFrom()
      */
     public void linkTo(String other, int weight)
     {
@@ -118,6 +122,7 @@ public class Item
     /**
      * Creates an unweighted link to @a other.
      * @param other Another item in the database.
+     * @see unlinkFrom()
      */
     public void linkTo(Item other)
     {
@@ -128,6 +133,7 @@ public class Item
      * Creates a weighted link from this item to @a other.
      * @param other Another item in the database.
      * @param weight A weight, 1-10 or 0 for no weight for the link.
+     * @see unlinkFrom()
      */
     public void linkTo(Item other, int weight)
     {
@@ -137,6 +143,7 @@ public class Item
     /**
      * Removes a link from this item to @a other.
      * @param other The ID of another item in the database.
+     * @see linkTo()
      */
     public void unlinkFrom(String other)
     {
@@ -153,6 +160,7 @@ public class Item
     /**
      * Remove a link from this item to @a other.
      * @param other Another item in the database.
+     * @see linkTo()
      */
     public void unlinkFrom(Item other)
     {
@@ -163,6 +171,7 @@ public class Item
      * @param other The ID of an item that this item is linked to.
      * @return The weight for @a other if found, or zero if the link is
      * unweighted or no link exists.
+     * @see linkTo()
      */
     public int weightFor(String other)
     {
@@ -174,6 +183,8 @@ public class Item
      * @param other Another item that this item is linked to.
      * @return The weight for @a other if found, or zero if the link is
      * unweighted or no link exists.
+     *
+     * @see linkTo()
      */
     public int weightFor(Item item)
     {
@@ -181,7 +192,11 @@ public class Item
     }
 
     /**
-     * @return The set of tags on this item.
+     * @return The set of tags on this item.  This set should not be modified
+     * directly.
+     *
+     * @see addTag()
+     * @see removeTag()
      */
     public Set<String> getTags()
     {
@@ -190,8 +205,12 @@ public class Item
     }
 
     /**
-     * Adds a tag to this item.
+     * Adds a tag to this item.  The changes are not saved to the database until
+     * save() is called.
+     *
      * @param name The name of a tag to add to this item.
+     * @see remvoeTag()
+     * @see getTags()
      */
     public void addTag(String name)
     {
@@ -200,8 +219,12 @@ public class Item
     }
 
     /**
-     * Removes a tag from this item.
+     * Removes a tag from this item.  The changes are not saved to the database
+     * until save() is called.
+     *
      * @param name The name of a tag to remove from this item.
+     * @see addTag()
+     * @see getTags()
      */
     public void removeTag(String name)
     {
@@ -217,6 +240,9 @@ public class Item
 
     /**
      * @return The map of key-value pairs for the properties for this item.
+     * This map should not be modified directly.
+     * @see setProperty()
+     * @see clearProperty()
      */
     public Map<String, String> getProperties()
     {
@@ -225,9 +251,13 @@ public class Item
     }
 
     /**
-     * Sets a property, a key-value pair, for this item.
+     * Sets a property, a key-value pair, for this item.  The changes are not
+     * saved to the database until save() is called.
+     *
      * @param name The key for the property.
      * @param value The value.
+     * @see getProperties()
+     * @see clearProperty()
      */
     public void setProperty(String name, String value)
     {
@@ -236,8 +266,12 @@ public class Item
     }
 
     /**
-     * Removes a property from the item.
+     * Removes a property from the item.  The changes are not saved to the
+     * database until save() is called.
+     *
      * @param name The key of the property to be removed.
+     * @see getProperties()
+     * @see clearProperty()
      */
     public void clearProperty(String name)
     {
@@ -252,6 +286,10 @@ public class Item
     }
 
     /**
+     * A list of similar items.  Note the distinction between "related" and
+     * "recommended" -- related items are for instance, for a product or page,
+     * whereas "recommended" is used for items recommended for a user.
+     *
      * @return A list of item IDs related to this item.
      */
     public List<String> getRelated()
@@ -260,6 +298,10 @@ public class Item
     }
 
     /**
+     * A list of similar items.  Note the distinction between "related" and
+     * "recommended" -- related items are for instance, for a product or page,
+     * whereas "recommended" is used for items recommended for a user.
+     *
      * @param tags Tags used in filtering the results.
      * @return A list of item IDs with one or more of the given tags.
      */
@@ -269,6 +311,10 @@ public class Item
     }
 
     /**
+     * A list of similar items.  Note the distinction between "related" and
+     * "recommended" -- related items are for instance, for a product or page,
+     * whereas "recommended" is used for items recommended for a user.
+     *
      * @param tags Tags used in filtering the results.
      * @param maxResults The maximum number of items to return.
      * @return A list of item IDs with one or more of the given tags.
