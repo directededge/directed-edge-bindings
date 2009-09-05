@@ -17,8 +17,8 @@ import org.restlet.data.Method;
 import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.data.Status;
 import org.restlet.resource.FileRepresentation;
+import org.restlet.resource.StringRepresentation;
 
 public class Database
 {
@@ -28,9 +28,16 @@ public class Database
     private String protocol;
     private Client client;
 
-    public class ResourceNotFoundException extends Exception
+    public class ResourceException extends Exception
     {
-        
+        public Method method;
+        public String url;
+
+        ResourceException(Method method, String url)
+        {
+            this.method = method;
+            this.url = url;
+        }
     }
 
     public Database(String username, String password)
@@ -59,7 +66,7 @@ public class Database
         client.handle(request);
     }
 
-    public String get(String resource) throws ResourceNotFoundException
+    public String get(String resource) throws ResourceException
     {
         Request request = new Request(Method.GET, url(resource));
         request.setChallengeResponse(
@@ -75,13 +82,23 @@ public class Database
             catch (IOException ex)
             {
                 Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-                return "";
+                return null;
             }
         }
         else
         {
-            throw new ResourceNotFoundException();
+            throw new ResourceException(Method.GET, url(resource));
         }
+    }
+
+    public void put(String resource, String data)
+    {
+        Request request = new Request(Method.PUT, url(resource),
+                new StringRepresentation(data, MediaType.TEXT_XML));
+        request.setChallengeResponse(
+                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
+        Response response = client.handle(request);
+
     }
 
     private String url(String resource)
@@ -94,7 +111,7 @@ public class Database
         catch (MalformedURLException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
+            return null;
         }
     }
 }
