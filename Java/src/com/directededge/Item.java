@@ -26,6 +26,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.restlet.data.Reference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -322,7 +323,7 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
-        return readList(document(id + "/related"), "related");
+        return readList(document(Reference.encode(id) + "/related"), "related");
     }
 
     /**
@@ -332,11 +333,11 @@ public class Item
     {
         if(isCached)
         {
-            database.put(id, toXML());
+            database.put(Reference.decode(id), toXML());
         }
         else
         {
-            database.put(id + "/add", toXML());
+            database.put(Reference.encode(id) + "/add", toXML());
             if(!linksToRemove.isEmpty() ||
                !tagsToRemove.isEmpty() ||
                !propertiesToRemove.isEmpty())
@@ -353,7 +354,7 @@ public class Item
                     propertyMap.put(property, "");
                 }
 
-                database.put(id + "/remove",
+                database.put(Reference.encode(id) + "/remove",
                         toXML(tagsToRemove, linkMap, propertyMap, true));
             }
         }
@@ -418,7 +419,7 @@ public class Item
             return;
         }
 
-        Document doc = document(id);
+        Document doc = document(Reference.encode(id));
 
         links.clear();
         NodeList nodes = doc.getElementsByTagName("link");
