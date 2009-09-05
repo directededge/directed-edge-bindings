@@ -66,16 +66,55 @@ public class Item
         return links;
     }
 
+    /**
+     * Creates an unweighted link.
+     * @param other The ID of another item in the database.
+     */
+    public void linkTo(String other)
+    {
+        linkTo(other, 0);
+    }
+
+    /**
+     * Creates a link from this item to @a other.
+     * @param other The ID of another item in the database.
+     * @param weight A weight, 1-10 or 0 for no weight for the link.
+     */
+    public void linkTo(String other, int weight)
+    {
+        links.put(other, weight);
+    }
+
+    public void linkTo(Item other)
+    {
+        linkTo(other.getName());
+    }
+
+    public void linkTo(Item other, int weight)
+    {
+        linkTo(other.getName(), weight);
+    }
+
     public Set<String> getTags()
     {
         read();
         return tags;
     }
 
+    public void addTag(String name)
+    {
+        tags.add(name);
+    }
+
     public Map<String, String> getProperties()
     {
         read();
         return properties;
+    }
+
+    public void setProperty(String name, String value)
+    {
+        properties.put(name, value);
     }
 
     public List<String> getRelated()
@@ -191,7 +230,9 @@ public class Item
         {
             DocumentBuilder builder =
                     documentBuilderFactory.newDocumentBuilder();
+
             InputStream stream;
+
             try
             {
                 stream = new ByteArrayInputStream(database.get(resource).getBytes());
