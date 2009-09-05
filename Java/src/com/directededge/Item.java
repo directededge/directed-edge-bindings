@@ -407,6 +407,10 @@ public class Item
             {
                 Element linkElement = doc.createElement("link");
                 linkElement.setTextContent(linkName);
+                if(links.get(linkName) > 0)
+                {
+                    linkElement.setAttribute("weight", links.get(linkName).toString());
+                }
                 itemElement.appendChild(linkElement);
             }
 
