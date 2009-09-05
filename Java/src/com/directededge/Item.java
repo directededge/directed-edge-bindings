@@ -9,11 +9,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class Item
@@ -21,9 +36,9 @@ public class Item
     private Database database;
     private String id;
     private boolean isCached;
-    private String [] links;
-    private String [] tags;
-    private HashMap<String, String> properties;
+    private Map<String, Integer> links;
+    private Set<String> tags;
+    private Map<String, String> properties;
 
     private final DocumentBuilderFactory documentBuilderFactory =
             DocumentBuilderFactory.newInstance();
@@ -34,8 +49,8 @@ public class Item
         this.id = id;
 
         isCached = false;
-        links = new String[0];
-        tags = new String[0];
+        links = new HashMap<String, Integer>();
+        tags = new HashSet<String>();
         properties = new HashMap<String, String>();
     }
 
@@ -44,35 +59,35 @@ public class Item
         return id;
     }
 
-    public String [] getLinks()
+    public Map<String, Integer> getLinks()
     {
         read();
         return links;
     }
 
-    public String [] getTags()
+    public Set<String> getTags()
     {
         read();
         return tags;
     }
 
-    public HashMap<String, String> getProperties()
+    public Map<String, String> getProperties()
     {
         read();
         return properties;
     }
 
-    public String [] getRelated()
+    public List<String> getRelated()
     {
         return getRelated(new String[0]);
     }
 
-    public String [] getRelated(String [] tags)
+    public List<String> getRelated(String [] tags)
     {
         return getRelated(tags, 20);
     }
 
-    public String [] getRelated(String [] tags, int maxResults)
+    public List<String> getRelated(String [] tags, int maxResults)
     {
         return readList(document("related"), "related");
     }
@@ -82,8 +97,8 @@ public class Item
         return toXML(tags, links, properties, false);
     }
 
-    public String toXML(String [] tags, String [] links,
-            HashMap<String, String> properties, boolean includeDocument)
+    public String toXML(Set<String> tags, Map<String, Integer> links,
+            Map<String, String> properties, boolean includeDocument)
     {
         try
         {
@@ -93,17 +108,17 @@ public class Item
             Element itemElement = doc.createElement("item");
             itemElement.setAttribute("id", id);
 
-            for(int i = 0; i < tags.length; i++)
+            for(String tag : tags)
             {
                 Element tagElement = doc.createElement("tag");
-                tagElement.setTextContent(tags[i]);
+                tagElement.setTextContent(tag);
                 itemElement.appendChild(tagElement);
             }
 
-            for(int i = 0; i < links.length; i++)
+            for(String linkName : links.keySet())
             {
                 Element linkElement = doc.createElement("link");
-                linkElement.setTextContent(links[i]);
+                linkElement.setTextContent(linkName);
                 itemElement.appendChild(linkElement);
             }
 
@@ -135,10 +150,25 @@ public class Item
 
         Document doc = document(id);
 
-        links = readList(doc, "link");
-        tags = readList(doc, "tag");
+        links.clear();
+        NodeList nodes = doc.getElementsByTagName("link");
+        for(int i = 0; i < nodes.getLength(); i++)
+        {
+            int weight = 0;
 
-        NodeList nodes = doc.getElementsByTagName("property");
+            Node weightAttribute =
+                    nodes.item(i).getAttributes().getNamedItem("weight");
+            if(weightAttribute != null)
+            {
+                weight = Integer.parseInt(weightAttribute.getTextContent());
+            }
+
+            links.put(nodes.item(i).getTextContent(), weight);
+        }
+
+        tags = new HashSet(readList(doc, "tag"));
+
+        nodes = doc.getElementsByTagName("property");
         properties.clear();
         for(int i = 0; i < nodes.getLength(); i++)
         {
@@ -181,14 +211,14 @@ public class Item
         return null;
     }
 
-    private String [] readList(Document doc, String element)
+    private List<String> readList(Document doc, String element)
     {
         NodeList nodes = doc.getElementsByTagName(element);
-        String [] values = new String[nodes.getLength()];
+        List<String> values = new LinkedList<String>();
 
         for(int i = 0; i < nodes.getLength(); i++)
         {
-            values[i] = nodes.item(i).getTextContent();
+            values.add(nodes.item(i).getTextContent());
         }
 
         return values;
