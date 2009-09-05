@@ -40,6 +40,9 @@ public class Item
     private Map<String, Integer> links;
     private Set<String> tags;
     private Map<String, String> properties;
+    private Set<String> linksToRemove;
+    private Set<String> tagsToRemove;
+    private Set<String> propertiesToRemove;
 
     private final DocumentBuilderFactory documentBuilderFactory =
             DocumentBuilderFactory.newInstance();
@@ -53,6 +56,9 @@ public class Item
         links = new HashMap<String, Integer>();
         tags = new HashSet<String>();
         properties = new HashMap<String, String>();
+        linksToRemove = new HashSet<String>();
+        tagsToRemove = new HashSet<String>();
+        propertiesToRemove = new HashSet<String>();
     }
 
     public String getName()
@@ -83,6 +89,7 @@ public class Item
     public void linkTo(String other, int weight)
     {
         links.put(other, weight);
+        linksToRemove.remove(other);
     }
 
     public void linkTo(Item other)
@@ -95,6 +102,39 @@ public class Item
         linkTo(other.getName(), weight);
     }
 
+    public void unlinkFrom(String other)
+    {
+        if(isCached)
+        {
+            links.remove(other);
+        }
+        else
+        {
+            linksToRemove.add(other);
+        }
+    }
+
+    public void unlinkFrom(Item other)
+    {
+        unlinkFrom(other.getName());
+    }
+
+    /**
+     * @param other The ID of an item that this item is linked to.
+     * @return The weight for @a other if found, or zero if the link is
+     * unweighted or no link exists.
+     */
+    public int weightFor(String other)
+    {
+        read();
+        return links.containsKey(other) ? links.get(other) : 0;
+    }
+
+    public int weightFor(Item item)
+    {
+        return weightFor(item.getName());
+    }
+
     public Set<String> getTags()
     {
         read();
@@ -104,6 +144,19 @@ public class Item
     public void addTag(String name)
     {
         tags.add(name);
+        tagsToRemove.remove(name);
+    }
+
+    public void removeTag(String name)
+    {
+        if(isCached)
+        {
+            tags.remove(name);
+        }
+        else
+        {
+            tagsToRemove.add(name);
+        }
     }
 
     public Map<String, String> getProperties()
@@ -115,19 +168,32 @@ public class Item
     public void setProperty(String name, String value)
     {
         properties.put(name, value);
+        propertiesToRemove.remove(name);
+    }
+
+    public void clearProperty(String name)
+    {
+        if(isCached)
+        {
+            properties.remove(name);
+        }
+        else
+        {
+            propertiesToRemove.add(name);
+        }
     }
 
     public List<String> getRelated()
     {
-        return getRelated(new String[0]);
+        return getRelated(new HashSet<String>());
     }
 
-    public List<String> getRelated(String [] tags)
+    public List<String> getRelated(Set<String> tags)
     {
         return getRelated(tags, 20);
     }
 
-    public List<String> getRelated(String [] tags, int maxResults)
+    public List<String> getRelated(Set<String> tags, int maxResults)
     {
         return readList(document("related"), "related");
     }
