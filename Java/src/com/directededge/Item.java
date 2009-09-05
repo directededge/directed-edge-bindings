@@ -238,7 +238,7 @@ public class Item
 
             root.appendChild(itemElement);
 
-            return includeDocument ? toString(root) : toString(itemElement);
+            return includeDocument ? toString(root, false) : toString(itemElement, true);
         }
         catch (ParserConfigurationException ex)
         {
@@ -345,7 +345,7 @@ public class Item
         return values;
     }
 
-    private String toString(Node node)
+    private String toString(Node node, boolean omitXmlDeclaration)
     {
         try
         {
@@ -354,7 +354,10 @@ public class Item
             StreamResult result = new StreamResult(writer);
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            if(omitXmlDeclaration)
+            {
+                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            }
             transformer.transform(domSource, result);
             return writer.toString();
         }
