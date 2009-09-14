@@ -1,6 +1,7 @@
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
+import java.util.HashSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -129,5 +130,29 @@ public class ItemTest
         customer.save();
         customer = new Item(database, "customer0");
         assertEquals(0, customer.getProperties().size());
+    }
+
+    @Test
+    public void recommended()
+    {
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("product");
+
+        Item customer = new Item(database, "customer0");
+        assertEquals(20, customer.getRecommended().size());
+        assertEquals(20, customer.getRecommended(tags).size());
+        assertEquals(5, customer.getRecommended(tags, 5).size());
+    }
+
+    @Test
+    public void related()
+    {
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("product");
+
+        Item customer = new Item(database, "product0");
+        assertEquals(20, customer.getRelated().size());
+        assertEquals(20, customer.getRelated(tags).size());
+        assertEquals(5, customer.getRelated(tags, 5).size());
     }
 }
