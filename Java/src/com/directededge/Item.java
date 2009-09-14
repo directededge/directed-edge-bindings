@@ -258,6 +258,7 @@ public class Item
      * @param name The key for the property.
      * @param value The value.
      * @see getProperties()
+     * @see getProperty()
      * @see clearProperty()
      */
     public void setProperty(String name, String value)
@@ -267,11 +268,25 @@ public class Item
     }
 
     /**
+     * Fetches a single proeprty for the item.
+     *
+     * @param name The property to be fetched.
+     * @return The value of the property.
+     * @see setProperty()
+     * @see clearProperty()
+     */
+    public String getProperty(String name)
+    {
+        return getProperties().get(name);
+    }
+
+    /**
      * Removes a property from the item.  The changes are not saved to the
      * database until save() is called.
      *
      * @param name The key of the property to be removed.
      * @see getProperties()
+     * @see getProperty()
      * @see clearProperty()
      */
     public void clearProperty(String name)
