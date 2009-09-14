@@ -105,4 +105,29 @@ public class ItemTest
         customer = new Item(database, "customer0");
         assertFalse(customer.getTags().contains("test"));
     }
+
+    @Test
+    public void properties()
+    {
+        Item customer = new Item(database, "customer0");
+        customer.setProperty("test", "first");
+        System.out.println("properties: " + customer.getProperties().size());
+        assertEquals("first", customer.getProperties().get("test"));
+        customer.setProperty("test", "second");
+        assertEquals("second", customer.getProperties().get("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertEquals(1, customer.getProperties().size());
+        assertEquals("second", customer.getProperties().get("test"));
+        customer.setProperty("test", "third");
+        customer.save();
+        assertEquals("third", customer.getProperties().get("test"));
+        customer = new Item(database, "customer0");
+        assertEquals("third", customer.getProperties().get("test"));
+        customer.clearProperty("test");
+        assertEquals(0, customer.getProperties().size());
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertEquals(0, customer.getProperties().size());
+    }
 }
