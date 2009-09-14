@@ -442,7 +442,6 @@ public class Item
 
         Document doc = document(Reference.encode(id));
 
-        links.clear();
         NodeList nodes = doc.getElementsByTagName("link");
         for(int i = 0; i < nodes.getLength(); i++)
         {
@@ -466,7 +465,6 @@ public class Item
         tags.addAll(readList(doc, "tag"));
 
         nodes = doc.getElementsByTagName("property");
-        properties.clear();
         for(int i = 0; i < nodes.getLength(); i++)
         {
             Node node = nodes.item(i);
