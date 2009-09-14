@@ -88,4 +88,21 @@ public class ItemTest
         customer0 = new Item(database, "customer0");
         assertFalse(customer0.getLinks().containsKey("product7"));
     }
+
+    @Test
+    public void tags()
+    {
+        Item customer = new Item(database, "customer0");
+        assertTrue(customer.getTags().contains("customer"));
+        customer.addTag("test");
+        assertTrue(customer.getTags().contains("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertTrue(customer.getTags().contains("test"));
+        customer.removeTag("test");
+        assertFalse(customer.getTags().contains("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertFalse(customer.getTags().contains("test"));
+    }
 }
