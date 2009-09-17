@@ -97,7 +97,6 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        System.out.println(url(""));
         Request request = new Request(Method.PUT, url(""),
                 new FileRepresentation(fileName, MediaType.TEXT_XML));
         request.setChallengeResponse(
