@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Directed Edge Ltd.
+# Copyright (C) 2009 Directed Edge, Inc.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions

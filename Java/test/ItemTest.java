@@ -1,6 +1,7 @@
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
+import java.util.HashSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -87,5 +88,71 @@ public class ItemTest
         customer0.save();
         customer0 = new Item(database, "customer0");
         assertFalse(customer0.getLinks().containsKey("product7"));
+    }
+
+    @Test
+    public void tags()
+    {
+        Item customer = new Item(database, "customer0");
+        assertTrue(customer.getTags().contains("customer"));
+        customer.addTag("test");
+        assertTrue(customer.getTags().contains("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertTrue(customer.getTags().contains("test"));
+        customer.removeTag("test");
+        assertFalse(customer.getTags().contains("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertFalse(customer.getTags().contains("test"));
+    }
+
+    @Test
+    public void properties()
+    {
+        Item customer = new Item(database, "customer0");
+        customer.setProperty("test", "first");
+        System.out.println("properties: " + customer.getProperties().size());
+        assertEquals("first", customer.getProperty("test"));
+        customer.setProperty("test", "second");
+        assertEquals("second", customer.getProperty("test"));
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertEquals(1, customer.getProperties().size());
+        assertEquals("second", customer.getProperty("test"));
+        customer.setProperty("test", "third");
+        customer.save();
+        assertEquals("third", customer.getProperty("test"));
+        customer = new Item(database, "customer0");
+        assertEquals("third", customer.getProperty("test"));
+        customer.clearProperty("test");
+        assertEquals(0, customer.getProperties().size());
+        customer.save();
+        customer = new Item(database, "customer0");
+        assertEquals(0, customer.getProperties().size());
+    }
+
+    @Test
+    public void recommended()
+    {
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("product");
+
+        Item customer = new Item(database, "customer0");
+        assertEquals(20, customer.getRecommended().size());
+        assertEquals(20, customer.getRecommended(tags).size());
+        assertEquals(5, customer.getRecommended(tags, 5).size());
+    }
+
+    @Test
+    public void related()
+    {
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("product");
+
+        Item customer = new Item(database, "product0");
+        assertEquals(20, customer.getRelated().size());
+        assertEquals(20, customer.getRelated(tags).size());
+        assertEquals(5, customer.getRelated(tags, 5).size());
     }
 }

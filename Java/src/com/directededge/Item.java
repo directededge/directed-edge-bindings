@@ -1,5 +1,26 @@
 /*
  * Copyright (C) 2009 Directed Edge, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package com.directededge;
@@ -258,6 +279,7 @@ public class Item
      * @param name The key for the property.
      * @param value The value.
      * @see getProperties()
+     * @see getProperty()
      * @see clearProperty()
      */
     public void setProperty(String name, String value)
@@ -267,11 +289,25 @@ public class Item
     }
 
     /**
+     * Fetches a single proeprty for the item.
+     *
+     * @param name The property to be fetched.
+     * @return The value of the property.
+     * @see setProperty()
+     * @see clearProperty()
+     */
+    public String getProperty(String name)
+    {
+        return getProperties().get(name);
+    }
+
+    /**
      * Removes a property from the item.  The changes are not saved to the
      * database until save() is called.
      *
      * @param name The key of the property to be removed.
      * @see getProperties()
+     * @see getProperty()
      * @see clearProperty()
      */
     public void clearProperty(String name)
@@ -442,7 +478,6 @@ public class Item
 
         Document doc = document(Reference.encode(id));
 
-        links.clear();
         NodeList nodes = doc.getElementsByTagName("link");
         for(int i = 0; i < nodes.getLength(); i++)
         {
@@ -466,7 +501,6 @@ public class Item
         tags.addAll(readList(doc, "tag"));
 
         nodes = doc.getElementsByTagName("property");
-        properties.clear();
         for(int i = 0; i < nodes.getLength(); i++)
         {
             Node node = nodes.item(i);
