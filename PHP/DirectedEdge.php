@@ -59,12 +59,16 @@ function array_insert($haystack, $needle)
 
 class DirectedEdgeException extends Exception
 {
+    private $httpCode;
+
     /**
      * @param integer HTTP status code
      * @param string HTTP text message
      */
     public function __construct($code, $reason)
     {
+        $this->httpCode = $code;
+
         if($code == 404)
         {
             parent::__construct("Could not find item.");
@@ -73,6 +77,14 @@ class DirectedEdgeException extends Exception
         {
             parent::__construct($reason);
         }
+    }
+
+    /**
+     * @return The HTTP error code.
+     */
+    public function getHttpCode()
+    {
+        return $this->httpCode;
     }
 }
 
@@ -117,9 +129,11 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function get($path = '')
+    public function get($path = '', $params = array())
     {
         $request = new HTTP_Request2($this->path() . $path);
+        $request->getUrl()->setQueryVariables($params);
+
         $response = $request->send();
 
         if($response->getStatus() != 200)
@@ -181,7 +195,6 @@ class DirectedEdgeResource
 }
 
 /**
- *
  * A Database is an encapsulation of a database being accessed via the Directed
  * Edge web-services API.  You can request database creation by visiting
  * http://www.directededge.com/ and will recieve a user name and password which
@@ -247,6 +260,21 @@ class DirectedEdgeDatabase
     public function import($fileName)
     {
         $this->resource->put($fileName);
+    }
+
+    /**
+     *
+     */
+    public function getRelated($items, $tags = array(), $options = array(), $linkWeights = array())
+    {
+        if(count($items) <= 0)
+        {
+            return array();
+        }
+
+        $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
+        $options[items] = implode(",", $items);
+        return $this->resource->get('related', $options);
     }
 }
 
@@ -354,6 +382,12 @@ class DirectedEdgeItem
     public function getLinks($type = '')
     {
         $this->read();
+
+        if($this->links[$type] == null)
+        {
+            return array();
+        }
+
         return $this->links[$type];
     }
 
@@ -374,6 +408,7 @@ class DirectedEdgeItem
 
     public function getLinkTypes()
     {
+        $this->read();
         return array_keys($this->links);
     }
 
@@ -485,6 +520,11 @@ class DirectedEdgeItem
 
     public function unlinkFrom($other, $type = '')
     {
+        if(!is_string($other))
+        {
+            $other = $other->getId();
+        }
+
         $this->linksToRemove[$type][$other] = 0;
         unset($this->links[$type][$other]);
     }
@@ -601,9 +641,9 @@ class DirectedEdgeItem
      * @return Array A list of related items sorted by relevance.
      */
 
-    public function getRelated($tags = array(), $linkWeights = array())
+    public function getRelated($tags = array(), $options = array(), $linkWeights = array())
     {
-        return $this->query('related', $tags, $linkWeights);
+        return $this->query('related', $tags, $options, $linkWeights);
     }
 
     /**
@@ -617,9 +657,9 @@ class DirectedEdgeItem
      * @return A list of recommended items sorted by relevance.
      */
 
-    public function getRecommended($tags = array(), $linkWeights = array())
+    public function getRecommended($tags = array(), $options = array(), $linkWeights = array())
     {
-        return $this->query('recommended', $tags, $linkWeights);
+        return $this->query('recommended', $tags, $options, $linkWeights);
     }
 
     /**
@@ -715,30 +755,42 @@ class DirectedEdgeItem
             return;
         }
 
-        $content = $this->resource->get();
-        $document = new DOMDocument();
-        $document->loadXML($content);
-
-        $linkNodes = $document->getElementsByTagName('link');
-
-        for($i = 0; $i < $linkNodes->length; $i++)
+        try
         {
-            $link = $linkNodes->item($i)->textContent;
-            $type = $linkNodes->item($i)->attributes->getNamedItem('type')->value;
+            $content = $this->resource->get();
+            $document = new DOMDocument();
+            $document->loadXML($content);
 
-            # Don't overwrite links that the user has created.
+            $linkNodes = $document->getElementsByTagName('link');
 
-            if(!isset($this->links[$type][$link]))
+            for($i = 0; $i < $linkNodes->length; $i++)
             {
-                $weight = $linkNodes->item($i)->attributes->getNamedItem('weight')->value;
-                $this->links[$type][$link] = $weight ? $weight : 0;
+                $link = $linkNodes->item($i)->textContent;
+                $type = $linkNodes->item($i)->attributes->getNamedItem('type')->value;
+
+                # Don't overwrite links that the user has created.
+
+                if(!isset($this->links[$type][$link]))
+                {
+                    $weight = $linkNodes->item($i)->attributes->getNamedItem('weight')->value;
+                    $this->links[$type][$link] = $weight ? $weight : 0;
+                }
+            }
+
+            $this->tags =
+                $this->getValuesByTagName($document, 'tag', null, $this->tags);
+            $this->properties =
+                $this->getValuesByTagName($document, 'property', 'name', $this->properties);
+        }
+        catch (DirectedEdgeException $e)
+        {
+            # If it's a 404 that just means the item hasn't been created yet.
+
+            if($e->getHttpCode() != 404)
+            {
+                throw $e;
             }
         }
-
-        $this->tags =
-            $this->getValuesByTagName($document, 'tag', null, $this->tags);
-        $this->properties =
-            $this->getValuesByTagName($document, 'property', 'name', $this->properties);
 
         $this->isCached = true;
     }
@@ -746,12 +798,13 @@ class DirectedEdgeItem
     /**
      * @param DOMDocument The document to search in.
      * @param string The element name to extract.
-     * @param string The name of the attribute to use as the key.  If none, then a normal (non-hash)
-     * array is created.
+     * @param string The name of the attribute to use as the key.  If none, then a
+     * normal (non-hash) array is created.
      * @param array Existing values.  Will not be overwritten if they exits.
      */
 
-    private function getValuesByTagName($document, $element, $attribute = null, $values = array())
+    private function getValuesByTagName($document, $element, $attribute = null,
+                                               $values = array())
     {
         $nodes = $document->getElementsByTagName($element);
 
@@ -780,10 +833,8 @@ class DirectedEdgeItem
         return $values;
     }
 
-    private function query($method, $tags = array(), $linkWeights = array())
+    public static function mergeOptions($tags, $options, $linkWeights)
     {
-        $weights = '';
-
         foreach($linkWeights as $type => $weight)
         {
             if($type == '')
@@ -791,12 +842,18 @@ class DirectedEdgeItem
                 $type = 'default';
             }
 
-            $weights .= "&${type}Weight=$weight";
+            $options["${type}Weight"] = $weight;
         }
 
-        $content = $this->resource->get("${method}?tags=" .
-                                        (is_array($tags) ? join($tags, ',') : $tags) .
-                                        $weights);
+        $options[tags] = is_array($tags) ? implode(",", $tags) : $tags;
+
+        return $options;
+    }
+
+    private function query($method, $tags = array(), $options = array(), $linkWeights = array())
+    {
+        $content = $this->resource->get(
+            $method, $this->mergeOptions($tags, $options, $linkWeights));
 
         $document = new DOMDocument();
         $document->loadXML($content);
