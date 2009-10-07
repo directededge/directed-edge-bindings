@@ -263,7 +263,11 @@ class DirectedEdgeDatabase
     }
 
     /**
+     * Returns multiple sets of related items for the database based on the IDs in items.
      *
+     * @param Array Matches must have at least one of the tags specified.
+     * @param Array An array of link types and link weights.
+     * @return Array A list of related items sorted by relevance.
      */
     public function getRelated($items, $tags = array(), $options = array(), $linkWeights = array())
     {
@@ -274,7 +278,30 @@ class DirectedEdgeDatabase
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
         $options[items] = implode(",", $items);
-        return $this->resource->get('related', $options);
+        $content = $this->resource->get('related', $options);
+        $document = new DOMDocument();
+        $document->loadXML($content);
+
+        $itemElements = $document->getElementsByTagName('item');
+        $results = array();
+
+        for($i = 0; $i < $itemElements->length; $i++)
+        {
+            $id = $itemElements->item($i)->attributes->getNamedItem('id')->value;
+
+            if($options[countOnly] == "true")
+            {
+                $count = DirectedEdgeItem::getValuesByTagName($itemElements->item($i), 'count');
+                $results[$id] = $count[0];
+            }
+            else
+            {
+                $results[$id] = DirectedEdgeItem::getValuesByTagName(
+                    $itemElements->item($i), 'related');
+            }
+        }
+
+        return $results;
     }
 }
 
@@ -796,15 +823,15 @@ class DirectedEdgeItem
     }
 
     /**
-     * @param DOMDocument The document to search in.
+     * @param DOMDocument The document (or element) to search in.
      * @param string The element name to extract.
      * @param string The name of the attribute to use as the key.  If none, then a
      * normal (non-hash) array is created.
      * @param array Existing values.  Will not be overwritten if they exits.
      */
 
-    private function getValuesByTagName($document, $element, $attribute = null,
-                                               $values = array())
+    public static function getValuesByTagName($document, $element, $attribute = null,
+                                              $values = array())
     {
         $nodes = $document->getElementsByTagName($element);
 

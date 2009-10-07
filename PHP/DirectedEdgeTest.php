@@ -136,7 +136,12 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
     public function testDatabaseRelated()
     {
-        print_r($this->database->getRelated(array('product1', 'product2', 'product3')));
+        $items = array('product1', 'product2', 'product3');
+        $tags = array('product');
+        $related = $this->database->getRelated(
+            $items, $tags, array(threshold => 0.5 /* , countOnly => 'true' */));
+
+        # print_r($related);
     }
 }
 
