@@ -265,7 +265,11 @@ class DirectedEdgeDatabase
     /**
      * Returns multiple sets of related items for the database based on the IDs in items.
      *
+     * @param Array A set of items to generate recommendations for.
      * @param Array Matches must have at least one of the tags specified.
+     * @param Array Options for the search, including:
+     *  - countOnly: Return only the number of items that would have matched (true or false)
+     *  - maxResults: The  maximum number of items to return for a related query (integer)
      * @param Array An array of link types and link weights.
      * @return Array A list of related items sorted by relevance.
      */
@@ -667,6 +671,9 @@ class DirectedEdgeItem
      * These related items may include items that this one is already linked to.
      *
      * @param Array Matches must have at least one of the tags specified.
+     * @param Array Options for the search, including:
+     *  - countOnly: Return only the number of items that would have matched (true or false)
+     *  - maxResults: The  maximum number of items to return for a related query (integer)
      * @param Array An array of link types and link weights.
      * @return Array A list of related items sorted by relevance.
      */
@@ -684,6 +691,10 @@ class DirectedEdgeItem
      * This will not show any items that this item is already linked to.
      *
      * @param Array Matches must have at least one of the tags specified.
+     * @param Array Options for the search, including:
+     *  - countOnly: Return only the number of items that would have matched (true or false)
+     *  - maxResults: The  maximum number of items to return for a related query (integer)
+     * @param Array An array of link types and link weights.
      * @return A list of recommended items sorted by relevance.
      */
 
