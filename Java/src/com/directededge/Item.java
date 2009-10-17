@@ -137,6 +137,12 @@ public class Item
      */
     public void linkTo(String other, int weight)
     {
+        if(weight < 0 || weight > 10)
+        {
+            throw new IllegalArgumentException(
+                    "Weights must be in the range of 0 to 10.");
+        }
+
         links.put(other, weight);
         linksToRemove.remove(other);
     }

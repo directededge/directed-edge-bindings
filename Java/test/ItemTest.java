@@ -90,6 +90,22 @@ public class ItemTest
         assertFalse(customer0.getLinks().containsKey("product7"));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void weightedLinksUpperLimit()
+    {
+        Item customer = new Item(database, "customer0");
+        Item product = new Item(database, "product0");
+        customer.linkTo(product, 11);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void weightedLinksLowerLimit()
+    {
+        Item customer = new Item(database, "customer0");
+        Item product = new Item(database, "product0");
+        customer.linkTo(product, -1);
+    }
+
     @Test
     public void tags()
     {
