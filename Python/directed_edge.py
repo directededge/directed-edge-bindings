@@ -134,6 +134,8 @@ class Item(object):
         Note that items you are linking to must already exist and must have been
         saved before this item is saved or they will be ignored."""
 
+        if weight < 0 or weight > 10:
+            raise Exception('Weights must be in the range of zero to 10')
         if isinstance(other, Item):
             other = other.name
         self.__set_link(type, other, weight)

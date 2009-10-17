@@ -17,6 +17,8 @@ class QueryTest(unittest.TestCase):
         self.customer.link_to(customer3, 10)
         self.assert_("customer3" in self.customer.links())
         self.assert_(self.customer.weight_for("customer3") == 10)
+        self.assertRaises(Exception, self.customer.link_to, self.product, -1)
+        self.assertRaises(Exception, self.customer.link_to, self.product, 11)
 
     def testTags(self):
         self.assert_(len(self.customer.tags) == 1)
