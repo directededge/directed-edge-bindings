@@ -31,6 +31,22 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(10, $this->customer->getWeightFor('customer3'));
     }
 
+    /** 
+     * @expectedException OutOfRangeException
+     */
+    public function testWeightUpperRange()
+    {
+        $this->customer->linkTo($this->product, 11);
+    }
+
+    /** 
+     * @expectedException OutOfRangeException
+     */
+    public function testWeightLowerRange()
+    {
+        $this->customer->linkTo($this->product, -1);
+    }
+
     public function testTags()
     {
         $this->assertEquals(1, count($this->customer->getTags()));

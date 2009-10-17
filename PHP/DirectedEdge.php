@@ -523,7 +523,10 @@ class DirectedEdgeItem
 
     public function linkTo($other, $weight = 0, $type = '')
     {
-        ### Throw an error if this is out of range.
+        if($weight < 0 || $weight > 10)
+        {
+            throw new OutOfRangeException("Link weights must be in the range of 1 to 10.");
+        }
 
         if(!is_string($other))
         {
