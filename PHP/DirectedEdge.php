@@ -813,6 +813,10 @@ class DirectedEdgeItem
         return $this->id;
     }
 
+    /**
+     * @internal
+     */
+
     public static function toStringList($items)
     {
         foreach($items as $item)
