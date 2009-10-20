@@ -307,6 +307,27 @@ class DirectedEdgeDatabase
 
         return $results;
     }
+
+    /**
+     * Takes the same arguments as getRelated, but instead of producing an arrary of result
+     * sets it produces one set of results for all of the items in the group.  This can be
+     * used, for instance, to give recommendations for all of the items in a shopping basket.
+     */
+    public function getGroupRelated($items, $tags = array(), $options = array(), $linkWeights = array())
+    {
+        if(count($items) <= 0)
+        {
+            return array();
+        }
+
+        $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
+        $options[items] = implode(",", $items);
+        $content = $this->resource->get('related', $options);
+        $document = new DOMDocument();
+        $document->loadXML($content);
+
+        return DirectedEdgeItem::getValuesByTagName($document, 'related');
+    }
 }
 
 /**
