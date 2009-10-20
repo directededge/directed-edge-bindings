@@ -700,6 +700,10 @@ class DirectedEdgeItem
 
     public function getRecommended($tags = array(), $options = array(), $linkWeights = array())
     {
+        if(empty($options[excludeLinked]))
+        {
+            $options['excludeLinked'] = 'true';
+        }
         return $this->query('recommended', $tags, $options, $linkWeights);
     }
 

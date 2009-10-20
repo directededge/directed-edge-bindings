@@ -60,6 +60,11 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertContains('product21', $this->product->getRelated(array('product')));
     }
 
+    public function testRecommended()
+    {
+        $this->assertNotContains('product21', $this->customer->getRecommended(array('product')));
+    }
+
     public function testProperties()
     {
         $this->customer->setProperty('foo', 'bar');
