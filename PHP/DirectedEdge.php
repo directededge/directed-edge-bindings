@@ -280,6 +280,8 @@ class DirectedEdgeDatabase
             return array();
         }
 
+        $items = DirectedEdgeItem::toStringList($items);
+
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
         $options[items] = implode(",", $items);
         $content = $this->resource->get('related', $options);
@@ -319,6 +321,8 @@ class DirectedEdgeDatabase
         {
             return array();
         }
+
+        $items = DirectedEdgeItem::toStringList($items);
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
         $options[items] = implode(",", $items);
@@ -807,6 +811,19 @@ class DirectedEdgeItem
     public function __toString()
     {
         return $this->id;
+    }
+
+    public static function toStringList($items)
+    {
+        foreach($items as $item)
+        {
+            if(is_a($item, "DirectedEdgeItem"))
+            {
+                $item = $item->getId();
+            }
+        }
+
+        return $items;
     }
 
     /**

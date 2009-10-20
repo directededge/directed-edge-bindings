@@ -64,6 +64,12 @@ class QueryTest extends PHPUnit_Framework_TestCase
     {
         $results = $this->database->getGroupRelated(array('product1', 'product2'), array('product'));
         $this->assertEquals(20, count($results));
+
+        $results = $this->database->getGroupRelated(array($this->product), array('product'));
+        $this->assertEquals(20, count($results));
+
+        $results = $this->database->getGroupRelated(array($this->product, 'product2'), array('product'));
+        $this->assertEquals(20, count($results));
     }
 
     public function testRecommended()
