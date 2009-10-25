@@ -81,8 +81,8 @@ module DirectedEdge
     end
   end
   
-  # A very simple class for creating Directed Edge XML files.  This can be done for
-  # example with:
+  # A very simple class for creating Directed Edge XML files or doing batch
+  # updates to a database.  This can be done for example with:
   #
   #   exporter = DirectedEdge::Exporter.new('mydatabase.xml')
   #   item = DirectedEdge::Item.new(exporter.database, 'product_1')
@@ -102,6 +102,13 @@ module DirectedEdge
   #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
   #   database.import('mydatabase.xml')
   #
+  # Alternatively, had the first line been:
+  #
+  #   exporter = DirectedEdge::Exporter.new(some_database_object)
+  #
+  # Then newly created / modfied objects that on which export was called would be
+  # queued for a batch update to the database later.
+  #
   # Items may also be exported from existing databases.
 
   class Exporter
@@ -110,8 +117,11 @@ module DirectedEdge
 
     attr_reader :database
 
-    # Begins exporting a collection of items to the given file_name.  Any
-    # existing contents will be overwritten.
+    # Begins exporting a collection of items to the given destination.  If the
+    # destination is a file existing contents will be overwritten.  If the
+    # destination is an existing database object, updates will be queued until
+    # finish is called, at which point they will be uploaded to the webservices
+    # in batch.
 
     def initialize(destination)
       if destination.is_a?(String)
