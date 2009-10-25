@@ -113,24 +113,46 @@ module DirectedEdge
     # Begins exporting a collection of items to the given file_name.  Any
     # existing contents will be overwritten.
 
-    def initialize(file_name)
-      @database = Database.new('exporter')
-      @file = File.new(file_name, 'w')
-      @file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
-      @file.write("<directededge version=\"0.1\">\n")
+    def initialize(destination)
+      if destination.is_a?(String)
+        @database = Database.new('exporter')
+        @file = File.new(destination, 'w')
+      elsif destination.is_a?(Database)
+        @database = destination
+        @data = ""
+      else
+        raise TypeError.new("Exporter must be passed a file name or database object.")
+      end
+
+      write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
+      write("<directededge version=\"0.1\">\n")
     end
 
     # Exports the given item to the file passed to the constructor.
 
     def export(item)
-      @file.write("#{item.to_xml}\n")
+      write("#{item.to_xml}\n")
     end
 
     # Writes a closing XML element to the document and closes the file.
 
     def finish
-      @file.write("</directededge>\n")
-      @file.close
+      write("</directededge>\n")
+      if !@file.nil?
+        @file.close
+      else
+        @database.resource['add'].put(@data)
+      end
+    end
+
+    private
+
+    def write(data)
+      if !@file.nil?
+        @file.write(data)
+      else
+        @data += data
+      end
     end
   end
 
