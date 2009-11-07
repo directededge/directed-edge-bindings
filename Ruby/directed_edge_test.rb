@@ -21,7 +21,7 @@ class DirectedEdgeTest < Test::Unit::TestCase
   end
 
   def test_exporter
-    exporter = DirectedEdge::Exporter.new('export.xml')
+    exporter = DirectedEdge::Exporter.new('exported.xml')
 
     product = DirectedEdge::Item.new(exporter.database, 'test_product')
     product.add_tag('product')
