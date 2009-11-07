@@ -2,6 +2,7 @@
 
 require 'test/unit'
 require 'directed_edge'
+require 'pp'
 
 # Defines a multithreaded "each"
 
@@ -301,5 +302,16 @@ class DirectedEdgeTest < Test::Unit::TestCase
     item = DirectedEdge::Item.new(@database, 'customer1')
     item.link_to('also does not exist')
     assert_raise(RestClient::RequestFailed) { item.save }
+  end
+
+  def test_query_parameters
+    item = DirectedEdge::Item.new(@database, 'product1')
+    assert_equal(5, item.related(['product'], 'maxResults' => 5).size)
+
+    item.link_to('product21')
+    item.save
+
+    assert(item.related(['product']).include?('product21'))
+    assert(!item.related(['product'], 'excludeLinked' => true).include?('product21'))
   end
 end

@@ -423,11 +423,15 @@ module DirectedEdge
     # are specified, only items which have one or more of the specified tags
     # will be returned.
     #
+    # Parameters that may be passed in include:
+    # - excludeLinked (true / false)
+    # - maxResults (integer)
+    #
     # This will not reflect any unsaved changes to items.
 
-    def related(tags=Set.new, max_results=20)
-      document = read_document('related?tags=' + tags.to_a.join(',') + "&maxResults=#{max_results}")
-      list_from_document(document, 'related')
+    def related(tags=Set.new, params={})
+      params['tags'] = tags.to_a.join(',')
+      list_from_document(read_document('related', params), 'related')
     end
 
     # Returns the list of items recommended for this item, usually a user.
@@ -435,12 +439,16 @@ module DirectedEdge
     # any tags are specified, only items which have one or more of the specified
     # tags will be returned.
     #
+    # Parameters that may be passed in include:
+    # - excludeLinked (true / false)
+    # - maxResults (integer)
+    #
     # This will not reflect any unsaved changes to items.
 
-    def recommended(tags=Set.new, max_results=20)
-      document = read_document('recommended?excludeLinked=true&tags=' + tags.to_a.join(',') +
-                               "&maxResults=#{max_results}")
-      list_from_document(document, 'recommended')
+    def recommended(tags=Set.new, params={})
+      params['tags'] = tags.to_a.join(',')
+      params.key?('excludeLinked') || params['excludeLinked'] = 'true'
+      list_from_document(read_document('recommended', params), 'recommended')
     end
 
     # Returns the ID of the item.
@@ -530,7 +538,8 @@ module DirectedEdge
 
     # Reads an item from the database and puts it into an XML document.
 
-    def read_document(method='')
+    def read_document(method='', params={})
+      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value.to_s)}" }.join('&')
       REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
     end
 
