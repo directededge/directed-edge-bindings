@@ -1,0 +1,16 @@
+There are some features that make it into some bindings before others.  Just starting
+to keep a list here so that they're tracked and can be completed later.
+
+|=======================================================|======|=====|========|======|
+| Feature                                               | Ruby | PHP | Python | Java |
+|=======================================================|======|=====|========|======|
+| Passing optional parameters to related / recommended  | x    | x   |        |      |
+|-------------------------------------------------------|------|-----|--------|------|
+| Group / basket recommendations                        |      | x   |        |      |
+|-------------------------------------------------------|------|-----|--------|------|
+| Link-type support                                     |      | x   | x      |      |
+|-------------------------------------------------------|------|-----|--------|------|
+| Link-type weights in related / recommended queries    |      | x   |        |      |
+|-------------------------------------------------------|------|-----|--------|------|
+| Batch updates support in exporter                     | X    | x   | x      |      |
+|-------------------------------------------------------|------|-----|--------|------|
