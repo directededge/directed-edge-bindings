@@ -33,7 +33,51 @@ require 'cgi'
 # - Item - item (user, product, page) in a Directed Edge database.
 
 module DirectedEdge
-  
+
+  # Base class used for Database and Item that has some basic resource
+  # grabbing functionality.
+
+  class Resource
+
+    private
+
+    # Reads an item from the database and puts it into an XML document.
+
+    def read_document(method='', params={})
+      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value.to_s)}" }.join('&')
+      REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
+    end
+
+    # Returns an array of the elements from the document matching the given
+    # element name.
+
+    def list_from_document(document, element)
+      values = []
+      document.elements.each("//#{element}") { |v| values.push(v.text) }
+      values
+    end
+
+    # Returns a hash of the elements from the document matching the given
+    # element name.  If the specified attribute is present, its value will
+    # be assigned to the hash, otherwise the default value given will be
+    # used.
+
+    def hash_from_document(document, element, attribute, default=0)
+      values = {}
+      document.elements.each("//#{element}") do |v|
+        value = v.attribute(attribute).to_s || default
+        if value.empty?
+          values[v.text] = default
+        elsif value.to_i.to_s == value.to_s
+          values[v.text] = value.to_i
+        else
+          values[v.text] = value.to_s
+        end
+      end
+      values
+    end
+  end
+
   # A Database is an encapsulation of a database being accessed via the Directed
   # Edge web-services API.  You can request database creation by visiting
   # http://www.directededge.com and will recieve a user name and password which
@@ -49,7 +93,7 @@ module DirectedEdge
   #
   #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
 
-  class Database
+  class Database < Resource
 
     # The name of the database.
 
@@ -196,7 +240,7 @@ module DirectedEdge
   #   user.link_to(product)
   #   user.save
 
-  class Item
+  class Item < Resource
 
     # The unique item identifier used by the database and specified in the item's
     # constructor.
@@ -467,35 +511,6 @@ module DirectedEdge
 
     private
 
-    # Returns an array of the elements from the document matching the given
-    # element name.
-
-    def list_from_document(document, element)
-      values = []
-      document.elements.each("//#{element}") { |v| values.push(v.text) }
-      values
-    end
-
-    # Returns a hash of the elements from the document matching the given
-    # element name.  If the specified attribute is present, its value will
-    # be assigned to the hash, otherwise the default value given will be
-    # used.
-
-    def hash_from_document(document, element, attribute, default=0)
-      values = {}
-      document.elements.each("//#{element}") do |v|
-        value = v.attribute(attribute).to_s || default
-        if value.empty?
-          values[v.text] = default
-        elsif value.to_i.to_s == value.to_s
-          values[v.text] = value.to_i
-        else
-          values[v.text] = value.to_s
-        end
-      end
-      values
-    end
-
     # Reads the tags / links / properties from the server if they are not
     # already cached.
 
@@ -534,13 +549,6 @@ module DirectedEdge
 
     def put(document, method='')
       @resource[method].put(document.to_s, :content_type => 'text/xml')
-    end
-
-    # Reads an item from the database and puts it into an XML document.
-
-    def read_document(method='', params={})
-      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value.to_s)}" }.join('&')
-      REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
     end
 
     # Creates a document for an entire item including the links, tags and
