@@ -123,8 +123,16 @@ module DirectedEdge
     def import(file_name)
       @resource.put(File.read(file_name), :content_type => 'text/xml')
     end
+
+    def group_related(items=Set.new, tags=Set.new, params={})
+      (!items.is_a?(Array) || items.size < 1) and return []
+      params['items'] = items.to_a.join(',')
+      params['tags'] = tags.to_a.join(',')
+      params['union'] = true
+      list_from_document(read_document('related', params), 'related')
+    end
   end
-  
+
   # A very simple class for creating Directed Edge XML files or doing batch
   # updates to a database.  This can be done for example with:
   #

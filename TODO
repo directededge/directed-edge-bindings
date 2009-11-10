@@ -6,7 +6,7 @@ to keep a list here so that they're tracked and can be completed later.
 |=======================================================|======|=====|========|======|
 | Passing optional parameters to related / recommended  | x    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Group / basket recommendations                        |      | x   |        |      |
+| Group / basket recommendations                        | x    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
 | Link-type support                                     |      | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|

@@ -286,6 +286,11 @@ class DirectedEdgeTest < Test::Unit::TestCase
     assert(customer1.weight_for(customer3) == 10)
   end
 
+  def test_group_related
+    assert_equal(0, @database.group_related([], ['product']).size)
+    assert_equal(20, @database.group_related(['product1', 'product2'], ['product']).size)
+  end
+
   def test_unsafe_chars
     item = DirectedEdge::Item.new(@database, ';@%&!')
     item['foo'] = 'bar'
