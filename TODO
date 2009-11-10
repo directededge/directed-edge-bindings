@@ -6,6 +6,8 @@ to keep a list here so that they're tracked and can be completed later.
 |=======================================================|======|=====|========|======|
 | Passing optional parameters to related / recommended  | x    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
+| Batch related (for multiple items)                    |      | x   |        |      |
+|-------------------------------------------------------|------|-----|--------|------|
 | Group / basket recommendations                        | x    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
 | Link-type support                                     |      | x   | x      |      |
