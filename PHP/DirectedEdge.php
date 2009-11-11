@@ -71,7 +71,7 @@ class DirectedEdgeException extends Exception
 
         if($code == 404)
         {
-            parent::__construct("Could not find item.");
+            parent::__construct('Could not find item.');
         }
         else
         {
@@ -283,7 +283,7 @@ class DirectedEdgeDatabase
         $items = DirectedEdgeItem::toStringList($items);
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
-        $options[items] = implode(",", $items);
+        $options[items] = implode(',', $items);
         $content = $this->resource->get('related', $options);
         $document = new DOMDocument();
         $document->loadXML($content);
@@ -295,7 +295,7 @@ class DirectedEdgeDatabase
         {
             $id = $itemElements->item($i)->attributes->getNamedItem('id')->value;
 
-            if($options[countOnly] == "true")
+            if($options[countOnly] == 'true')
             {
                 $count = DirectedEdgeItem::getValuesByTagName($itemElements->item($i), 'count');
                 $results[$id] = $count[0];
@@ -554,7 +554,7 @@ class DirectedEdgeItem
     {
         if($weight < 0 || $weight > 10)
         {
-            throw new OutOfRangeException("Link weights must be in the range of 1 to 10.");
+            throw new OutOfRangeException('Link weights must be in the range of 1 to 10.');
         }
 
         if(!is_string($other))
@@ -821,7 +821,7 @@ class DirectedEdgeItem
     {
         foreach($items as $item)
         {
-            if(is_a($item, "DirectedEdgeItem"))
+            if(is_a($item, 'DirectedEdgeItem'))
             {
                 $item = $item->getId();
             }
@@ -932,7 +932,7 @@ class DirectedEdgeItem
             $options["${type}Weight"] = $weight;
         }
 
-        $options[tags] = is_array($tags) ? implode(",", $tags) : $tags;
+        $options[tags] = is_array($tags) ? implode(',', $tags) : $tags;
 
         return $options;
     }
@@ -1007,13 +1007,13 @@ class DirectedEdgeExporter
             $this->database = new DirectedEdgeDatabase('export');
             $this->file = fopen($destination, 'w');
         }
-        else if(is_a($destination, "DirectedEdgeDatabase"))
+        else if(is_a($destination, 'DirectedEdgeDatabase'))
         {
             $this->database = $destination;
         }
         else
         {
-            throw new Exception("Exporter destination must be a file name or database object.");
+            throw new Exception('Exporter destination must be a file name or database object.');
         }
 
         $this->write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
