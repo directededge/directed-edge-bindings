@@ -124,6 +124,9 @@ module DirectedEdge
       @resource.put(File.read(file_name), :content_type => 'text/xml')
     end
 
+    # Returns a set of recommendations for the set of items that is passed in in
+    # aggregate, commonly used to do recommendations for a basket of items.
+
     def group_related(items=Set.new, tags=Set.new, params={})
       (!items.is_a?(Array) || items.size < 1) and return []
       params['items'] = items.to_a.join(',')
