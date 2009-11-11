@@ -155,9 +155,10 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function put($content, $path = '')
+    public function put($content, $path = '', $params = array())
     {
         $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
+        $request->getUrl()->setQueryVariables($params);
         $request->setBody($content, file_exists($content));
         $response = $request->send();
 
@@ -1058,8 +1059,9 @@ class DirectedEdgeExporter
         }
         else
         {
-            $this->database->resource()->put($this->data, "add?createMissingLinks=true");
-            $this->data = "";
+            $this->database->resource()->put(
+                $this->data, 'add', array(createMissingLinks => 'true'));
+            $this->data = '';
         }
     }
 
