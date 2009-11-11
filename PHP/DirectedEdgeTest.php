@@ -174,7 +174,11 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $related = $this->database->getRelated(
             $items, $tags, array(threshold => 0.5 /* , countOnly => 'true' */));
 
-        # print_r($related);
+        $results = $this->database->getRelated(array('product1', 'product2'), array('product'));
+        $this->assertEquals(2, count($results));
+        $this->assertEquals(20, count($results['product1']));
+        $this->assertEquals(20, count($results['product2']));
+        $this->assertEquals($this->product->getRelated(array('product')), $results['product1']);
     }
 }
 

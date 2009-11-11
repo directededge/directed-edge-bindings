@@ -326,7 +326,8 @@ class DirectedEdgeDatabase
         $items = DirectedEdgeItem::toStringList($items);
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
-        $options[items] = implode(",", $items);
+        $options[items] = implode(',', $items);
+        $options[union] = 'true';
         $content = $this->resource->get('related', $options);
         $document = new DOMDocument();
         $document->loadXML($content);
@@ -914,6 +915,10 @@ class DirectedEdgeItem
                 if(!in_array($value, $values))
                 {
                     $values[] = $nodes->item($i)->textContent;
+                }
+                else
+                {
+                    throw Exception('Dupliate value found in result set.');
                 }
             }
         }
