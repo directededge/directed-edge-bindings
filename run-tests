@@ -11,6 +11,6 @@ tests.each do |language, command|
   puts '================================================================================'
   puts "#{language} Tests"
   puts '================================================================================'
-  system(command) or die "#{language} tests failed."
+  system(command) or raise "#{language} tests failed."
   Dir.chdir('..')
 end
