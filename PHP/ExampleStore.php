@@ -31,14 +31,14 @@ class ExampleStore
 {
     public function __construct()
     {
-        $dbhost = 'localhost';
-        $dbuser = 'examplestore';
-        $dbpass = 'password';
-        $dbname = 'examplestore';
+        define('DB_HOST', 'localhost');
+        define('DB_USER', 'examplestore');
+        define('DB_PASS', 'password');
+        define('DB_NAME', 'examplestore');
 
-        mysql_connect($dbhost, $dbuser, $dbpass);
+        mysql_connect(DB_HOST, DB_USER, DB_PASS);
 
-        if(!mysql_select_db($dbname))
+        if(!mysql_select_db(DB_NAME))
         {
             throw new Exception("Could not connect to DB.");
         }
