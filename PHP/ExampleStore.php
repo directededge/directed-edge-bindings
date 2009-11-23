@@ -27,14 +27,22 @@
 
 require_once('DirectedEdge.php');
 
+define('DB_HOST', 'localhost');
+define('DB_USER', 'examplestore');
+define('DB_PASS', 'password');
+define('DB_NAME', 'examplestore');
+
+define('DIRECTEDEDGE_USER', 'examplestore');
+define('DIRECTEDEDGE_PASS', 'password');
+
+define('EXPORT_FILE', 'examplestore.xml');
+
 class ExampleStore
 {
+    private $database;
+
     public function __construct()
     {
-        define('DB_HOST', 'localhost');
-        define('DB_USER', 'examplestore');
-        define('DB_PASS', 'password');
-        define('DB_NAME', 'examplestore');
 
         mysql_connect(DB_HOST, DB_USER, DB_PASS);
 
@@ -42,9 +50,42 @@ class ExampleStore
         {
             throw new Exception("Could not connect to DB.");
         }
+
+        $this->database = new DirectedEdgeDatabase(DIRECTEDEDGE_USER, DIRECTEDEDGE_PASS);
     }
 
-    public function getCustomers()
+    public function exportFromMySQL()
+    {
+        $exporter = new DirectedEdgeExporter(EXPORT_FILE);
+
+        foreach($this->getProducts() as $product)
+        {
+            $item = new DirectedEdgeItem($exporter->getDatabase(), 'product' . $product);
+            $item->addTag('product');
+            $exporter->export($item);
+        }
+
+        foreach($this->getCustomers() as $customer)
+        {
+            $item = new DirectedEdgeItem($exporter->getDatabase(), 'customer' . $customer);
+
+            foreach($this->getPurchasesForCustomer($customer) as $product)
+            {
+                $item->linkTo('product' . $product);
+            }
+
+            $exporter->export($item);
+        }
+
+        $exporter->finish();
+    }
+
+    public function importToDirectedEdge()
+    {
+        $this->database->import(EXPORT_FILE);
+    }
+
+    private function getCustomers()
     {
         $result = mysql_query("select id from customers");
         $customers = array();
@@ -57,7 +98,20 @@ class ExampleStore
         return $customers;
     }
 
-    public function getPurchasesForCustomer($customer)
+    private function getProducts()
+    {
+        $result = mysql_query("select id from products");
+        $products = array();
+
+        while($row = mysql_fetch_row($result))
+        {
+            $products[] = $row[0];
+        }
+
+        return $products;
+    }
+
+    private function getPurchasesForCustomer($customer)
     {
         $result = mysql_query(sprintf("select product from purchases where customer = '%s'",
                                       mysql_real_escape_string($customer)));
@@ -73,15 +127,7 @@ class ExampleStore
 }
 
 $store = new ExampleStore();
-
-foreach($store->getCustomers() as $customer)
-{
-    print "$customer\n";
-
-    foreach($store->getPurchasesForCustomer($customer) as $purchase)
-    {
-        print "\t$purchase\n";
-    }
-}
+$store->exportFromMySQL();
+$store->importToDirectedEdge();
 
 ?>
