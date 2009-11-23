@@ -44,18 +44,44 @@ class ExampleStore
         }
     }
 
-    public function listCustomers()
+    public function getCustomers()
     {
         $result = mysql_query("select id from customers");
+        $customers = array();
 
         while($row = mysql_fetch_row($result))
         {
-            print "$row[0]\n";
+            $customers[] = $row[0];
         }
+
+        return $customers;
+    }
+
+    public function getPurchasesForCustomer($customer)
+    {
+        $result = mysql_query(sprintf("select product from purchases where customer = '%s'",
+                                      mysql_real_escape_string($customer)));
+        $purchases = array();
+
+        while($row = mysql_fetch_row($result))
+        {
+            $purchases[] = $row[0];
+        }
+
+        return $purchases;
     }
 }
 
 $store = new ExampleStore();
-$store->listCustomers();
+
+foreach($store->getCustomers() as $customer)
+{
+    print "$customer\n";
+
+    foreach($store->getPurchasesForCustomer($customer) as $purchase)
+    {
+        print "\t$purchase\n";
+    }
+}
 
 ?>
