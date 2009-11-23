@@ -54,6 +54,11 @@ class ExampleStore
         $this->database = new DirectedEdgeDatabase(DIRECTEDEDGE_USER, DIRECTEDEDGE_PASS);
     }
 
+    /**
+     * Export the list of products, purchases and customers to an XML file that
+     * we can later push to the Directed Edge webservices.
+     */
+
     public function exportFromMySQL()
     {
         $exporter = new DirectedEdgeExporter(EXPORT_FILE);
@@ -79,6 +84,11 @@ class ExampleStore
 
         $exporter->finish();
     }
+
+    /**
+     * Import the file that we created using exportFromMySQL to the Directed Edge
+     * webservices.
+     */
 
     public function importToDirectedEdge()
     {
