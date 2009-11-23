@@ -95,6 +95,53 @@ class ExampleStore
         $this->database->import(EXPORT_FILE);
     }
 
+    public function createCustomer($id)
+    {
+        $item = new DirectedEdgeItem($this->database, 'customer' . $id);
+        $item->addTag('customer');
+        $item->save();
+    }
+
+    public function createProduct($id)
+    {
+        $item = new DirectedEdgeItem($this->database, 'product' . $id);
+        $item->addTag('product');
+        $item->save();
+    }
+
+    public function addPurchase($customerId, $productId)
+    {
+        $item = new DirectedEdgeItem($this->database, 'customer' . $customerId);
+        $item->linkTo('product' . $productId);
+        $item->save();
+    }
+
+    public function getRelatedProducts($productId)
+    {
+        $item = new DirectedEdgeItem($this->database, 'product' . $productId);
+        $related = array();
+
+        foreach($item->getRelated(array('product')) as $item)
+        {
+            $related[] = str_replace('product', '', $item);
+        }
+
+        return $related;
+    }
+
+    public function getPersonalizedRecommendations($customerId)
+    {
+        $item = new DirectedEdgeItem($this->database, 'customer' . $customerId);
+        $recommended = array();
+
+        foreach($item->getRecommended(array('product')) as $item)
+        {
+            $recommended[] = str_replace('product', '', $item);
+        }
+
+        return $recommended;
+    }
+
     private function getCustomers()
     {
         $result = mysql_query("select id from customers");
@@ -139,5 +186,12 @@ class ExampleStore
 $store = new ExampleStore();
 $store->exportFromMySQL();
 $store->importToDirectedEdge();
+
+$store->createCustomer(1000);
+$store->createProduct(1000);
+$store->addPurchase(1000, 1000);
+
+print_r($store->getRelatedProducts(2));
+print_r($store->getPersonalizedRecommendations(2));
 
 ?>
