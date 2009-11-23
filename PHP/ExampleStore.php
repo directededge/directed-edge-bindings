@@ -95,12 +95,22 @@ class ExampleStore
         $this->database->import(EXPORT_FILE);
     }
 
+    /**
+     * Create a customer in the Directed Edge database that corresponds to the
+     * customer in the local database with $id.
+     */
+
     public function createCustomer($id)
     {
         $item = new DirectedEdgeItem($this->database, 'customer' . $id);
         $item->addTag('customer');
         $item->save();
     }
+
+    /**
+     * Create a product in the Directed Edge database that corresponds to the
+     * product in the local database with $id.
+     */
 
     public function createProduct($id)
     {
@@ -109,12 +119,21 @@ class ExampleStore
         $item->save();
     }
 
+    /**
+     * Create a purchase in the Directed Edge database from the product with
+     * the local database IDs $customerId and $productId.
+     */
+
     public function addPurchase($customerId, $productId)
     {
         $item = new DirectedEdgeItem($this->database, 'customer' . $customerId);
         $item->linkTo('product' . $productId);
         $item->save();
     }
+
+    /**
+     * Returns a list of related product IDs for the product ID that's passed in.
+     */
 
     public function getRelatedProducts($productId)
     {
@@ -128,6 +147,10 @@ class ExampleStore
 
         return $related;
     }
+
+    /**
+     * Returns a list of recommended products for the customer ID that's passed in.
+     */
 
     public function getPersonalizedRecommendations($customerId)
     {
