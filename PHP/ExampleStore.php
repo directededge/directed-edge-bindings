@@ -27,6 +27,29 @@
 
 require_once('DirectedEdge.php');
 
+/*
+ * Ok, so the basics of how this thing works:
+ *
+ * It assumes that you have a local database for your store, and that store
+ * has a "customer" table and "products" table.  In each of those tables
+ * you have a unique ID that corresponds to each customer and product,
+ * respectively.
+ *
+ * It also assumes there's a third table, named "purchases" that has a list of
+ * things purchased by customers.  Basically a mapping from the customer ID to
+ * the product ID.  All of this is pretty standard store stuff.
+ *
+ * So, then what this class does is it handles:
+ *
+ * - Getting that data from those tables over to Directed Edge
+ * - Doing incremental updates (adding customers, products, purchases)
+ * - Finding products related to a given product
+ * - Finding personalized product recommendations for a customer
+ *
+ * This is really just the starting point; there are some other exciting things
+ * that can be done with the API once you've gotten your feet wet.
+ */
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'examplestore');
 define('DB_PASS', 'password');
