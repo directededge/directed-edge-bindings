@@ -53,6 +53,11 @@ class Database(object):
     """A database on the Directed Edge server"""
 
     def __init__(self, name, password="", protocol="http"):
+        """Initializes a handle to a remote Directed Edge database.  Supported
+        protocols are HTTP and HTTPS.  You should have been given a user name
+        and password when you signed up for a Directed Edge account, which should
+        be passed in here."""
+
         if "DIRECTEDEDGE_HOST" in os.environ.keys():
             host = os.environ["DIRECTEDEDGE_HOST"]
         else:
@@ -61,6 +66,11 @@ class Database(object):
         self.resource = Resource("http://%s/api/v1/%s" % (host, name), name, password)
 
     def import_from_file(self, file_name):
+        """If you created an export of your local data using the Exporter class
+        from this package you can import it to your Directed Edge account using 
+        this method.  Note that all existing data in your database will be
+        overwritten."""
+
         file = open(file_name, "r")
         data = file.read()
         self.resource.put(data)
@@ -74,6 +84,10 @@ class Item(object):
     will not be made to the remote database until save() is called."""
 
     def __init__(self, database, id):
+        """Creates a reference to an item in your Directed Edge database with
+        the id given.  If the item already exists, this will become a reference
+        to it, if not, it will be created when you call save."""
+
         self.database = database
         self.id = id
 
@@ -162,10 +176,14 @@ class Item(object):
         return self.__links[type][link]
 
     def add_tag(self, tag):
+        """Adds a tag to this item."""
+
         self.__tags.add(tag)
         self.__tags_to_remove.discard(tag)
 
     def remove_tag(self, tag):
+        """Removes the given tag from this item if present."""
+
         if self.__cached:
             self.__tags.discard(tag)
         else:
@@ -184,34 +202,48 @@ class Item(object):
         return self.__properties[key]
 
     def has_property(self, key):
+        """Returns true if this item has a property with the given key."""
+
         self.__read()
         return self.__properties.has_key(key)
 
     def clear_property(self, key):
+        """Removes a property with the given key from the item if present."""
+
         if not self.__cached:
             self.__properties_to_remove.add(key)
         if self.__properties.has_key(key):
             del self.__properties[key]
 
     def get_property(self, key):
+        """Returns the property with the given key or None if no such property
+        exists."""
+
         self.__read()
         if not self.has_property(key):
             return None
         return self.__properties[key]
 
     def related(self, tags=[], max_results=20):
-        """Returns a list of up to max_results related items.
+        """Returns a list of up to max_results items related to this one, sorted
+        by relevance.  Items matching any of the given tags may be returned.
 
-        Items matching any of the given tags may be returned."""
+        Note that related is typically used for similar products (or users or
+        articles) whereas recommended, below, is used for personalized
+        recommendations. """
 
         return self.__read_list(self.__document("related",
                                                 { "tags" : ",".join(Set(tags)),
                                                   "maxResults" : max_results }), "related")
 
     def recommended(self, tags=[], max_results=20):
-        """Returns a list of up to max_results recommended items.
+        """Returns a list of up to max_results items recommended for this one,
+        sorted by relevance.  Items matching any of the given tags may be
+        returned.
 
-        Items matching any of the given tags may be returned."""
+        Note that recommended is typically used for personalized recommendations
+        (assuming this item is a user), whereas related, above, is used for
+        related products, users, etc."""
 
         return self.__read_list(self.__document("recommended",
                                                 { "excludeLinked" : "true",
@@ -219,6 +251,8 @@ class Item(object):
                                                   "maxResults" : max_results }), "recommended")
 
     def to_xml(self, tags=None, links=None, properties=None, include_document=True):
+        """Converts this item to an XML representation.  Only for internal use."""
+
         if not tags:
             tags = self.__tags
         if not links:
@@ -320,8 +354,14 @@ class Item(object):
         return values
 
 class Exporter(object):
-    """A simple tool to export items to an XML file"""
+    """A simple tool to export items to an XML file, typically used for exporting
+    the contents of a site's local database to the Directed Edge database."""
+
     def __init__(self, destination):
+        """Creates an instance of the exporter.  If destination is a file the
+        items will be written to that file; if it is a Database instance,
+        the changes will be queued and sent as a batch update to the database
+        when finish is called."""
 
         self.__database = Database("export")
 
@@ -340,12 +380,22 @@ class Exporter(object):
 
     @property
     def database(self):
+        """The database in use for the exporter.  If the Exporter was initialized
+        to write to a file this is a pseudo-database that should be used passed
+        to the new Items during construction.  If the Exporter was initialized
+        pointing to a Database object, this returns that object."""        
+        
         return self.__database
 
     def export(self, item):
+        """Adds item to either to the file or queued update list."""
+
         self.__write(item.to_xml(None, None, None, False) + "\n")
 
     def finish(self):
+        """Finished up writing the export file or, in the case of batch updates
+        to a database, transmits the changes."""
+
         self.__write("</directededge>\n")
 
         if self.__file:
