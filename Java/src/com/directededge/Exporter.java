@@ -44,10 +44,10 @@ public class Exporter
     private BufferedWriter output;
 
     /**
-     * Creates an exporter that will store items in @a fileName.
+     * Creates an exporter that will store items in fileName.
      * @param fileName The file path where the resulting XML file should be
      * stored.
-     * @see finish()
+     * @see #finish()
      */
     public Exporter(String fileName)
     {

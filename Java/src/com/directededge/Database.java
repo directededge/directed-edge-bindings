@@ -100,8 +100,6 @@ public class Database
      * Initializes a Directed Edge database.  You should have received a user
      * name and account name from Directed Edge.
      *
-     * @param protocol The protocol used in communication - supported protocols
-     * are HTTP and HTTPS.
      * @param username The user / database name.
      * @param password Your password.
      */
@@ -129,8 +127,8 @@ public class Database
         }
     }
 
-    /**
-     * @internal
+    /*
+     * internal
      */
     public String get(String resource) throws ResourceException
     {
@@ -157,8 +155,8 @@ public class Database
         }
     }
 
-    /**
-     * @internal
+    /*
+     * internal
      */
     public void put(String resource, String data)
     {
