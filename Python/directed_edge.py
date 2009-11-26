@@ -408,5 +408,3 @@ class Exporter(object):
             self.__file.write(data)
         else:
             self.__data += data
-        
-        
