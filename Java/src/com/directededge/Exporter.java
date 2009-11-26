@@ -66,8 +66,11 @@ public class Exporter
     }
 
     /**
-     * @return A pseudo-database that should be used as the database for items
-     * created to be used with the exporter.
+     * Returns a pseudo-database that can be passed into the constructor of new
+     * Item instances to be exported.
+     *
+     * @return The database pseudo-database instance.
+     * @see Item
      */
     public Database getDatabase()
     {

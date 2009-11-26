@@ -127,8 +127,15 @@ public class Database
         }
     }
 
-    /*
-     * internal
+    /**
+     * Grabs the contents of the sub-resource, e.g. "item1/related".  This is
+     * primarily for internal usage.
+     *
+     * @param resource The subresource to fetch.
+     * @return The content of the sub resource.
+     * @throws ResourceException Throws a ResourceException if the resource
+     * cannot be found, or if there is an authentication error.
+     * @see ResourceException
      */
     public String get(String resource) throws ResourceException
     {
@@ -155,8 +162,11 @@ public class Database
         }
     }
 
-    /*
-     * internal
+    /**
+     * Grabs the contents of the sub-resource, e.g. "item1".  This is
+     * primarily for internal usage.
+     *
+     * @param resource The subresource to write to.
      */
     public void put(String resource, String data)
     {
