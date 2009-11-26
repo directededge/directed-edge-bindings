@@ -25,7 +25,22 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A collection of classes to handle communications with the Directed Edge
+ * web services API.  Typically you'll first instantiate a
+ * DirectedEdgeDatabase, which you can then use to create or modify 
+ * DirectedEdgeItems and run related and recommended queries on them.
+ *
+ * @package DirectedEdge
+ */
+
+/** */
+
 require_once('HTTP/Request2.php');
+
+/**
+ * Convenience function to remove an item from an array.
+ */
 
 function array_remove($haystack, $needle)
 {
@@ -42,6 +57,11 @@ function array_remove($haystack, $needle)
     return $result;
 }
 
+/**
+ * Convenience function to insert an item into an array if it is not currently
+ * present there.
+ */
+
 function array_insert($haystack, $needle)
 {
     if(!in_array($needle, $haystack))
@@ -55,6 +75,8 @@ function array_insert($haystack, $needle)
 /**
  * Simple exception class that is used when there is a problem communicating
  * with the Directed Edge web services or if an item can not be found.
+ *
+ * @package DirectedEdge
  */
 
 class DirectedEdgeException extends Exception
@@ -91,6 +113,8 @@ class DirectedEdgeException extends Exception
 /**
  * Simple conceptualization of a REST resource, with support for GET, PUT and
  * DELETE HTTP methods.
+ *
+ * @package DirectedEdge
  */
 
 class DirectedEdgeResource
@@ -212,6 +236,8 @@ class DirectedEdgeResource
  * <code>
  * $database = new DirectedEdgeDatabase('mydatabase', 'mypassword');
  * </code>
+ *
+ * @package DirectedEdge
  */
 
 class DirectedEdgeDatabase
@@ -371,6 +397,8 @@ class DirectedEdgeDatabase
  * $user->linkTo($product);
  * $user->save();
  * </code>
+ *
+ * @package DirectedEdge
  */
 
 class DirectedEdgeItem
@@ -509,7 +537,7 @@ class DirectedEdgeItem
      * @param string Name of the property to set.
      * @param string Value to set.
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      */
 
@@ -525,7 +553,7 @@ class DirectedEdgeItem
      * @param string The name of the property be cleared from this items
      * properties.
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      */
 
@@ -543,13 +571,13 @@ class DirectedEdgeItem
      * link.
      * @param string An optional link type, e.g. "purchase" or "rating".
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      *
-     * @warning $other must exist in the database or must have save() called on
-     * it before it is called on this item or the link will be ignored.  This
-     * is because the engine tries to detect (and discard) \em broken links that
-     * do not terminate at a valid node.
+     * $other must exist in the database or must have save() called on it before
+     * it is called on this item or the link will be ignored.  This is because
+     * the engine tries to detect (and discard) \em broken links that do not
+     * terminate at a valid node.
      */
 
     public function linkTo($other, $weight = 0, $type = '')
@@ -575,7 +603,7 @@ class DirectedEdgeItem
      * @param string The link type to be removed.
      * @param string Link type to be removed.
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      */
 
@@ -607,7 +635,7 @@ class DirectedEdgeItem
      *
      * @param string The name of the tag to be added.
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      */
 
@@ -622,7 +650,7 @@ class DirectedEdgeItem
      *
      * @param string The name of the tag to be removed.
      *
-     * @note Changes will not be reflected in the database until save() is
+     * Changes will not be reflected in the database until save() is
      * called.
      */
 
@@ -735,8 +763,6 @@ class DirectedEdgeItem
     }
 
     /**
-     * @return An XML representation of the item.
-     *
      * @param Array Links to be included, defaults to this item's links.
      * @param Array Tags to be included, defaults to this item's tags.
      * @param Array Properties to be included, defaults to this item's properties.
@@ -994,6 +1020,8 @@ class DirectedEdgeItem
  * $exporter->export($item);
  * $exporter->finish();
  * </code>
+ *
+ * @package DirectedEdge
  */
 
 class DirectedEdgeExporter
