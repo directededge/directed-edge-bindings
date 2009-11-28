@@ -65,13 +65,11 @@ class ExampleStore(object):
 
     def related_products(self, product_id):
         item = Item(self.database, "product%s" % product_id)
-        return map(lambda related: related.replace("product", ""),
-                   item.related(["product"]))
+        return [related.replace("product", "") for related in item.related(["product"])]
 
     def personalized_recommendations(self, customer_id):
         item = Item(self.database, "customer%s" % customer_id)
-        return map(lambda related: related.replace("product", ""),
-                   item.related(["product"]))
+        return [related.replace("product", "") for related in item.recommended(["product"])]
 
         
 store = ExampleStore()
