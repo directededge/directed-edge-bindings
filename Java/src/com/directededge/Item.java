@@ -100,6 +100,9 @@ public class Item
     }
 
     /**
+     * Items have a unique identifier which is passed into the constructor.
+     * This returns the unique identifier for this item.
+     *
      * @return The unique identifier for the item.
      */
     public String getName()
@@ -108,10 +111,17 @@ public class Item
     }
 
     /**
+     * A map from link-name to link-weight for the items linked from this
+     * item.
+     *
      * @return A map of links and their respective weights for the item.
      * A weight of zero indicates an unweighted link.
-     * @see linkTo()
-     * @see unlinkFrom()
+     * @see #linkTo(com.directededge.Item)
+     * @see #linkTo(java.lang.String)
+     * @see #linkTo(com.directededge.Item, int)
+     * @see #linkTo(java.lang.String, int)
+     * @see #unlinkFrom(com.directededge.Item)
+     * @see #unlinkFrom(java.lang.String)
      */
     public Map<String, Integer> getLinks()
     {
@@ -121,8 +131,10 @@ public class Item
 
     /**
      * Creates an unweighted link.
+     *
      * @param other The ID of another item in the database.
-     * @see unlinkFrom()
+     * @see #unlinkFrom(com.directededge.Item)
+     * @see #unlinkFrom(java.lang.String)
      */
     public void linkTo(String other)
     {
@@ -130,10 +142,12 @@ public class Item
     }
 
     /**
-     * Creates a weighted link from this item to @a other.
+     * Creates a weighted link from this item to other.
+     *
      * @param other The ID of another item in the database.
      * @param weight A weight, 1-10 or 0 for no weight for the link.
-     * @see unlinkFrom()
+     * @see #unlinkFrom(com.directededge.Item)
+     * @see #unlinkFrom(java.lang.String)
      */
     public void linkTo(String other, int weight)
     {
@@ -148,9 +162,11 @@ public class Item
     }
 
     /**
-     * Creates an unweighted link to @a other.
+     * Creates an unweighted link to other.
+     *
      * @param other Another item in the database.
-     * @see unlinkFrom()
+     * @see #unlinkFrom(com.directededge.Item)
+     * @see #unlinkFrom(java.lang.String)
      */
     public void linkTo(Item other)
     {
@@ -158,10 +174,12 @@ public class Item
     }
 
     /**
-     * Creates a weighted link from this item to @a other.
+     * Creates a weighted link from this item to other.
+     *
      * @param other Another item in the database.
      * @param weight A weight, 1-10 or 0 for no weight for the link.
-     * @see unlinkFrom()
+     * @see #unlinkFrom(com.directededge.Item)
+     * @see #unlinkFrom(java.lang.String)
      */
     public void linkTo(Item other, int weight)
     {
@@ -169,10 +187,13 @@ public class Item
     }
 
     /**
-     * Removes a link from this item to @a other.
+     * Removes a link from this item to other.
+     *
      * @param other The ID of another item in the database.
-     * @see linkTo()
-     */
+     * @see #linkTo(com.directededge.Item)
+     * @see #linkTo(java.lang.String)
+     * @see #linkTo(com.directededge.Item, int)
+     * @see #linkTo(java.lang.String, int)     */
     public void unlinkFrom(String other)
     {
         if(isCached)
@@ -186,9 +207,13 @@ public class Item
     }
 
     /**
-     * Remove a link from this item to @a other.
+     * Remove a link from this item to other.
+     *
      * @param other Another item in the database.
-     * @see linkTo()
+     * @see #linkTo(com.directededge.Item)
+     * @see #linkTo(java.lang.String)
+     * @see #linkTo(com.directededge.Item, int)
+     * @see #linkTo(java.lang.String, int)
      */
     public void unlinkFrom(Item other)
     {
@@ -196,10 +221,16 @@ public class Item
     }
 
     /**
+     * If there is a weight for the item with the identifier specified, return
+     * that, otherwise returns zero.
+     *
      * @param other The ID of an item that this item is linked to.
-     * @return The weight for @a other if found, or zero if the link is
+     * @return The weight for other if found, or zero if the link is
      * unweighted or no link exists.
-     * @see linkTo()
+     * @see #linkTo(com.directededge.Item)
+     * @see #linkTo(java.lang.String)
+     * @see #linkTo(com.directededge.Item, int)
+     * @see #linkTo(java.lang.String, int)
      */
     public int weightFor(String other)
     {
@@ -208,11 +239,17 @@ public class Item
     }
 
     /**
-     * @param other Another item that this item is linked to.
-     * @return The weight for @a other if found, or zero if the link is
+     * If there is a weight for the item specified return that, otherwise
+     * returns zero.
+     *
+     * @param item Another item that this item is linked to.
+     * @return The weight for other if found, or zero if the link is
      * unweighted or no link exists.
      *
-     * @see linkTo()
+     * @see #linkTo(com.directededge.Item)
+     * @see #linkTo(java.lang.String)
+     * @see #linkTo(com.directededge.Item, int)
+     * @see #linkTo(java.lang.String, int)
      */
     public int weightFor(Item item)
     {
@@ -220,11 +257,13 @@ public class Item
     }
 
     /**
+     * Gets the set of tags for this item.
+     *
      * @return The set of tags on this item.  This set should not be modified
      * directly.
      *
-     * @see addTag()
-     * @see removeTag()
+     * @see #addTag(java.lang.String)
+     * @see #removeTag(java.lang.String)
      */
     public Set<String> getTags()
     {
@@ -237,8 +276,8 @@ public class Item
      * save() is called.
      *
      * @param name The name of a tag to add to this item.
-     * @see remvoeTag()
-     * @see getTags()
+     * @see #removeTag(java.lang.String)
+     * @see #getTags()
      */
     public void addTag(String name)
     {
@@ -251,8 +290,8 @@ public class Item
      * until save() is called.
      *
      * @param name The name of a tag to remove from this item.
-     * @see addTag()
-     * @see getTags()
+     * @see #addTag(java.lang.String)
+     * @see #getTags()
      */
     public void removeTag(String name)
     {
@@ -267,10 +306,12 @@ public class Item
     }
 
     /**
+     * Returns a map of key-value pairs for the properties for this item.
+     *
      * @return The map of key-value pairs for the properties for this item.
      * This map should not be modified directly.
-     * @see setProperty()
-     * @see clearProperty()
+     * @see #setProperty(java.lang.String, java.lang.String)
+     * @see #clearProperty(java.lang.String)
      */
     public Map<String, String> getProperties()
     {
@@ -284,9 +325,9 @@ public class Item
      *
      * @param name The key for the property.
      * @param value The value.
-     * @see getProperties()
-     * @see getProperty()
-     * @see clearProperty()
+     * @see #getProperties()
+     * @see #getProperty(java.lang.String)
+     * @see #clearProperty(java.lang.String)
      */
     public void setProperty(String name, String value)
     {
@@ -299,8 +340,8 @@ public class Item
      *
      * @param name The property to be fetched.
      * @return The value of the property.
-     * @see setProperty()
-     * @see clearProperty()
+     * @see #setProperty(java.lang.String, java.lang.String)
+     * @see #clearProperty(java.lang.String)
      */
     public String getProperty(String name)
     {
@@ -312,9 +353,9 @@ public class Item
      * database until save() is called.
      *
      * @param name The key of the property to be removed.
-     * @see getProperties()
-     * @see getProperty()
-     * @see clearProperty()
+     * @see #getProperties()
+     * @see #getProperty(java.lang.String)
+     * @see #clearProperty(java.lang.String)
      */
     public void clearProperty(String name)
     {
@@ -358,10 +399,10 @@ public class Item
      * "recommended" -- related items are for instance, for a product or page,
      * whereas "recommended" is used for items recommended for a user.
      *
-     * @param tags Tags used in filtering the results.
+     * @param tags Items which contain any of the specified tags will be allowed
+     * in the result set.
      * @param maxResults The maximum number of items to return.
      * @return A list of item IDs with one or more of the given tags.
-     * @return
      */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
@@ -369,16 +410,45 @@ public class Item
                 queryString(tags, false, maxResults)), "related");
     }
 
+    /**
+     * A list of items recommended for this item.  Note the distinction between
+     * "related" and "recommended" -- related items are for instance, for a
+     * product or page, whereas "recommended" is used for items recommended for
+     * a user.
+     *
+     * @return A list of item IDs with one or more of the given tags.
+     */
     public List<String> getRecommended()
     {
         return getRecommended(new HashSet<String>());
     }
 
+    /**
+     * A list of items recommended for this item.  Note the distinction between
+     * "related" and "recommended" -- related items are for instance, for a
+     * product or page, whereas "recommended" is used for items recommended for
+     * a user.
+     *
+     * @param tags Items which contain any of the specified tags will be allowed
+     * in the result set.
+     * @return A list of item IDs with one or more of the given tags.
+     */
     public List<String> getRecommended(Set<String> tags)
     {
         return getRecommended(tags, 20);
     }
 
+    /**
+     * A list of items recommended for this item.  Note the distinction between
+     * "related" and "recommended" -- related items are for instance, for a
+     * product or page, whereas "recommended" is used for items recommended for
+     * a user.
+     *
+     * @param tags Items which contain any of the specified tags will be allowed
+     * in the result set.
+     * @param maxResults The maximum number of items to return.
+     * @return A list of item IDs with one or more of the given tags.
+     */
     public List<String> getRecommended(Set<String> tags, int maxResults)
     {
          return readList(document(Reference.encode(id) + "/recommended" +
@@ -401,13 +471,13 @@ public class Item
                !tagsToRemove.isEmpty() ||
                !propertiesToRemove.isEmpty())
             {
-                HashMap linkMap = new HashMap<String, Integer>();
+                HashMap<String, Integer> linkMap = new HashMap<String, Integer>();
                 for(String link : linksToRemove)
                 {
                     linkMap.put(link, 0);
                 }
 
-                HashMap propertyMap = new HashMap<String, String>();
+                HashMap<String, String> propertyMap = new HashMap<String, String>();
                 for(String property : propertiesToRemove)
                 {
                     propertyMap.put(property, "");
@@ -420,6 +490,9 @@ public class Item
     }
 
     /**
+     * Converts this item to an XML representation which can be sent to the
+     * server.
+     *
      * @return An XML representation of the item.
      */
     public String toXML()

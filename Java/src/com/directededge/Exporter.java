@@ -44,10 +44,10 @@ public class Exporter
     private BufferedWriter output;
 
     /**
-     * Creates an exporter that will store items in @a fileName.
+     * Creates an exporter that will store items in fileName.
      * @param fileName The file path where the resulting XML file should be
      * stored.
-     * @see finish()
+     * @see #finish()
      */
     public Exporter(String fileName)
     {
@@ -66,8 +66,11 @@ public class Exporter
     }
 
     /**
-     * @return A pseudo-database that should be used as the database for items
-     * created to be used with the exporter.
+     * Returns a pseudo-database that can be passed into the constructor of new
+     * Item instances to be exported.
+     *
+     * @return The database pseudo-database instance.
+     * @see Item
      */
     public Database getDatabase()
     {
