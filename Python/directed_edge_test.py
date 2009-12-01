@@ -26,7 +26,9 @@ class QueryTest(unittest.TestCase):
         self.assert_("foo" in self.customer.tags)
 
     def testRelated(self):
-        self.assert_(len(self.product.related([], 5)) == 5)
+        self.assert_(len(self.product.related([], maxResults=5)) == 5)
+        self.assert_(self.product.related([], popularity=0) !=
+                     self.product.related([], popularity=1))
         self.assert_("product21" in self.product.related(["product"]))
 
     def testProperties(self):

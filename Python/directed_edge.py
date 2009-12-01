@@ -229,31 +229,40 @@ class Item(object):
             return None
         return self.__properties[key]
 
-    def related(self, tags=[], max_results=20):
+    def related(self, tags=[], **params):
         """Returns a list of up to max_results items related to this one, sorted
         by relevance.  Items matching any of the given tags may be returned.
 
         Note that related is typically used for similar products (or users or
         articles) whereas recommended, below, is used for personalized
-        recommendations. """
+        recommendations.
+        
+        Queries support a number of parameters, e.g.
 
-        return self.__read_list(self.__document("related",
-                                                { "tags" : ",".join(Set(tags)),
-                                                  "maxResults" : max_results }), "related")
+        - maxResults (integer)
+        - excludeLinked (true / false)"""
 
-    def recommended(self, tags=[], max_results=20):
+        params["tags"] = ",".join(Set(tags))
+        return self.__read_list(self.__document("related", params), "related")
+
+    def recommended(self, tags=[], **params):
         """Returns a list of up to max_results items recommended for this one,
         sorted by relevance.  Items matching any of the given tags may be
         returned.
 
         Note that recommended is typically used for personalized recommendations
         (assuming this item is a user), whereas related, above, is used for
-        related products, users, etc."""
+        related products, users, etc.
 
-        return self.__read_list(self.__document("recommended",
-                                                { "excludeLinked" : "true",
-                                                  "tags" : ",".join(Set(tags)),
-                                                  "maxResults" : max_results }), "recommended")
+        Queries support a number of parameters, e.g.
+
+        - maxResults (integer)
+        - excludeLinked (true / false)"""
+
+        params["tags"] = ",".join(Set(tags))
+        if not params.has_key("excludeLinked"):
+            params["excludeLinked"] = "true"
+        return self.__read_list(self.__document("recommended", params), "recommended")
 
     def to_xml(self, tags=None, links=None, properties=None, include_document=True):
         """Converts this item to an XML representation.  Only for internal use."""
