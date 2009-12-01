@@ -28,6 +28,11 @@ import httplib2
 import xml.dom.minidom
 from sets import Set
 
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+
 class Resource(object):
     """REST resource used in the Directed Edge API"""
 
@@ -366,7 +371,7 @@ class Exporter(object):
         self.__database = Database("export")
 
         self.__file = None
-        self.__data = ""
+        self.__data = StringIO.StringIO()
 
         if isinstance(destination, str):
             self.__file = open(destination, "w")
@@ -401,10 +406,10 @@ class Exporter(object):
         if self.__file:
             self.__file.close()
         else:
-            self.database.resource.put(self.__data, "add", { "createMissingLinks" : "true" })
+            self.database.resource.put(self.__data.getvalue(), "add", { "createMissingLinks" : "true" })
 
     def __write(self, data):
         if self.__file:
             self.__file.write(data)
         else:
-            self.__data += data
+            self.__data.write(data)
