@@ -48,15 +48,15 @@ class DirectedEdgeTest < Test::Unit::TestCase
     product = DirectedEdge::Item.new(database, 'test_product')
 
     assert(user.tags.include?('user'))
-    assert(user['name'] == 'Test User')
+    assert_equal('Test User', user['name'])
 
     assert(user.links.include?('test_product'))
     assert(user.links.include?('test_user_2'))
 
-    assert(user.links['test_product'] == 5)
+    assert_equal(5, user.links['test_product'])
 
     assert(product.tags.include?('product'))
-    assert(product['name'] == 'Test Product')
+    assert_equal('Test Product', product['name'])
   end
 
   def test_add
@@ -67,7 +67,7 @@ class DirectedEdgeTest < Test::Unit::TestCase
     exporter.finish
     
     item = DirectedEdge::Item.new(@database, 'Foo')
-    assert(item['name'] == 'Bar')
+    assert_equal('Bar', item['name'])
   end
 
   def test_tags
@@ -97,28 +97,28 @@ class DirectedEdgeTest < Test::Unit::TestCase
     third_item = DirectedEdge::Item.new(@database, 'test_3')
     third_item.create([first_item, second_item], 'test_tag')
 
-    assert(first_item.name == 'test_1')
+    assert_equal('test_1', first_item.name)
 
     # Make sure that the number of tags / links for the first item is zero
 
-    assert(first_item.links.length == 0)
-    assert(first_item.tags.length == 0)
+    assert_equal(0, first_item.links.length)
+    assert_equal(0, first_item.tags.length)
 
     # Link the first item to the second item and make sure it worked
 
     first_item.link_to(second_item)
     first_item.save
-    assert(first_item.links.length == 1)
+    assert_equal(1, first_item.links.length)
 
     # Make sure that the number of tags for the second item is zero and that
     # there is a link to the second item
 
-    assert(second_item.links.length == 1)
-    assert(second_item.tags.length == 0)
+    assert_equal(1, second_item.links.length)
+    assert_equal(0, second_item.tags.length)
 
     # Make sure that the third item is linked to both the first and second items
 
-    assert(third_item.links.length == 2)
+    assert_equal(2, third_item.links.length)
     assert(third_item.links.include?(first_item))
     assert(third_item.links.include?(second_item))
 
@@ -131,17 +131,17 @@ class DirectedEdgeTest < Test::Unit::TestCase
     # Since linked items are excluded from recommendations, nothing should show
     # up in the recommended items for the third item.
 
-    assert(third_item.recommended.length == 0)
-    assert(second_item.recommended.length == 1)
-    assert(second_item.recommended(['unknown_tag']).length == 0)
-    assert(first_item.recommended(['test_tag']) == [third_item.to_s])
+    assert_equal(0, third_item.recommended.length)
+    assert_equal(1, second_item.recommended.length)
+    assert_equal(0, second_item.recommended(['unknown_tag']).length)
+    assert_equal([third_item.to_s], first_item.recommended(['test_tag']))
 
     # Remove the link from the second item and assure that it was removed
 
     second_item.unlink_from(first_item)
     second_item.save
 
-    assert(second_item.links.length == 0)
+    assert_equal(0, second_item.links.length)
 
     # Remove the links from the third item and assure that they were removed
 
@@ -149,7 +149,7 @@ class DirectedEdgeTest < Test::Unit::TestCase
     third_item.unlink_from(second_item)
     third_item.save
 
-    assert(third_item.links.length == 0)
+    assert_equal(0, third_item.links.length)
 
     # Now make sure that those items no longer show up as related items
 
@@ -158,12 +158,12 @@ class DirectedEdgeTest < Test::Unit::TestCase
 
     # Test item removal
 
-    assert(first_item.links.length == 1)
+    assert_equal(1, first_item.links.length)
 
     second_item.destroy
     first_item.reload
 
-    assert(first_item.links.length == 0)
+    assert(0, first_item.links.length)
   end
 
   def test_tags
@@ -193,23 +193,23 @@ class DirectedEdgeTest < Test::Unit::TestCase
   def test_properties
     item = DirectedEdge::Item.new(@database, 'customer1')
 
-    assert(item.properties.length == 0)
+    assert_equal(0, item.properties.length)
 
     item['test_property_1'] = 'test_value'
     item.save
 
-    assert(item.properties.length == 1)
-    assert(item['test_property_1'] == 'test_value')
+    assert_equal(1, item.properties.length)
+    assert_equal('test_value', item['test_property_1'])
 
     item['test_property_2'] = 'test_value'
 
-    assert(item.properties.length == 2)
-    assert(item['test_property_2'] == 'test_value')
+    assert_equal(2, item.properties.length)
+    assert_equal('test_value', item['test_property_2'])
 
     item['test_property_1'] = 'test_value_updated'
 
-    assert(item.properties.length == 2)
-    assert(item['test_property_1'] == 'test_value_updated')
+    assert_equal(2, item.properties.length)
+    assert_equal('test_value_updated', item['test_property_1'])
 
     # Test the cached example of clearing a property
     
@@ -247,8 +247,8 @@ class DirectedEdgeTest < Test::Unit::TestCase
       end
       (1..count).concurrently do |i|
         item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
-        assert(item.tags.length == 1)
-        assert(item.properties.length == 1)
+        assert_equal(1, item.tags.length)
+        assert_equal(1, item.properties.length)
       end
     end
 
@@ -283,7 +283,7 @@ class DirectedEdgeTest < Test::Unit::TestCase
     customer1.link_to(customer3, 10)
     customer1.save
     customer1.reload
-    assert(customer1.weight_for(customer3) == 10)
+    assert_equal(10, customer1.weight_for(customer3))
   end
 
   def test_group_related
