@@ -16,3 +16,5 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Batch updates support in exporter                     | X    | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|
+| Support for grabbing properties in related query      | X    |     |        |      |
+|-------------------------------------------------------|------|-----|--------|------|

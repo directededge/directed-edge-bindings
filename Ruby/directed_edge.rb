@@ -57,6 +57,20 @@ module DirectedEdge
       values
     end
 
+    # Similar to list_from_document, but instead of a list of items for the given
+    # element returns a hash of key-value pairs (attributes), e.g.:
+    #
+    # 'item1' => { 'foo' => 'bar' }
+
+    def property_hash_from_document(document, element)
+      values = {}
+      document.elements.each("//#{element}") do |e|
+        values[e.text] = {}
+        e.attributes.each_attribute { |a| values[e.text][a.name] = a.value }
+      end
+      values
+    end
+
     # Returns a hash of the elements from the document matching the given
     # element name.  If the specified attribute is present, its value will
     # be assigned to the hash, otherwise the default value given will be
@@ -486,7 +500,11 @@ module DirectedEdge
 
     def related(tags=Set.new, params={})
       params['tags'] = tags.to_a.join(',')
-      list_from_document(read_document('related', params), 'related')
+      if params['includeProperties'].to_s == 'true'
+        property_hash_from_document(read_document('related', params), 'related')
+      else
+        list_from_document(read_document('related', params), 'related')
+      end
     end
 
     # Returns the list of items recommended for this item, usually a user.
@@ -503,7 +521,11 @@ module DirectedEdge
     def recommended(tags=Set.new, params={})
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
-      list_from_document(read_document('recommended', params), 'recommended')
+      if params['includeProperties'].to_s == 'true'
+        property_hash_from_document(read_document('recommended', params), 'recommended')
+      else
+        list_from_document(read_document('recommended', params), 'recommended')
+      end
     end
 
     # Returns the ID of the item.

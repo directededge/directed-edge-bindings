@@ -319,4 +319,17 @@ class DirectedEdgeTest < Test::Unit::TestCase
     assert(item.related(['product']).include?('product21'))
     assert(!item.related(['product'], 'excludeLinked' => true).include?('product21'))
   end
+
+  def test_include_properties
+    item = DirectedEdge::Item.new(@database, 'product1')
+    other = DirectedEdge::Item.new(@database, 'product21')
+    other['foo'] = 'bar'
+    other.save
+    related = item.related(['product'], 'includeProperties' => true)
+    assert_equal('bar', related['product21']['foo'])
+
+    customer = DirectedEdge::Item.new(@database, 'customer2')
+    recommended = customer.recommended(['product'], 'includeProperties' => true)
+    assert_equal('bar', recommended['product21']['foo'])
+  end
 end
