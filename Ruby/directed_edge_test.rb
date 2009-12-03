@@ -311,13 +311,13 @@ class DirectedEdgeTest < Test::Unit::TestCase
 
   def test_query_parameters
     item = DirectedEdge::Item.new(@database, 'product1')
-    assert_equal(5, item.related(['product'], 'maxResults' => 5).size)
+    assert_equal(5, item.related(['product'], :max_results => 5).size)
 
     item.link_to('product21')
     item.save
 
     assert(item.related(['product']).include?('product21'))
-    assert(!item.related(['product'], 'excludeLinked' => true).include?('product21'))
+    assert(!item.related(['product'], :exclude_linked => true).include?('product21'))
   end
 
   def test_include_properties
@@ -325,11 +325,11 @@ class DirectedEdgeTest < Test::Unit::TestCase
     other = DirectedEdge::Item.new(@database, 'product21')
     other['foo'] = 'bar'
     other.save
-    related = item.related(['product'], 'includeProperties' => true)
+    related = item.related(['product'], :include_properties => true)
     assert_equal('bar', related['product21']['foo'])
 
     customer = DirectedEdge::Item.new(@database, 'customer2')
-    recommended = customer.recommended(['product'], 'includeProperties' => true)
+    recommended = customer.recommended(['product'], :include_properties => true)
     assert_equal('bar', recommended['product21']['foo'])
   end
 end

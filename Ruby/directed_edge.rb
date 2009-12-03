@@ -26,6 +26,27 @@ require 'rest_client'
 require 'rexml/document'
 require 'cgi'
 
+class Hash
+
+  # An extension to normalize tokens and strings of the form foo_bar to strings
+  # of fooBar as expected by the REST API.
+
+  def normalize!
+    each do |key, value|
+      if !key.is_a?(String)
+        delete(key)
+        key = key.to_s
+        store(key, value.to_s)
+      end
+      if key.match(/_\w/)
+        delete(key)
+        store(key.gsub(/_\w/) { |s| s[1, 1].upcase }, value.to_s)
+      end
+    end
+    self
+  end
+end
+
 # The DirectedEdge module contains three classes:
 #
 # - Database - encapsulation of connection a database hosted by Directed Edge.
@@ -493,14 +514,15 @@ module DirectedEdge
     # will be returned.
     #
     # Parameters that may be passed in include:
-    # - excludeLinked (true / false)
-    # - maxResults (integer)
+    # - :exclude_linked (true / false)
+    # - :max_results (integer)
     #
     # This will not reflect any unsaved changes to items.
 
     def related(tags=Set.new, params={})
+      params.normalize!
       params['tags'] = tags.to_a.join(',')
-      if params['includeProperties'].to_s == 'true'
+      if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('related', params), 'related')
       else
         list_from_document(read_document('related', params), 'related')
@@ -513,15 +535,16 @@ module DirectedEdge
     # tags will be returned.
     #
     # Parameters that may be passed in include:
-    # - excludeLinked (true / false)
-    # - maxResults (integer)
+    # - :exclude_linked (true / false)
+    # - :max_results (integer)
     #
     # This will not reflect any unsaved changes to items.
 
     def recommended(tags=Set.new, params={})
+      params.normalize!
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
-      if params['includeProperties'].to_s == 'true'
+      if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('recommended', params), 'recommended')
       else
         list_from_document(read_document('recommended', params), 'recommended')
