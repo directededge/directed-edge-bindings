@@ -41,6 +41,8 @@ class Hash
       if key.match(/_\w/)
         delete(key)
         store(key.gsub(/_\w/) { |s| s[1, 1].upcase }, value.to_s)
+      elsif !value.is_a?(String)
+        store(key, value.to_s)
       end
     end
     self
@@ -65,7 +67,7 @@ module DirectedEdge
     # Reads an item from the database and puts it into an XML document.
 
     def read_document(method='', params={})
-      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value.to_s)}" }.join('&')
+      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value)}" }.join('&')
       REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
     end
 
@@ -167,6 +169,7 @@ module DirectedEdge
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
       params['union'] = true
+      params.normalize!
       list_from_document(read_document('related', params), 'related')
     end
   end
