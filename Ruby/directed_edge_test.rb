@@ -328,6 +328,9 @@ class DirectedEdgeTest < Test::Unit::TestCase
     related = item.related(['product'], :include_properties => true)
     assert_equal('bar', related['product21']['foo'])
 
+    related = @database.group_related(['product1'], ['product'], :include_properties => true)
+    assert_equal('bar', related['product21']['foo'])
+
     customer = DirectedEdge::Item.new(@database, 'customer2')
     recommended = customer.recommended(['product'], :include_properties => true)
     assert_equal('bar', recommended['product21']['foo'])

@@ -170,7 +170,11 @@ module DirectedEdge
       params['tags'] = tags.to_a.join(',')
       params['union'] = true
       params.normalize!
-      list_from_document(read_document('related', params), 'related')
+      if params['includeProperties'] == 'true'
+        property_hash_from_document(read_document('related', params), 'related')
+      else
+        list_from_document(read_document('related', params), 'related')
+      end
     end
   end
 
