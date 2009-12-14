@@ -257,7 +257,7 @@ class Item(object):
         Queries support a number of parameters, e.g.
 
         - maxResults (integer)
-        - excludeLinked (true / false)"""
+        - excludeLinked (true / false) default true"""
 
         params["tags"] = ",".join(Set(tags))
         if not params.has_key("excludeLinked"):
