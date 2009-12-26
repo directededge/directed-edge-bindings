@@ -42,7 +42,7 @@ class DirectedEdgeTest < Test::Unit::TestCase
     exporter.finish
 
     database = DirectedEdge::Database.new('testdb', 'test')
-    database.import('export.xml')
+    database.import('exported.xml')
 
     user = DirectedEdge::Item.new(database, 'test_user_1')
     product = DirectedEdge::Item.new(database, 'test_product')
