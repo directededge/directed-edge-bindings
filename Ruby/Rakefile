@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "directed-edge"
-    gem.summary = %Q{"Bindings for the Directed Edge webservices API"}
-    gem.description = %Q{"Bindings for the Directed Edge webservices API"}
+    gem.summary = "Bindings for the Directed Edge webservices API"
+    gem.description = "Bindings for the Directed Edge webservices API"
     gem.email = "info@directededge.com"
     gem.homepage = "http://developer.directededge.com/"
     gem.authors = ["Directed Edge"]
