@@ -1,8 +1,4 @@
-#!/usr/bin/ruby
-
-require 'test/unit'
-require 'directed_edge'
-require 'pp'
+require 'helper'
 
 # Defines a multithreaded "each"
 
@@ -12,7 +8,7 @@ module Enumerable
   end
 end
 
-class DirectedEdgeTest < Test::Unit::TestCase
+class TestDirectedEdge < Test::Unit::TestCase
   def setup
     user = ENV['DIRECTEDEDGE_TEST_DB']
     pass = ENV['DIRECTEDEDGE_TEST_PASS']

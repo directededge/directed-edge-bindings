@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 tests = {}
-tests['Ruby'] = 'ruby directed_edge_test.rb'
+tests['Ruby'] = 'rake test'
 tests['Python'] = 'python directed_edge_test.py'
 tests['PHP'] = 'phpunit DirectedEdgeTest.php'
 tests['Java'] = 'ant test'
