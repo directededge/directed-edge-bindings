@@ -330,10 +330,12 @@ module DirectedEdge
       @id = id
       @links = {}
       @tags = Set.new
+      @preselected = []
       @properties = {}
 
       @links_to_remove = Set.new
       @tags_to_remove = Set.new
+      @preselected_to_remove = Set.new
       @properties_to_remove = Set.new
 
       @resource = @database.resource[URI.escape(@id)]
@@ -386,11 +388,15 @@ module DirectedEdge
 
         put(complete_document, 'add')
 
-        if !@links_to_remove.empty? || !@tags_to_remove.empty? || !@properties_to_remove.empty?
+        if !@links_to_remove.empty? ||
+            !@tags_to_remove.empty? ||
+            !@preselected_to_remove.empty? ||
+            !@properties_to_remove.empty?
           put(removal_document, 'remove')
           @links_to_remove.clear
           @tags_to_remove.clear
           @properties_to_remove.clear
+          @preselected_to_remove.clear
         end
       end
       self
@@ -404,10 +410,12 @@ module DirectedEdge
 
       @links = hash_from_document(document, 'link', 'weight')
       @tags = Set.new(list_from_document(document, 'tag'))
+      @preselected = list_from_document(document, 'preselected')
       @properties = {}
 
       @links_to_remove.clear
       @tags_to_remove.clear
+      @preselected_to_remove.clear
       @properties_to_remove.clear
 
       document.elements.each('//property') do |element|
@@ -428,6 +436,13 @@ module DirectedEdge
     def tags
       read
       @tags
+    end
+
+    # Returns an ordered list of items that are preselected for this item.
+
+    def preselected
+      read
+      @preselected
     end
 
     # Returns a hash of all of this item's properties.
@@ -456,9 +471,7 @@ module DirectedEdge
     # Remove the given property_name.
 
     def clear_property(property_name)
-      if !@cached
-        @properties_to_remove.add(property_name)
-      end
+      @properties_to_remove.add(property_name) unless @cached
       @properties.delete(property_name)
     end
 
@@ -490,9 +503,7 @@ module DirectedEdge
     # to detect 'broken' links that do not terminate at a valid item.
 
     def link_to(other, weight=0)
-      if weight < 0 || weight > 10
-        raise RangeError
-      end
+      raise RangeError if (weight < 0 || weight > 10)
       @links_to_remove.delete(other)
       @links[other.to_s] = weight
     end
@@ -502,9 +513,7 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def unlink_from(other)
-      if !@cached
-        @links_to_remove.add(other.to_s)
-      end
+      @links_to_remove.add(other.to_s) unless @cached
       @links.delete(other.to_s)
     end
 
@@ -530,10 +539,18 @@ module DirectedEdge
     # The changes will not be reflected in the database until save is called.
 
     def remove_tag(tag)
-      if !@cached
-        @tags_to_remove.add(tag)
-      end
+      @tags_to_remove.add(tag) unless @cached
       @tags.delete(tag)
+    end
+
+    def add_preselected(item)
+      @preselected_to_remove.delete(item)
+      @preselected.push(item)
+    end
+
+    def remove_preselected(item)
+      @preselected_to_remove.add(item) unless @cached
+      @preselected.delete(item)
     end
 
     # Returns the list of items related to this one.  Unlike "recommended" this
@@ -604,20 +621,21 @@ module DirectedEdge
           document = read_document
           @links.merge!(hash_from_document(document, 'link', 'weight'))
           @tags.merge(list_from_document(document, 'tag'))
+          @preselected.concat(list_from_document(document, 'preselected'))
 
           document.elements.each('//property') do |element|
             name = element.attribute('name').value
-            if !@properties.has_key?(name)
-              @properties[name] = element.text
-            end
+            @properties[name] = element.text unless @properties.has_key?(name)
           end
 
           @links_to_remove.each { |link| @links.delete(link) }
           @tags_to_remove.each { |tag| @tags.delete(tag) }
+          @preselected_to_remove.each { |pre| @preselected.delete(pre) }
           @properties_to_remove.each { |property| @properties.delete(property) }
 
           @links_to_remove.clear
           @tags_to_remove.clear
+          @preselected_to_remove.clear
           @properties_to_remove.clear
 
           @cached = true
@@ -647,6 +665,7 @@ module DirectedEdge
       item = setup_document(REXML::Document.new)
       @links_to_remove.each { |link| item.add_element('link').add_text(link.to_s) }
       @tags_to_remove.each { |tag| item.add_element('tag').add_text(tag.to_s) }
+      @preselected_to_remove.each { |pre| item.add_element('preselected').add_text(pre.to_s) }
       @properties_to_remove.each do |property|
         item.add_element('property').add_attribute('name', property.to_s)
       end
@@ -657,12 +676,11 @@ module DirectedEdge
       item = setup_document(document)
       @links.each do |link, weight|
         element = item.add_element('link')
-        if weight != 0
-          element.add_attribute('weight', weight.to_s)
-        end
+        element.add_attribute('weight', weight.to_s) if weight != 0
         element.add_text(link.to_s)
       end
       @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
+      @preselected.each { |pre| item.add_element('preselected').add_text(pre.to_s) }
       @properties.each do |key, value|
         property = item.add_element('property')
         property.add_attribute('name', key.to_s)

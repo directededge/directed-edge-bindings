@@ -331,4 +331,24 @@ class TestDirectedEdge < Test::Unit::TestCase
     recommended = customer.recommended(['product'], :include_properties => true)
     assert_equal('bar', recommended['product21']['foo'])
   end
+
+  def test_preselected
+    item = DirectedEdge::Item.new(@database, 'product1')
+    item.add_preselected('product2')
+    item.add_preselected('product3')
+    item.save
+    item.reload
+    assert_equal(2, item.preselected.length)
+    assert_equal('product2', item.preselected[0])
+    assert_equal('product3', item.preselected[1])
+
+    related = item.related
+    assert_equal('product2', item.related[0])
+    assert_equal('product3', item.related[1])
+
+    item.remove_preselected('product2')
+    item.save
+    item.reload
+    assert_equal(1, item.preselected.length)
+  end
 end
