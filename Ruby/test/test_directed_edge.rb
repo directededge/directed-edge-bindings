@@ -359,5 +359,14 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.remove_preselected('product3')
     item.save
     assert_equal(first, item.related[0])
+
+    # Make sure that internal properties aren't overwriting normal properties
+
+    item['foo'] = 'bar'
+    item.save
+    item.add_preselected('product2')
+    item.save
+    item.reload
+    assert_equal(item['foo'], 'bar')
   end
 end
