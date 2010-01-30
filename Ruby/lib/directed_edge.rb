@@ -174,7 +174,9 @@ module DirectedEdge
     # aggregate, commonly used to do recommendations for a basket of items.
 
     def group_related(items=Set.new, tags=Set.new, params={})
-      (!items.is_a?(Array) || items.size < 1) and return []
+      if !items.is_a?(Array) || items.size < 1
+        return (params['includeProperties'] == 'true') ? {} : []
+      end
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
       params['union'] = true
