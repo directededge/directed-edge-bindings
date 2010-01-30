@@ -231,6 +231,8 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_load
+    return if ENV['NO_LOAD_TEST']
+
     def run_load_test(prefix, count)
       (1..count).concurrently do |i|
         item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
@@ -334,6 +336,9 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_preselected
     item = DirectedEdge::Item.new(@database, 'product1')
+
+    first = item.related[0]
+
     item.add_preselected('product2')
     item.add_preselected('product3')
     item.save
@@ -350,5 +355,9 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
     item.reload
     assert_equal(1, item.preselected.length)
+
+    item.remove_preselected('product3')
+    item.save
+    assert_equal(first, item.related[0])
   end
 end
