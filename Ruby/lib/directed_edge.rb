@@ -47,6 +47,17 @@ class Hash
     end
     self
   end
+
+  def []=(key, value)
+    store(key, value)
+    @insert_order = [] if @insert_order.nil?
+    @insert_order.delete(key) if @insert_order.include?(key)
+    @insert_order.push(key)
+  end
+
+  def insert_order_each
+    @insert_order.each { |key| yield key, fetch(key) } unless @insert_order.nil?
+  end
 end
 
 # The DirectedEdge module contains three classes:
@@ -61,8 +72,6 @@ module DirectedEdge
   # grabbing functionality.
 
   class Resource
-
-    private
 
     # Reads an item from the database and puts it into an XML document.
 
