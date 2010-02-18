@@ -331,11 +331,13 @@ module DirectedEdge
       @links = {}
       @tags = Set.new
       @preselected = []
+      @blacklisted = Set.new
       @properties = {}
 
       @links_to_remove = Set.new
       @tags_to_remove = Set.new
       @preselected_to_remove = Set.new
+      @blacklisted_to_remove = Set.new
       @properties_to_remove = Set.new
 
       @resource = @database.resource[URI.escape(@id)]
@@ -391,12 +393,14 @@ module DirectedEdge
         if !@links_to_remove.empty? ||
             !@tags_to_remove.empty? ||
             !@preselected_to_remove.empty? ||
+            !@blacklisted_to_remove.empty? ||
             !@properties_to_remove.empty?
           put(removal_document, 'remove')
           @links_to_remove.clear
           @tags_to_remove.clear
           @properties_to_remove.clear
           @preselected_to_remove.clear
+          @blacklisted_to_remove.clear
         end
       end
       self
@@ -411,11 +415,13 @@ module DirectedEdge
       @links = hash_from_document(document, 'link', 'weight')
       @tags = Set.new(list_from_document(document, 'tag'))
       @preselected = list_from_document(document, 'preselected')
+      @blacklisted = Set.new(list_from_document(document, 'blacklisted'))
       @properties = {}
 
       @links_to_remove.clear
       @tags_to_remove.clear
       @preselected_to_remove.clear
+      @blacklisted_to_remove.clear
       @properties_to_remove.clear
 
       document.elements.each('//property') do |element|
@@ -443,6 +449,13 @@ module DirectedEdge
     def preselected
       read
       @preselected
+    end
+
+    # Returns a set of items that should not ever be recommended for this item.
+
+    def blacklisted
+      read
+      @blacklisted
     end
 
     # Returns a hash of all of this item's properties.
@@ -553,6 +566,16 @@ module DirectedEdge
       @preselected.delete(item)
     end
 
+    def add_blacklisted(item)
+      @blacklisted_to_remove.delete(item)
+      @blacklisted.add(item)
+    end
+
+    def remove_blacklisted(item)
+      @blacklisted_to_remove.add(item) unless @cached
+      @blacklisted.delete(item)
+    end
+
     # Returns the list of items related to this one.  Unlike "recommended" this
     # may include items which are directly linked from this item.  If any tags
     # are specified, only items which have one or more of the specified tags
@@ -622,6 +645,7 @@ module DirectedEdge
           @links.merge!(hash_from_document(document, 'link', 'weight'))
           @tags.merge(list_from_document(document, 'tag'))
           @preselected.concat(list_from_document(document, 'preselected'))
+          @blacklisted.merge(list_from_document(document, 'blacklisted'))
 
           document.elements.each('//property') do |element|
             name = element.attribute('name').value
@@ -630,12 +654,14 @@ module DirectedEdge
 
           @links_to_remove.each { |link| @links.delete(link) }
           @tags_to_remove.each { |tag| @tags.delete(tag) }
-          @preselected_to_remove.each { |pre| @preselected.delete(pre) }
+          @preselected_to_remove.each { |p| @preselected.delete(p) }
+          @blacklisted_to_remove.each { |b| @blacklisted.delete(b) }
           @properties_to_remove.each { |property| @properties.delete(property) }
 
           @links_to_remove.clear
           @tags_to_remove.clear
           @preselected_to_remove.clear
+          @blacklisted_to_remove.clear
           @properties_to_remove.clear
 
           @cached = true
@@ -665,7 +691,8 @@ module DirectedEdge
       item = setup_document(REXML::Document.new)
       @links_to_remove.each { |link| item.add_element('link').add_text(link.to_s) }
       @tags_to_remove.each { |tag| item.add_element('tag').add_text(tag.to_s) }
-      @preselected_to_remove.each { |pre| item.add_element('preselected').add_text(pre.to_s) }
+      @preselected_to_remove.each { |p| item.add_element('preselected').add_text(p.to_s) }
+      @blacklisted_to_remove.each { |b| item.add_element('blacklisted').add_text(b.to_s) }
       @properties_to_remove.each do |property|
         item.add_element('property').add_attribute('name', property.to_s)
       end
@@ -680,7 +707,8 @@ module DirectedEdge
         element.add_text(link.to_s)
       end
       @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
-      @preselected.each { |pre| item.add_element('preselected').add_text(pre.to_s) }
+      @preselected.each { |p| item.add_element('preselected').add_text(p.to_s) }
+      @blacklisted.each { |b| item.add_element('blacklisted').add_text(b.to_s) }
       @properties.each do |key, value|
         property = item.add_element('property')
         property.add_attribute('name', key.to_s)
