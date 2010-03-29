@@ -77,7 +77,7 @@ module DirectedEdge
 
     def read_document(method='', params={})
       method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value)}" }.join('&')
-      REXML::Document.new(@resource[method].get(:accept => 'text/xml'))
+      REXML::Document.new(@resource[method].get(:accept => 'text/xml').to_s)
     end
 
     # Returns an array of the elements from the document matching the given
