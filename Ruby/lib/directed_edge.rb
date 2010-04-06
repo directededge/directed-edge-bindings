@@ -26,29 +26,6 @@ require 'rest_client'
 require 'rexml/document'
 require 'cgi'
 
-class Hash
-
-  # An extension to normalize tokens and strings of the form foo_bar to strings
-  # of fooBar as expected by the REST API.
-
-  def normalize!
-    each do |key, value|
-      if !key.is_a?(String)
-        delete(key)
-        key = key.to_s
-        store(key, value.to_s)
-      end
-      if key.match(/_\w/)
-        delete(key)
-        store(key.gsub(/_\w/) { |s| s[1, 1].upcase }, value.to_s)
-      elsif !value.is_a?(String)
-        store(key, value.to_s)
-      end
-    end
-    self
-  end
-end
-
 # The DirectedEdge module contains three classes:
 #
 # - Database - encapsulation of connection a database hosted by Directed Edge.
@@ -82,6 +59,8 @@ module DirectedEdge
   # grabbing functionality.
 
   class Resource
+
+    private
 
     # Reads an item from the database and puts it into an XML document.
 
@@ -131,6 +110,27 @@ module DirectedEdge
         end
       end
       values
+    end
+
+    # Normalizes the parameters in an argument hash to a standard form
+    # so that they can be passed off to the web services API -- e.g.
+    # :foo_bar to 'fooBar'
+
+    def normalize_params(hash)
+      hash.each do |key, value|
+        if !key.is_a?(String)
+          hash.delete(key)
+          key = key.to_s
+          hash.store(key, value.to_s)
+        end
+        if key.match(/_\w/)
+          hash.delete(key)
+          hash.store(key.gsub(/_\w/) { |s| s[1, 1].upcase }, value.to_s)
+        elsif !value.is_a?(String)
+          hash.store(key, value.to_s)
+        end
+      end
+      hash
     end
   end
 
@@ -190,7 +190,7 @@ module DirectedEdge
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
       params['union'] = true
-      params.normalize!
+      params = normalize_params(params)
       if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('related', params), 'related')
       else
@@ -548,7 +548,7 @@ module DirectedEdge
     # This will not reflect any unsaved changes to items.
 
     def related(tags=Set.new, params={})
-      params.normalize!
+      params = normalize_params(params)
       params['tags'] = tags.to_a.join(',')
       if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('related', params), 'related')
@@ -569,7 +569,7 @@ module DirectedEdge
     # This will not reflect any unsaved changes to items.
 
     def recommended(tags=Set.new, params={})
-      params.normalize!
+      params = normalize_params(params)
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
       if params['includeProperties'] == 'true'
