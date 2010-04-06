@@ -47,17 +47,6 @@ class Hash
     end
     self
   end
-
-  def []=(key, value)
-    store(key, value)
-    @insert_order = [] if @insert_order.nil?
-    @insert_order.delete(key) if @insert_order.include?(key)
-    @insert_order.push(key)
-  end
-
-  def insert_order_each
-    @insert_order.each { |key| yield key, fetch(key) } unless @insert_order.nil?
-  end
 end
 
 # The DirectedEdge module contains three classes:
@@ -67,6 +56,27 @@ end
 # - Item - item (user, product, page) in a Directed Edge database.
 
 module DirectedEdge
+
+  # A hash subclass that tracks the insert order, which is useful when returning
+  # a set of results that include full properties.
+
+  class InsertOrderHash < Hash
+
+    # Overridden assignment to track insert order
+
+    def []=(key, value)
+      store(key, value)
+      @insert_order = [] if @insert_order.nil?
+      @insert_order.delete(key) if @insert_order.include?(key)
+      @insert_order.push(key)
+    end
+
+    # Provides an iterator that uses the hash's insert order
+
+    def insert_order_each
+      @insert_order.each { |key| yield key, fetch(key) } unless @insert_order.nil?
+    end
+  end
 
   # Base class used for Database and Item that has some basic resource
   # grabbing functionality.
@@ -95,7 +105,7 @@ module DirectedEdge
     # 'item1' => { 'foo' => 'bar' }
 
     def property_hash_from_document(document, element)
-      values = {}
+      values = InsertOrderHash.new
       document.elements.each("//#{element}") do |e|
         values[e.text] = {}
         e.attributes.each_attribute { |a| values[e.text][a.name] = a.value }
@@ -175,7 +185,7 @@ module DirectedEdge
 
     def group_related(items=Set.new, tags=Set.new, params={})
       if !items.is_a?(Array) || items.size < 1
-        return (params['includeProperties'] == 'true') ? {} : []
+        return (params['includeProperties'] == 'true') ? InsertOrderHash.new : []
       end
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
