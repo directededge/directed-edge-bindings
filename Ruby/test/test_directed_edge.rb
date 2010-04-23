@@ -372,10 +372,10 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_blacklisted
     customer = DirectedEdge::Item.new(@database, 'customer1')
-    first = customer.recommended.first
+    first = customer.recommended(['product']).first
     customer.add_blacklisted(first)
     customer.save
-    assert_not_equal(customer.recommended.first, first)
+    assert(!customer.recommended(['product']).include?(first))
 
     assert(customer.blacklisted.include?(first))
     customer.reload
@@ -386,6 +386,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(!customer.blacklisted.include?(first))
     customer.reload
     assert(!customer.blacklisted.include?(first))
-    assert_equal(customer.recommended.first, first)
+    assert(customer.recommended(['product']).include?(first))
   end
 end
