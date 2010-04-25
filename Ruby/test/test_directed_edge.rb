@@ -86,13 +86,17 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_items
     first_item = DirectedEdge::Item.new(@database, 'test_1')
-    first_item.create
+    first_item.save
 
     second_item = DirectedEdge::Item.new(@database, 'test_2')
-    second_item.create([first_item])
+    second_item.link_to(first_item)
+    second_item.save
 
     third_item = DirectedEdge::Item.new(@database, 'test_3')
-    third_item.create([first_item, second_item], 'test_tag')
+    third_item.link_to(first_item)
+    third_item.link_to(second_item)
+    third_item.add_tag('test_tag')
+    third_item.save
 
     assert_equal('test_1', first_item.name)
 
@@ -116,8 +120,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Make sure that the third item is linked to both the first and second items
 
     assert_equal(2, third_item.links.length)
-    assert(third_item.links.include?(first_item))
-    assert(third_item.links.include?(second_item))
+    assert(third_item.links.include?(first_item.to_s))
+    assert(third_item.links.include?(second_item.to_s))
 
     # Make sure that the first and second items show up in the related items for
     # the third item
@@ -257,7 +261,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     def run_load_test(prefix, count)
       (1..count).concurrently do |i|
         item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
-        item.create([], ['test_tag'])
+        item.add_tag('test_tag')
+        item.save
       end
       (1..count).concurrently do |i|
         item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
