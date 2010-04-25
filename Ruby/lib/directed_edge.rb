@@ -55,6 +55,22 @@ module DirectedEdge
     end
   end
 
+  class CollectionHash < Hash
+    def initialize(type)
+      @type = type
+    end
+    def [](key)
+      self[key] = @type.new unless include? key
+      super(key)
+    end
+    def each
+      super { |key, value| yield(key, value) unless value.empty? }
+    end
+    def empty?
+      each { |key, value| return false } ; true
+    end
+  end
+
   # Base class used for Database and Item that has some basic resource
   # grabbing functionality.
 
@@ -88,26 +104,6 @@ module DirectedEdge
       document.elements.each("//#{element}") do |e|
         values[e.text] = {}
         e.attributes.each_attribute { |a| values[e.text][a.name] = a.value }
-      end
-      values
-    end
-
-    # Returns a hash of the elements from the document matching the given
-    # element name.  If the specified attribute is present, its value will
-    # be assigned to the hash, otherwise the default value given will be
-    # used.
-
-    def hash_from_document(document, element, attribute, default=0)
-      values = {}
-      document.elements.each("//#{element}") do |v|
-        value = v.attribute(attribute).to_s || default
-        if value.empty?
-          values[v.text] = default
-        elsif value.to_i.to_s == value.to_s
-          values[v.text] = value.to_i
-        else
-          values[v.text] = value.to_s
-        end
       end
       values
     end
@@ -328,13 +324,13 @@ module DirectedEdge
       @database = database
 
       @id = id
-      @links = {}
+      @links = CollectionHash.new(Hash)
       @tags = Set.new
       @preselected = []
       @blacklisted = Set.new
       @properties = {}
 
-      @links_to_remove = Set.new
+      @links_to_remove = CollectionHash.new(Set)
       @tags_to_remove = Set.new
       @preselected_to_remove = Set.new
       @blacklisted_to_remove = Set.new
@@ -363,9 +359,13 @@ module DirectedEdge
 
     # Creates an item if it does not already exist in the database or overwrites
     # an existing item if one does.
+    #
+    # This has been deprecated as it's not set up to properly support link types.
+    # use new / save instead.
 
     def create(links={}, tags=Set.new, properties={})
-      @links = links
+      warn 'DirectedEdge::Item::create has been deprecated. Use new / save instead.'
+      @links[''] = links
       @tags = tags
       @properties = properties
 
@@ -390,6 +390,8 @@ module DirectedEdge
 
         put(complete_document, 'add')
 
+        ### CHECKING LINKS_TO_REMOVE.EMPTY? ISN'T CORRECT ANYMORE
+
         if !@links_to_remove.empty? ||
             !@tags_to_remove.empty? ||
             !@preselected_to_remove.empty? ||
@@ -410,13 +412,11 @@ module DirectedEdge
     # will be discarded.
 
     def reload
-      document = read_document
-
-      @links = hash_from_document(document, 'link', 'weight')
-      @tags = Set.new(list_from_document(document, 'tag'))
-      @preselected = list_from_document(document, 'preselected')
-      @blacklisted = Set.new(list_from_document(document, 'blacklisted'))
-      @properties = {}
+      @links.clear
+      @tags.clear
+      @preselected.clear
+      @blacklisted.clear
+      @properties.clear
 
       @links_to_remove.clear
       @tags_to_remove.clear
@@ -424,17 +424,15 @@ module DirectedEdge
       @blacklisted_to_remove.clear
       @properties_to_remove.clear
 
-      document.elements.each('//property') do |element|
-        @properties[element.attribute('name').value] = element.text
-      end
-      @cached = true
+      @cached = false
+      read
     end
 
     # Returns a set of items that are linked to from this item.
 
-    def links
+    def links(type='')
       read
-      @links
+      @links[type.to_s]
     end
 
     # Returns a set containing all of this item's tags.
@@ -515,27 +513,27 @@ module DirectedEdge
     # item is saved.  Otherwise the link will be ignored as the engine tries
     # to detect 'broken' links that do not terminate at a valid item.
 
-    def link_to(other, weight=0)
+    def link_to(other, weight=0, type='')
       raise RangeError if (weight < 0 || weight > 10)
-      @links_to_remove.delete(other)
-      @links[other.to_s] = weight
+      @links_to_remove[type.to_s].delete(other)
+      @links[type.to_s][other.to_s] = weight
     end
 
     # Deletes a link from this item to other.
     #
     # The changes will not be reflected in the database until save is called.
 
-    def unlink_from(other)
-      @links_to_remove.add(other.to_s) unless @cached
-      @links.delete(other.to_s)
+    def unlink_from(other, type='')
+      @links_to_remove[type.to_s].add(other.to_s) unless @cached
+      @links[type.to_s].delete(other.to_s)
     end
 
     # If there is a link for "other" then it returns the weight for the given
     # item.  Zero indicates that no weight is assigned.
 
-    def weight_for(other)
+    def weight_for(other, type='')
       read
-      @links[other.to_s]
+      @links[type.to_s][other.to_s]
     end
 
     # Adds a tag to this item.
@@ -639,10 +637,18 @@ module DirectedEdge
     # already cached.
 
     def read
-      if !@cached
+      unless @cached
         begin
           document = read_document
-          @links.merge!(hash_from_document(document, 'link', 'weight'))
+
+          document.elements.each('//link') do |link_element|
+            type = link_element.attribute('type')
+            type = type ? type.to_s : ''
+            weight = link_element.attribute('weight').to_s.to_i
+            target = link_element.text
+            @links[type][target] = weight unless @links[type][target]
+          end
+
           @tags.merge(list_from_document(document, 'tag'))
           @preselected.concat(list_from_document(document, 'preselected'))
           @blacklisted.merge(list_from_document(document, 'blacklisted'))
@@ -652,7 +658,10 @@ module DirectedEdge
             @properties[name] = element.text unless @properties.has_key?(name)
           end
 
-          @links_to_remove.each { |link| @links.delete(link) }
+          @links_to_remove.each do |type, links|
+            links.each { |link, weight| @links[type].delete(link) }
+          end
+
           @tags_to_remove.each { |tag| @tags.delete(tag) }
           @preselected_to_remove.each { |p| @preselected.delete(p) }
           @blacklisted_to_remove.each { |b| @blacklisted.delete(b) }
@@ -665,8 +674,8 @@ module DirectedEdge
           @properties_to_remove.clear
 
           @cached = true
-        rescue
-          puts "Couldn't read \"#{@id}\" from the database."
+        rescue => ex
+          puts "Couldn't read \"#{@id}\" from the database, #{ex}"
         end
       end
     end
@@ -689,7 +698,15 @@ module DirectedEdge
 
     def removal_document
       item = setup_document(REXML::Document.new)
-      @links_to_remove.each { |link| item.add_element('link').add_text(link.to_s) }
+
+      @links_to_remove.each do |type, links|
+        links.each do |link|
+          element = item.add_element('link')
+          element.add_attribute(type) unless type.empty?
+          element.add_text(link.to_s)
+        end
+      end
+
       @tags_to_remove.each { |tag| item.add_element('tag').add_text(tag.to_s) }
       @preselected_to_remove.each { |p| item.add_element('preselected').add_text(p.to_s) }
       @blacklisted_to_remove.each { |b| item.add_element('blacklisted').add_text(b.to_s) }
@@ -701,10 +718,13 @@ module DirectedEdge
 
     def insert_item(document)
       item = setup_document(document)
-      @links.each do |link, weight|
-        element = item.add_element('link')
-        element.add_attribute('weight', weight.to_s) if weight != 0
-        element.add_text(link.to_s)
+      @links.each do |type, links|
+        links.each do |link, weight|
+          element = item.add_element('link')
+          element.add_attribute('type', type) unless type.empty?
+          element.add_attribute('weight', weight.to_s) unless weight == 0
+          element.add_text(link.to_s)
+        end
       end
       @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
       @preselected.each { |p| item.add_element('preselected').add_text(p.to_s) }

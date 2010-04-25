@@ -1,4 +1,5 @@
 require 'helper'
+require 'pp'
 
 # Defines a multithreaded "each"
 
@@ -228,6 +229,26 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
     item.reload
     assert(!item.properties.include?('test_property_1'))
+  end
+
+  def test_link_types
+    first = DirectedEdge::Item.new(@database, 'item_1')
+    second = DirectedEdge::Item.new(@database, 'item_2')
+    first.save
+    second.save
+
+    first.link_to(second, 0, :test)
+    first.save
+
+    first = DirectedEdge::Item.new(@database, 'item_1')
+    second = DirectedEdge::Item.new(@database, 'item_2')
+
+    first.save
+    first.reload
+    second.reload
+
+    assert(first.links(:test).include?('item_2'))
+    assert(!first.links.include?('item_2'))
   end
 
   def test_load
