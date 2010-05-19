@@ -7,7 +7,7 @@ Bindings for the Directed Edge Web-services API
 You should have gotten a user name and password from Directed Edge when you
 signed up for an account.  If you don't have one now, you can get one at:
 
-http://www.directededge.com/signup.html
+- {Signup for Directed Edge Account}[http://www.directededge.com/signup.html]
 
 You'll use those when instantiating a Directed Edge database object, which will
 be the hub for other operations:
