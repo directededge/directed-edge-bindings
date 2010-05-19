@@ -2,16 +2,44 @@
 
 Bindings for the Directed Edge Web-services API
 
-== Note on Patches/Pull Requests
+== Usage
 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+You should have gotten a user name and password from Directed Edge when you
+signed up for an account.  If you don't have one now, you can get one at:
+
+http://www.directededge.com/signup.html
+
+You'll use those when instantiating a Directed Edge database object, which will
+be the hub for other operations:
+
+  DE_USER = 'testaccount'
+  DE_PASS = '1234567890abcd'
+
+  database = DirectedEdge::Database.new(DE_USER, DE_PASS)
+
+From there you can create items:
+
+  item1 = DirectedEdge::Item(database, 'item_1')
+  item2 = DirectedEdge::Item(database, 'item_2')
+
+Push them over to the Directed Edge web service:
+
+  item1.save
+  item2.save
+
+And do stuff with them, like set properties, tags, link them to other items:
+
+  item1['picture'] = 'http://foo.bar.com/1.jpg'
+  item1.add_tag('product')
+  item1.link_to(item2)
+  item1.save
+
+There's more info on the Directed Edge developer site:
+
+- {Getting started for Ruby developers}[http://developer.directededge.com/article/Getting_started_for_Ruby_developers]
+- {Ruby E-Commerce Tutorial}[http://developer.directededge.com/article/Ruby_Bindings_for_E-Commerce_Tutorial]
+
 
 == Copyright
 
-Copyright (c) 2009 Directed Edge, Inc. See LICENSE for details.
+Copyright (c) 2009-2010 Directed Edge, Inc. See LICENSE for details.
