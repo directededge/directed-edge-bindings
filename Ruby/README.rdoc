@@ -19,8 +19,8 @@ be the hub for other operations:
 
 From there you can create items:
 
-  item1 = DirectedEdge::Item(database, 'item_1')
-  item2 = DirectedEdge::Item(database, 'item_2')
+  item1 = DirectedEdge::Item.new(database, 'item_1')
+  item2 = DirectedEdge::Item.new(database, 'item_2')
 
 Push them over to the Directed Edge web service:
 
