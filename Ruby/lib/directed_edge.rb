@@ -34,12 +34,9 @@ require 'cgi'
 
 module DirectedEdge
 
-  # A hash subclass that tracks the insert order, which is useful when returning
-  # a set of results that include full properties.
+  # @private
 
   class InsertOrderHash < Hash
-
-    # Overridden assignment to track insert order
 
     def []=(key, value)
       store(key, value)
@@ -48,12 +45,12 @@ module DirectedEdge
       @insert_order.push(key)
     end
 
-    # Provides an iterator that uses the hash's insert order
-
     def insert_order_each
       @insert_order.each { |key| yield key, fetch(key) } unless @insert_order.nil?
     end
   end
+
+  # @private
 
   class CollectionHash < Hash
     def initialize(type)
@@ -71,8 +68,7 @@ module DirectedEdge
     end
   end
 
-  # Base class used for Database and Item that has some basic resource
-  # grabbing functionality.
+  # @private
 
   class Resource
 
