@@ -112,7 +112,7 @@ module DirectedEdge
     # so that they can be passed off to the web services API -- e.g.
     # :foo_bar to 'fooBar'
 
-    def normalize_params(hash)
+    def normalize_params!(hash)
       hash.each do |key, value|
         if !key.is_a?(String)
           hash.delete(key)
@@ -186,7 +186,7 @@ module DirectedEdge
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
       params['union'] = true
-      params = normalize_params(params)
+      normalize_params!(params)
       if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('related', params), 'related')
       else
@@ -604,7 +604,7 @@ module DirectedEdge
     # @see Item#recommended
 
     def related(tags=Set.new, params={})
-      params = normalize_params(params)
+      normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
       if params['includeProperties'] == 'true'
         property_hash_from_document(read_document('related', params), 'related')
@@ -643,7 +643,7 @@ module DirectedEdge
     # @see Item#related
 
     def recommended(tags=Set.new, params={})
-      params = normalize_params(params)
+      normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
       if params['includeProperties'] == 'true'
