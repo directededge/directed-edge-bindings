@@ -574,16 +574,34 @@ module DirectedEdge
       @blacklisted.delete(item)
     end
 
-    # Returns the list of items related to this one.  Unlike "recommended" this
-    # may include items which are directly linked from this item.  If any tags
-    # are specified, only items which have one or more of the specified tags
+    # related and recommended are the two main methods for querying for
+    # recommendations with the Directed Edge API.  Related is for *similar*
+    # items, e.g. "products like this product", whereas recommended is for
+    # personalized recommendations, i.e. "We think you'd like..."
+    #
+    # @return [Array] List of item IDs related to this one with the most closely
+    # related items first.
+    # 
+    # @param [Set] tags Only items which have at least one of the provided tags
     # will be returned.
     #
-    # Parameters that may be passed in include:
-    # - :exclude_linked (true / false)
-    # - :max_results (integer)
+    # @param [Hash] options A set of options which are passed directly on to
+    # the web services API in the query string.
+    #
+    # @option params [Boolean] :exclude_linked (false)
+    #  Exclude items which are linked directly from this item.
+    # @option params [Integer] :max_results (20)
+    #  Only returns up to :max_results items.
+    # @option params [Integer] :link_type_weight (1)
+    #  Here link_type should be replace with one of the actual link types in
+    #  use in your database, i.e. :purchase_weight and specifies how strongly
+    #  links of that type should be weighted related to other link types.  For
+    #  Instance if you wanted 20% ratings and 80% purchases you would specify:
+    #  :purchases_weight => 8, :ratings_weight => 2
     #
     # This will not reflect any unsaved changes to items.
+    #
+    # @see Item#recommended
 
     def related(tags=Set.new, params={})
       params = normalize_params(params)
@@ -595,16 +613,34 @@ module DirectedEdge
       end
     end
 
-    # Returns the list of items recommended for this item, usually a user.
-    # Unlike "related" this does not include items linked from this item.  If
-    # any tags are specified, only items which have one or more of the specified
-    # tags will be returned.
+    # related and recommended are the two main methods for querying for
+    # recommendations with the Directed Edge API.  Related is for *similar*
+    # items, e.g. "products like this product", whereas recommended is for
+    # personalized recommendations, i.e. "We think you'd like..."
     #
-    # Parameters that may be passed in include:
-    # - :exclude_linked (true / false)
-    # - :max_results (integer)
+    # @return [Array] List of item IDs recommeded for this item with the most
+    # strongly recommended items first.
+    # 
+    # @param [Set] tags Only items which have at least one of the provided tags
+    # will be returned.
+    #
+    # @param [Hash] options A set of options which are passed directly on to
+    # the web services API in the query string.
+    #
+    # @option params [Boolean] :exclude_linked (false)
+    #  Exclude items which are linked directly from this item.
+    # @option params [Integer] :max_results (20)
+    #  Only returns up to :max_results items.
+    # @option params [Integer] :link_type_weight (1)
+    #  Here link_type should be replace with one of the actual link types in
+    #  use in your database, i.e. :purchase_weight and specifies how strongly
+    #  links of that type should be weighted related to other link types.  For
+    #  Instance if you wanted 20% ratings and 80% purchases you would specify:
+    #  :purchases_weight => 8, :ratings_weight => 2
     #
     # This will not reflect any unsaved changes to items.
+    #
+    # @see Item#related
 
     def recommended(tags=Set.new, params={})
       params = normalize_params(params)

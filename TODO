@@ -12,7 +12,7 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Link-type support                                     | x    | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Link-type weights in related / recommended queries    |      | x   |        |      |
+| Link-type weights in related / recommended queries    | X    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
 | Batch updates support in exporter                     | X    | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|
