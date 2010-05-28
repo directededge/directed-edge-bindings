@@ -81,7 +81,7 @@ module DirectedEdge
       REXML::Document.new(@resource[method].get(:accept => 'text/xml').to_s)
     end
 
-    # Returns an array of the elements from the document matching the given
+    # @return [Array] The elements from the document matching the given
     # element name.
 
     def list_from_document(document, element)
@@ -152,9 +152,16 @@ module DirectedEdge
     attr_reader :resource
 
     # Creates a connection to a Directed Edge database.  The name and password
-    # should have been provided when the account was created.  The protocol
-    # parameter is optional and may be <tt>http</tt> or <tt>https</tt>.
-    # <tt>http</tt> is used by default as it is somewhat lower latency.
+    # should have been provided when the account was created.
+    #
+    # @param [String] name User name given when the Directed Edge account was
+    #  created.
+    # @param [String] password Password given when the Directed Edge account was
+    #  created.
+    # @param [String] protocol The protocol to connect to the Directed Edge
+    #  webservices with.
+    #
+    # @return [DirectedEdge::Item]
 
     def initialize(name, password='', protocol='http')
       @name = name
@@ -165,15 +172,25 @@ module DirectedEdge
 
     # Imports a Directed Edge XML file to the database.
     #
-    # See http://developer.directededge.com for more information on the XML format or the
-    # Exporter for help on creating a file for importing.
+    # @see Exporter
+    # 
+    # @see {Developer site}[http://developer.directededge.com/] for more information
+    # on the XML format.
 
     def import(file_name)
       @resource.put(File.read(file_name), :content_type => 'text/xml')
     end
 
-    # Returns a set of recommendations for the set of items that is passed in in
+    # @return [Array] A set of recommendations for the set of items that is passed in in
     # aggregate, commonly used to do recommendations for a basket of items.
+    #
+    # @param [Array] items List of items to base the recommendations on, e.g. all of the
+    #  items in the basket.
+    #
+    # The tags and params parameters are equivalent to those with the normal Item#related
+    # call.
+    #
+    # @see Item#related
 
     def group_related(items=Set.new, tags=Set.new, params={})
       if !items.is_a?(Array) || items.size < 1
@@ -232,6 +249,8 @@ module DirectedEdge
     # destination is an existing database object, updates will be queued until
     # finish is called, at which point they will be uploaded to the webservices
     # in batch.
+    #
+    # @return [Exporter]
 
     def initialize(destination)
       if destination.is_a?(String)
@@ -336,8 +355,8 @@ module DirectedEdge
       @cached = false
     end
 
-    # Returns true if the other item is the same.  The item given can either be
-    # a string or an item object.
+    # @return [Boolean] True if the other item has the same ID.  The item given
+    # can either be a string or an item object.
 
     def ==(other)
       if other.is_a?(Item)
@@ -347,17 +366,13 @@ module DirectedEdge
       end
     end
 
-    # Returns the item's ID.
+    # @return [String] The item's ID
 
     def name
       @id
     end
 
-    # Creates an item if it does not already exist in the database or overwrites
-    # an existing item if one does.
-    #
-    # This has been deprecated as it's not set up to properly support link types.
-    # use new / save instead.
+    # @deprecated Use new / save instead.
 
     def create(links={}, tags=Set.new, properties={})
       warn 'DirectedEdge::Item::create has been deprecated. Use new / save instead.'
@@ -374,6 +389,8 @@ module DirectedEdge
 
     # Writes all changes to links, tags and properties back to the database and
     # returns this item.
+    #
+    # @return [Item]
 
     def save
       if @cached
@@ -406,6 +423,8 @@ module DirectedEdge
 
     # Reloads (or loads) the item from the database.  Any unsaved changes will
     # will be discarded.
+    #
+    # @return [Item]
 
     def reload
       @links.clear
@@ -422,44 +441,56 @@ module DirectedEdge
 
       @cached = false
       read
+      self
     end
 
-    # Returns a set of items that are linked to from this item.
+    # @return [Set] Items that are linked to from this item.
+    #
+    # @param [String] type Only links for the specified link-type will be
+    #  returned.
 
     def links(type='')
       read
       @links[type.to_s]
     end
 
-    # Returns a set containing all of this item's tags.
+    # @return [Set] The tags for this item.
 
     def tags
       read
       @tags
     end
 
-    # Returns an ordered list of items that are preselected for this item.
+    # An ordered list of preselected recommendations for this item.
+    #
+    # @return [Array] The preselected recommendations for this item.
 
     def preselected
       read
       @preselected
     end
 
-    # Returns a set of items that should not ever be recommended for this item.
+    # An ordered list of blacklisted recommendations for this item.
+    #
+    # @return [Array] The items blacklisted from being recommended for this item.
 
     def blacklisted
       read
       @blacklisted
     end
 
-    # Returns a hash of all of this item's properties.
+    # All properties for this item.
+    #
+    # @return [Hash] All of the properties for this item.
 
     def properties
       read
       @properties
     end
 
-    # Returns the property for the name specified.
+    # Fetches properties of the item.
+    #
+    # @return [String] The property for this item.
 
     def [](property_name)
       read
@@ -469,17 +500,23 @@ module DirectedEdge
     # Assigns value to the given property_name.
     #
     # This will not be written back to the database until save is called.
+    #
+    # @return [Item]
 
     def []=(property_name, value)
       @properties_to_remove.delete(property_name)
       @properties[property_name] = value
+      self
     end
 
     # Remove the given property_name.
+    #
+    # @return [Item]
 
     def clear_property(property_name)
       @properties_to_remove.add(property_name) unless @cached
       @properties.delete(property_name)
+      self
     end
 
     # Removes an item from the database, including deleting all links to and
@@ -487,6 +524,7 @@ module DirectedEdge
 
     def destroy
       @resource.delete
+      nil
     end
 
     # Creates a link from this item to other.
@@ -499,33 +537,50 @@ module DirectedEdge
     #   user.link_to(product, 5)
     #   user.save
     #
-    # If no link is specified then a tradtional, unweighted link will be
-    # created.  This is typical to, for instance, incidate a purchase or click
-    # from a user to a page or item.
-    #
-    # Weights may be in the range of 1 to 10.
+    # @param [String] other An identifier (or Item instance) for an item to be linked
+    #  to.
+    # @param [Integer] weight A weight in the range of 1 to 10 for this link.  If not
+    #  specified (which is fine for most situations) an unweighted link will be
+    #  created.
+    # @param [String] type The link type to be used for this connection, or, the
+    #  default untyped link.  This could be, for example, *purchase* or *rating*.
     #
     # Note that 'other' must exist in the database or must be saved before this
     # item is saved.  Otherwise the link will be ignored as the engine tries
     # to detect 'broken' links that do not terminate at a valid item.
+    # 
+    # @return [String] The item ID just linked to
 
     def link_to(other, weight=0, type='')
       raise RangeError if (weight < 0 || weight > 10)
       @links_to_remove[type.to_s].delete(other)
       @links[type.to_s][other.to_s] = weight
+      other
     end
 
-    # Deletes a link from this item to other.
+    # Removes a relationship from this item to another item.
     #
     # The changes will not be reflected in the database until save is called.
+    #
+    # @param [String] other The ID (or Item instance) for an object to be
+    #  unlinked.
+    # @return [String] The item ID just unlinked from.
+    # @see Item#link_to
 
     def unlink_from(other, type='')
       @links_to_remove[type.to_s].add(other.to_s) unless @cached
       @links[type.to_s].delete(other.to_s)
+      other
     end
 
     # If there is a link for "other" then it returns the weight for the given
     # item.  Zero indicates that no weight is assigned.
+    #
+    # @param [String] other The item being queried for.
+    # @param [String] type The link type of the relationship.
+    #
+    # @return [Integer] The weight for a link from this item to the specified
+    #  item, or nil if not found.
 
     def weight_for(other, type='')
       read
@@ -534,40 +589,85 @@ module DirectedEdge
 
     # Adds a tag to this item.
     #
+    # @param [String] tag The tag to be added to this item's tag set.
+    # @return [String] The tag just added.
+    #
     # The changes will not be reflected in the database until save is called.
 
     def add_tag(tag)
       @tags_to_remove.delete(tag)
       @tags.add(tag)
+      tag
     end
 
     # Removes a tag from this item.
+    #
+    # @param [String] tag The tag to be removed from this item's set of tags.
+    # @return [String] The tag just removed.
     #
     # The changes will not be reflected in the database until save is called.
 
     def remove_tag(tag)
       @tags_to_remove.add(tag) unless @cached
       @tags.delete(tag)
+      tag
     end
+
+    # Adds a hand-picked recommendation for this item.
+    #
+    # Note that preselected recommendations are weighted by the order that they
+    # are added, i.e. the first preselected item added will be the first one
+    # shown.
+    #
+    # @param [String] item The ID (or an Item instance) of the item that should
+    #  be always returned as a recommendation for this item.
+    # @return [String] The ID just added.
 
     def add_preselected(item)
-      @preselected_to_remove.delete(item)
-      @preselected.push(item)
+      @preselected_to_remove.delete(item.to_s)
+      @preselected.push(item.to_s)
+      item
     end
+
+    # Removes a hand-picked recommendation for this item.
+    #
+    # @param [String] item The ID (or an Item instance) of the item that should
+    #  be removed from the preselected list.
+    # @return [String] The ID just removed.
+    #
+    # @see Item#add_preselected
 
     def remove_preselected(item)
-      @preselected_to_remove.add(item) unless @cached
-      @preselected.delete(item)
+      @preselected_to_remove.add(item.to_s) unless @cached
+      @preselected.delete(item.to_s)
+      item
     end
+
+    # Adds a blacklisted item that should never be shown as recommended for this
+    # item.
+    #
+    # @param [String] item The ID (or an Item instance) of the item that should
+    #  be blacklisted.
+    # @return [String] The ID just blacklisted.
 
     def add_blacklisted(item)
-      @blacklisted_to_remove.delete(item)
-      @blacklisted.add(item)
+      @blacklisted_to_remove.delete(item.to_s)
+      @blacklisted.add(item.to_s)
+      item
     end
 
+    # Removes a blacklisted item.
+    #
+    # @param [String] item The ID (or an Item instance) of the item that should
+    #  be removed from the blacklist.
+    # @return [String] The ID just delisted.
+    #
+    # @see Item::add_blacklisted
+
     def remove_blacklisted(item)
-      @blacklisted_to_remove.add(item) unless @cached
-      @blacklisted.delete(item)
+      @blacklisted_to_remove.add(item.to_s) unless @cached
+      @blacklisted.delete(item.to_s)
+      item
     end
 
     # related and recommended are the two main methods for querying for
@@ -649,13 +749,13 @@ module DirectedEdge
       end
     end
 
-    # Returns the ID of the item.
+    # @return [String] The ID of the item.
 
     def to_s
       @id
     end
 
-    # Returns an XML representation of the item as a string not including the
+    # @return [String] An XML representation of the item as a string not including the
     # usual document regalia, e.g. starting with <item> (used for exporting the
     # item to a file)
 
