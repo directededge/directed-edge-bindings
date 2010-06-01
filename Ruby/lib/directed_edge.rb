@@ -74,6 +74,10 @@ module DirectedEdge
 
     private
 
+    def initialize(rest_resource)
+      @resource = rest_resource
+    end
+
     # Reads an item from the database and puts it into an XML document.
 
     def read_document(method='', params={})
@@ -166,8 +170,7 @@ module DirectedEdge
     def initialize(name, password='', protocol='http')
       @name = name
       host = ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
-      @resource =
-        RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}")
+      super(RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}"))
     end
 
     # Imports a Directed Edge XML file to the database.
@@ -336,8 +339,9 @@ module DirectedEdge
     # manipulated locally and then saved back to the database by calling save.
 
     def initialize(database, id)
-      @database = database
+      super(database.resource[URI.escape(id, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))])
 
+      @database = database
       @id = id
       @links = CollectionHash.new(Hash)
       @tags = Set.new
@@ -350,8 +354,6 @@ module DirectedEdge
       @preselected_to_remove = Set.new
       @blacklisted_to_remove = Set.new
       @properties_to_remove = Set.new
-
-      @resource = @database.resource[URI.escape(@id)]
       @cached = false
     end
 
