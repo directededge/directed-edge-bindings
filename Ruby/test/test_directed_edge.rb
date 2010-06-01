@@ -322,6 +322,13 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     item = DirectedEdge::Item.new(@database, ';@%&!')
     assert(item['foo'] == 'bar')
+
+    item = DirectedEdge::Item.new(@database, 'foo/bar')
+    item['foo'] = 'bar'
+    item.save
+
+    item = DirectedEdge::Item.new(@database, 'foo/bar')
+    assert(item['foo'] == 'bar')
   end
 
   def test_bad_links
