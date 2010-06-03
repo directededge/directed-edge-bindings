@@ -180,6 +180,18 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(20, count($results['product2']));
         $this->assertEquals($this->product->getRelated(array('product')), $results['product1']);
     }
+
+    public function testCharacters()
+    {
+        foreach(array(';@%&!', 'foo/bar') as $id)
+        {
+            $item = new DirectedEdgeItem($this->database, $id);
+            $item->setProperty('foo', 'bar');
+            $item->save();
+            $item = new DirectedEdgeItem($this->database, $id);
+            $this->assertEquals($item->getProperty('foo'), 'bar');
+        }
+    }
 }
 
 ?>
