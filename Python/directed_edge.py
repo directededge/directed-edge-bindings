@@ -43,7 +43,14 @@ class Resource(object):
             self.__http.add_credentials(user, password)
 
     def path(self, sub="", params={}):
-        return self.__base_url + "/" + urllib2.quote(sub) + "?" + urllib.urlencode(params)
+        quoted = ""
+        if isinstance(sub, list):
+            for segment in sub:
+                quoted += "/" + urllib2.quote(segment, "")
+        else:
+            quoted = "/" + urllib2.quote(sub, "")
+                
+        return self.__base_url + quoted + "?" + urllib.urlencode(params)
 
     def get(self, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "GET")
@@ -314,13 +321,13 @@ class Item(object):
         if self.__cached:
             self.database.resource.put(self.to_xml(), self.id)
         else:
-            self.database.resource.put(self.to_xml(), self.id + "/add")
+            self.database.resource.put(self.to_xml(), [ self.id, "add" ])
             if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
                 to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
                 self.database.resource.put(self.to_xml(self.__tags_to_remove,
                                                        to_dict(self.__links_to_remove, 0),
                                                        to_dict(self.__properties_to_remove, "")),
-                                           self.id + "/remove")
+                                           [ self.id, "remove" ])
 
                 self.__links_to_remove.clear()
                 self.__tags_to_remove.clear()
@@ -358,7 +365,7 @@ class Item(object):
             self.__cached = True
 
     def __document(self, sub="", params={}):
-        content = self.database.resource.get(self.id + "/" + sub, params)
+        content = self.database.resource.get([ self.id, sub ], params)
         return xml.dom.minidom.parseString(content)
 
     def __read_list(self, document, element_name):

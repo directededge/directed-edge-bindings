@@ -123,5 +123,13 @@ class QueryTest(unittest.TestCase):
 
         self.assert_("thinger" in foo.link_types)
 
+    def testCharacters(self):
+        for id in [ ";@%&!", "foo/bar" ]:
+            item = directed_edge.Item(self.database, id)
+            item["foo"] = "bar"
+            item.save()
+            item = directed_edge.Item(self.database, id)
+            self.assert_(item["foo"] == "bar")
+
 if __name__ == '__main__':
     unittest.main()
