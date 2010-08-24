@@ -31,6 +31,11 @@ class QueryTest(unittest.TestCase):
                      self.product.related([], popularity=1))
         self.assert_("product21" in self.product.related(["product"]))
 
+    def testGroupRelated(self):
+        self.assert_(len(self.database.group_related(["product1", "product2"], ["product"])) > 0)
+        self.assert_(self.database.group_related(["product1"]) ==
+                     self.product.related())
+
     def testProperties(self):
         self.customer["foo"] = "bar"
         self.assert_(self.customer.properties["foo"] == "bar")

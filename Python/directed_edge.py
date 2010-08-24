@@ -61,6 +61,12 @@ class Resource(object):
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data)
 
+    def read_list(self, document, element_name):
+        values = []
+        for node in document.getElementsByTagName(element_name):
+            values.append(node.firstChild.data)
+        return values
+
 class Database(object):
     """A database on the Directed Edge server"""
 
@@ -86,6 +92,26 @@ class Database(object):
         file = open(file_name, "r")
         data = file.read()
         self.resource.put(data)
+
+    def group_related(self, items=[], tags=[], **params):
+        """Returns a list items related to the items passed in in aggregate,
+        sorted by relevance.  Items matching any of the given tags may be returned.
+
+        This is typically used for instance to deliver recommendations for the items
+        in a shopping cart.
+        
+        Queries support a number of parameters, e.g.
+
+        - maxResults (integer)
+        - excludeLinked (true / false)"""
+
+        params["items"] = ",".join(Set(items))
+        params["tags"] = ",".join(Set(tags))
+        params["union"] = "true"
+
+        content = self.resource.get("related", params)
+        document = xml.dom.minidom.parseString(content)
+        return self.resource.read_list(document, "related")
 
 class Item(object):
     """An item in a Directed Edge database
@@ -237,8 +263,8 @@ class Item(object):
         return self.__properties[key]
 
     def related(self, tags=[], **params):
-        """Returns a list of up to max_results items related to this one, sorted
-        by relevance.  Items matching any of the given tags may be returned.
+        """Returns a list of items related to this one, sorted by relevance.
+        Items matching any of the given tags may be returned.
 
         Note that related is typically used for similar products (or users or
         articles) whereas recommended, below, is used for personalized
@@ -250,7 +276,7 @@ class Item(object):
         - excludeLinked (true / false)"""
 
         params["tags"] = ",".join(Set(tags))
-        return self.__read_list(self.__document("related", params), "related")
+        return self.database.resource.read_list(self.__document("related", params), "related")
 
     def recommended(self, tags=[], **params):
         """Returns a list of up to max_results items recommended for this one,
@@ -269,7 +295,7 @@ class Item(object):
         params["tags"] = ",".join(Set(tags))
         if not params.has_key("excludeLinked"):
             params["excludeLinked"] = "true"
-        return self.__read_list(self.__document("recommended", params), "recommended")
+        return self.database.resource.read_list(self.__document("recommended", params), "recommended")
 
     def to_xml(self, tags=None, links=None, properties=None, include_document=True):
         """Converts this item to an XML representation.  Only for internal use."""
@@ -355,7 +381,7 @@ class Item(object):
                 if (type not in self.__links) or (name not in self.__links[type]):
                     self.__set_link(type, name, weight)
 
-            self.__tags.update(self.__read_list(document, "tag"))
+            self.__tags.update(self.database.resource.read_list(document, "tag"))
 
             for node in document.getElementsByTagName("property"):
                 name = node.attributes["name"].value
@@ -367,12 +393,6 @@ class Item(object):
     def __document(self, sub="", params={}):
         content = self.database.resource.get([ self.id, sub ], params)
         return xml.dom.minidom.parseString(content)
-
-    def __read_list(self, document, element_name):
-        values = []
-        for node in document.getElementsByTagName(element_name):
-            values.append(node.firstChild.data)
-        return values
 
 class Exporter(object):
     """A simple tool to export items to an XML file, typically used for exporting
