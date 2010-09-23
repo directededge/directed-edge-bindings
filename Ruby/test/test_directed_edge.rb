@@ -258,6 +258,8 @@ class TestDirectedEdge < Test::Unit::TestCase
   def test_load
     return if ENV['NO_LOAD_TEST']
 
+    Process.setrlimit(Process::RLIMIT_NOFILE, 4096, 65536)
+
     def run_load_test(prefix, count)
       (1..count).concurrently do |i|
         item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
@@ -295,13 +297,13 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Test an out of range ranking.
 
     customer1.links[customer2] = -1
-    assert_raise(RestClient::RequestFailed) { customer1.save }
+    assert_raise(RestClient::UnprocessableEntity) { customer1.save }
 
     # And another.
 
     customer1.reload
     customer1.links[customer2] = 100
-    assert_raise(RestClient::RequestFailed) { customer1.save }
+    assert_raise(RestClient::UnprocessableEntity) { customer1.save }
 
     customer1.reload
     customer1.link_to(customer3, 10)
@@ -337,7 +339,7 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     item = DirectedEdge::Item.new(@database, 'customer1')
     item.link_to('also does not exist')
-    assert_raise(RestClient::RequestFailed) { item.save }
+    assert_raise(RestClient::UnprocessableEntity) { item.save }
   end
 
   def test_query_parameters
