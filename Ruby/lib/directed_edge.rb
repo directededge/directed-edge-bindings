@@ -167,10 +167,14 @@ module DirectedEdge
     #
     # @return [DirectedEdge::Item]
 
-    def initialize(name, password='', protocol='http')
+    def initialize(name, password='', protocol='http', options = {})
       @name = name
-      host = ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
-      super(RestClient::Resource.new("#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}"))
+      host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
+      url = "#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}"
+
+      options[:timeout] ||= 10
+
+      super(RestClient::Resource.new(url, options))
     end
 
     # Imports a Directed Edge XML file to the database.
@@ -772,45 +776,41 @@ module DirectedEdge
 
     def read
       unless @cached
-        begin
-          document = read_document
+        document = read_document
 
-          document.elements.each('//link') do |link_element|
-            type = link_element.attribute('type')
-            type = type ? type.to_s : ''
-            weight = link_element.attribute('weight').to_s.to_i
-            target = link_element.text
-            @links[type][target] = weight unless @links[type][target]
-          end
-
-          @tags.merge(list_from_document(document, 'tag'))
-          @preselected.concat(list_from_document(document, 'preselected'))
-          @blacklisted.merge(list_from_document(document, 'blacklisted'))
-
-          document.elements.each('//property') do |element|
-            name = element.attribute('name').value
-            @properties[name] = element.text unless @properties.has_key?(name)
-          end
-
-          @links_to_remove.each do |type, links|
-            links.each { |link, weight| @links[type].delete(link) }
-          end
-
-          @tags_to_remove.each { |tag| @tags.delete(tag) }
-          @preselected_to_remove.each { |p| @preselected.delete(p) }
-          @blacklisted_to_remove.each { |b| @blacklisted.delete(b) }
-          @properties_to_remove.each { |property| @properties.delete(property) }
-
-          @links_to_remove.clear
-          @tags_to_remove.clear
-          @preselected_to_remove.clear
-          @blacklisted_to_remove.clear
-          @properties_to_remove.clear
-
-          @cached = true
-        rescue => ex
-          puts "Couldn't read \"#{@id}\" from the database, #{ex}"
+        document.elements.each('//link') do |link_element|
+          type = link_element.attribute('type')
+          type = type ? type.to_s : ''
+          weight = link_element.attribute('weight').to_s.to_i
+          target = link_element.text
+          @links[type][target] = weight unless @links[type][target]
         end
+
+        @tags.merge(list_from_document(document, 'tag'))
+        @preselected.concat(list_from_document(document, 'preselected'))
+        @blacklisted.merge(list_from_document(document, 'blacklisted'))
+
+        document.elements.each('//property') do |element|
+          name = element.attribute('name').value
+          @properties[name] = element.text unless @properties.has_key?(name)
+        end
+
+        @links_to_remove.each do |type, links|
+          links.each { |link, weight| @links[type].delete(link) }
+        end
+
+        @tags_to_remove.each { |tag| @tags.delete(tag) }
+        @preselected_to_remove.each { |p| @preselected.delete(p) }
+        @blacklisted_to_remove.each { |b| @blacklisted.delete(b) }
+        @properties_to_remove.each { |property| @properties.delete(property) }
+
+        @links_to_remove.clear
+        @tags_to_remove.clear
+        @preselected_to_remove.clear
+        @blacklisted_to_remove.clear
+        @properties_to_remove.clear
+
+        @cached = true
       end
     end
 
