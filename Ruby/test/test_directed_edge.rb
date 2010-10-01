@@ -434,9 +434,10 @@ class TestDirectedEdge < Test::Unit::TestCase
     begin
       item = DirectedEdge::Item.new(database, 'dummy')
       item.tags
-    rescue => ex
+    rescue RestClient::RequestTimeout
       timed_out = true
       assert(Time.now - start < timeout + 1)
+    rescue
     end
 
     assert(timed_out)
