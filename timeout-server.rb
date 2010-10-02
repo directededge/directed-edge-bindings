@@ -7,3 +7,7 @@ get '/api/v1/dummy/dummy/' do
   sleep 10
   'timeout'
 end
+
+get '/finished' do
+  exit!
+end
