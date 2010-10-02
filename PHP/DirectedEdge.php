@@ -120,6 +120,7 @@ class DirectedEdgeException extends Exception
 class DirectedEdgeResource
 {
     private $base;
+    private $timeout;
 
     /**
      * Constructs a resource.
@@ -127,9 +128,10 @@ class DirectedEdgeResource
      * sub-resources.
      */
 
-    public function __construct($base)
+    public function __construct($base, $params = array())
     {
         $this->base = $base;
+        $this->timeout = $params['timeout'] ? $params['timeout'] : 10;
     }
     
     /**
@@ -156,6 +158,7 @@ class DirectedEdgeResource
     public function get($path = '', $params = array())
     {
         $request = new HTTP_Request2($this->path() . $path);
+        $request->setConfig('timeout', $this->timeout);
         $request->getUrl()->setQueryVariables($params);
 
         $response = $request->send();
@@ -213,6 +216,16 @@ class DirectedEdgeResource
         }
     }
 
+    /**
+     * @return The number of seconds that HTTP requests take to timeout for this
+     * resource.
+     */
+
+    public function getTimeout()
+    {
+        return $this->timeout;
+    }
+
     public function __toString()
     {
         return $this->base;
@@ -252,25 +265,29 @@ class DirectedEdgeDatabase
      * @param string The protocol to be used -- http or https.
      */
 
-    public function __construct($name, $password = '', $protocol = 'http')
+    public function __construct($name, $password = '', $protocol = 'http', $params = array())
     {
         $host = $_ENV['DIRECTEDEDGE_HOST'];
 
-        if(!$host)
+        if($params['host'])
+        {
+            $host = $params['host'];
+        }
+        else if(!$host)
         {
             $host = 'webservices.directededge.com';
         }
 
         $base = "$protocol://$name:$password@$host/api/v1/$name";
 
-        $this->resource = new DirectedEdgeResource($base);
+        $this->resource = new DirectedEdgeResource($base, $params);
     }
 
     /**
      * @return DirectedEdgeResource The REST resource used for connecting to the database.
      */
 
-    public function resource()
+    public function getResource()
     {
         return $this->resource;
     }
@@ -428,7 +445,9 @@ class DirectedEdgeItem
     public function __construct($database, $id)
     {
         $this->database = $database;
-        $this->resource = new DirectedEdgeResource($database->resource()->path($id));
+        $this->resource = new DirectedEdgeResource(
+            $database->getResource()->path($id),
+            array('timeout' => $database->getResource()->getTimeout()));
         $this->id = $id;
     }
 
@@ -1092,7 +1111,7 @@ class DirectedEdgeExporter
         }
         else
         {
-            $this->database->resource()->put(
+            $this->database->getResource()->put(
                 $this->data, 'add', array(createMissingLinks => 'true'));
             $this->data = '';
         }

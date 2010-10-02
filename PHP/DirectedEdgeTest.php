@@ -192,6 +192,31 @@ class QueryTest extends PHPUnit_Framework_TestCase
             $this->assertEquals($item->getProperty('foo'), 'bar');
         }
     }
+
+    public function testTimeout()
+    {
+        $timeout = 5;
+        $database = new DirectedEdgeDatabase('dummy', 'dummy', 'http',
+                                             array('host' => 'localhost:4567',
+                                                   'timeout' => $timeout));
+        $item = new DirectedEdgeItem($database, 'dummy');
+
+        $start = time();
+        $timedOut = false;
+
+        try
+        {
+            $item->getTags();
+        }
+        catch (HTTP_Request2_Exception $e)
+        {
+            $this->assertTrue(time() - $start < $timeout + 1);
+            $this->assertRegExp('/^Request timed out/', $e->getMessage());
+            $timedOut = true;
+        }
+
+        $this->assertTrue($timedOut);
+    }
 }
 
 ?>
