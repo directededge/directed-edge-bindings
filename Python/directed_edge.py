@@ -36,9 +36,10 @@ except ImportError:
 class Resource(object):
     """REST resource used in the Directed Edge API"""
 
-    def __init__(self, base_url, user=None, password=None):
+    def __init__(self, base_url, user=None, password=None, params={}):
+        params.setdefault("timeout", 10)
         self.__base_url = base_url
-        self.__http = httplib2.Http()
+        self.__http = httplib2.Http(timeout = params["timeout"])
         if user:
             self.__http.add_credentials(user, password)
 
@@ -70,18 +71,20 @@ class Resource(object):
 class Database(object):
     """A database on the Directed Edge server"""
 
-    def __init__(self, name, password="", protocol="http"):
+    def __init__(self, name, password="", protocol="http", **params):
         """Initializes a handle to a remote Directed Edge database.  Supported
         protocols are HTTP and HTTPS.  You should have been given a user name
         and password when you signed up for a Directed Edge account, which should
         be passed in here."""
 
-        if "DIRECTEDEDGE_HOST" in os.environ.keys():
+        if params.has_key("host"):
+            host = params["host"]
+        elif "DIRECTEDEDGE_HOST" in os.environ.keys():
             host = os.environ["DIRECTEDEDGE_HOST"]
         else:
             host = "webservices.directededge.com"
         self.name = name
-        self.resource = Resource("http://%s/api/v1/%s" % (host, name), name, password)
+        self.resource = Resource("http://%s/api/v1/%s" % (host, name), name, password, params)
 
     def import_from_file(self, file_name):
         """If you created an export of your local data using the Exporter class

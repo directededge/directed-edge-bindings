@@ -1,6 +1,8 @@
 import directed_edge
 import unittest
 import os
+import socket
+import time
 
 class QueryTest(unittest.TestCase):
     def setUp(self):
@@ -135,6 +137,21 @@ class QueryTest(unittest.TestCase):
             item.save()
             item = directed_edge.Item(self.database, id)
             self.assert_(item["foo"] == "bar")
+
+    def testTimeout(self):
+        database = directed_edge.Database("dummy", "dummy", "http",
+                                          timeout = 5, host = "localhost:4567")
+
+        start = time.time()
+        timed_out = False
+        timeout = 10
+        item = directed_edge.Item(database, "dummy")
+        try:
+            item.tags()
+        except socket.timeout:
+            timed_out = True
+            self.assert_(time.time() - start < timeout + 1)
+        self.assert_(timed_out)
 
 if __name__ == '__main__':
     unittest.main()
