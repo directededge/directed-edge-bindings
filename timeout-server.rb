@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'sinatra'
 
-get '/api/v1/dummy/dummy/' do
+get '/api/*' do
   sleep 10
   'timeout'
 end
