@@ -398,8 +398,8 @@ module DirectedEdge
     #
     # @return [Item]
 
-    def save
-      if @cached
+    def save(options={})
+      if options[:overwrite] || @cached
         put(complete_document)
       else
 
