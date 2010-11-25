@@ -4,8 +4,6 @@ to keep a list here so that they're tracked and can be completed later.
 |=======================================================|======|=====|========|======|
 | Feature                                               | Ruby | PHP | Python | Java |
 |=======================================================|======|=====|========|======|
-| Passing optional parameters to related / recommended  | x    | x   |        |      |
-|-------------------------------------------------------|------|-----|--------|------|
 | Batch related (for multiple items)                    |      | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
 | Group / basket recommendations                        | x    | x   | x      |      |
@@ -20,4 +18,3 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Support for grabbing properties in related query      | X    |     |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-

@@ -1,7 +1,9 @@
+import java.util.HashMap;
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
 import java.util.HashSet;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -166,9 +168,20 @@ public class ItemTest
         HashSet<String> tags = new HashSet<String>();
         tags.add("product");
 
-        Item customer = new Item(database, "product0");
-        assertEquals(20, customer.getRelated().size());
-        assertEquals(20, customer.getRelated(tags).size());
-        assertEquals(5, customer.getRelated(tags, 5).size());
+        Item product = new Item(database, "product0");
+        assertEquals(20, product.getRelated().size());
+        assertEquals(20, product.getRelated(tags).size());
+        assertEquals(5, product.getRelated(tags, 5).size());
+
+        HashMap options = new HashMap<String, Object>();
+        options.put("popularity", 5);
+
+        List popular = product.getRelated(tags, options);
+
+        options.put("popularity", 1);
+
+        List unpopular = product.getRelated(tags, options);
+
+        assertFalse(popular.equals(unpopular));
     }
 }

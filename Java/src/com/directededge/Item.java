@@ -410,6 +410,24 @@ public class Item
                 queryString(tags, false, maxResults)), "related");
     }
 
+
+    /**
+     * A list of similar items.  Note the distinction between "related" and
+     * "recommended" -- related items are for instance, for a product or page,
+     * whereas "recommended" is used for items recommended for a user.
+     *
+     * @param tags Items which contain any of the specified tags will be allowed
+     * in the result set.
+     * @param options A set of options that will be passed on to the web services
+     * API. Options include "popularity", "excludeLinked", "maxResults", etc.
+     * @return A list of item IDs with one or more of the given tags.
+     */
+    public List<String> getRelated(Set<String> tags, Map<String, Object> options)
+    {
+        return readList(document(Reference.encode(id) + "/related" +
+                queryString(tags, options)), "related");
+    }
+
     /**
      * A list of items recommended for this item.  Note the distinction between
      * "related" and "recommended" -- related items are for instance, for a
@@ -453,6 +471,23 @@ public class Item
     {
          return readList(document(Reference.encode(id) + "/recommended" +
                  queryString(tags, true, maxResults)), "recommended");
+    }
+
+    /**
+     * A list of items recommended for this item.  Note the distinction between
+     * "related" and "recommended" -- related items are for instance, for a
+     * product or page, whereas "recommended" is used for items recommended for
+     * a user.
+     *
+     * @param tags Items which contain any of the specified tags will be allowed
+     * in the result set.
+     * @param maxResults The maximum number of items to return.
+     * @return A list of item IDs with one or more of the given tags.
+     */
+    public List<String> getRecommended(Set<String> tags, Map<String, Object> options)
+    {
+         return readList(document(Reference.encode(id) + "/recommended" +
+                 queryString(tags, options)), "recommended");
     }
 
     /**
@@ -667,8 +702,15 @@ public class Item
         }
     }
 
-    private String queryString(Set<String> tags, boolean excludeLinked,
-            int maxResults)
+    private String queryString(Set<String> tags, boolean excludeLinked, int maxResults)
+    {
+        HashMap options = new HashMap<String, Object>();
+        options.put("excludeLinked", excludeLinked);
+        options.put("maxResults", maxResults);
+        return queryString(tags, options);
+    }
+
+    private String queryString(Set<String> tags, Map<String, Object> options)
     {
         String query = "?tags=";
 
@@ -682,8 +724,10 @@ public class Item
             query = query.substring(0, query.length() - 1);
         }
 
-        query += "&excludeLinked=" + Boolean.toString(excludeLinked);
-        query += "&maxResults=" + Integer.toString(maxResults);
+        for(String key : options.keySet())
+        {
+            query += "&" + key + "=" + options.get(key).toString();
+        }
 
         return query;
     }
