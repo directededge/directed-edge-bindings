@@ -184,4 +184,22 @@ public class ItemTest
 
         assertFalse(popular.equals(unpopular));
     }
+
+    @Test
+    public void characters()
+    {
+        Item item = new Item(database, ";@%&!");
+        item.setProperty("foo", "bar");
+        item.save();
+
+        item = new Item(database, ";@%&!");
+        assertEquals("bar", item.getProperty("foo"));
+
+        item = new Item(database, "foo/bar");
+        item.setProperty("foo", "bar");
+        item.save();
+
+        item = new Item(database, "foo/bar");
+        assertEquals("bar", item.getProperty("foo"));
+    }
 }

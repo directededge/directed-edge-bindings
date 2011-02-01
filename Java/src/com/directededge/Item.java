@@ -30,6 +30,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -47,7 +49,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.restlet.data.Reference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -406,7 +407,7 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
-        return readList(document(Reference.encode(id) + "/related" +
+        return readList(document(encodedId() + "/related" +
                 queryString(tags, false, maxResults)), "related");
     }
 
@@ -424,7 +425,7 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, Map<String, Object> options)
     {
-        return readList(document(Reference.encode(id) + "/related" +
+        return readList(document(encodedId() + "/related" +
                 queryString(tags, options)), "related");
     }
 
@@ -469,7 +470,7 @@ public class Item
      */
     public List<String> getRecommended(Set<String> tags, int maxResults)
     {
-         return readList(document(Reference.encode(id) + "/recommended" +
+         return readList(document(encodedId() + "/recommended" +
                  queryString(tags, true, maxResults)), "recommended");
     }
 
@@ -486,7 +487,7 @@ public class Item
      */
     public List<String> getRecommended(Set<String> tags, Map<String, Object> options)
     {
-         return readList(document(Reference.encode(id) + "/recommended" +
+         return readList(document(encodedId() + "/recommended" +
                  queryString(tags, options)), "recommended");
     }
 
@@ -497,11 +498,11 @@ public class Item
     {
         if(isCached)
         {
-            database.put(Reference.decode(id), toXML());
+            database.put(encodedId(), toXML());
         }
         else
         {
-            database.put(Reference.encode(id) + "/add", toXML());
+            database.put(encodedId() + "/add", toXML());
             if(!linksToRemove.isEmpty() ||
                !tagsToRemove.isEmpty() ||
                !propertiesToRemove.isEmpty())
@@ -518,7 +519,7 @@ public class Item
                     propertyMap.put(property, "");
                 }
 
-                database.put(Reference.encode(id) + "/remove",
+                database.put(encodedId() + "/remove",
                         toXML(tagsToRemove, linkMap, propertyMap, true));
             }
         }
@@ -590,7 +591,7 @@ public class Item
             return;
         }
 
-        Document doc = document(Reference.encode(id));
+        Document doc = document(encodedId());
 
         NodeList nodes = doc.getElementsByTagName("link");
         for(int i = 0; i < nodes.getLength(); i++)
@@ -730,5 +731,17 @@ public class Item
         }
 
         return query;
+    }
+
+    private String encodedId()
+    {
+        try
+        {
+            return URLEncoder.encode(id, "UTF-8");
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            return id;
+        }
     }
 }
