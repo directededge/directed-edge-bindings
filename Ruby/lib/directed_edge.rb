@@ -105,6 +105,7 @@ module DirectedEdge
         values[e.text] = {}
         e.attributes.each_attribute { |a| values[e.text][a.name] = a.value }
       end
+      values['tags'] = values['tags'].split(',') if values.include?('tags')
       values
     end
 
@@ -127,6 +128,10 @@ module DirectedEdge
         end
       end
       hash
+    end
+
+    def with_properties?(params)
+      params['includeProperties'] == 'true' || params['includeTags'] == 'true'
     end
   end
 
@@ -201,7 +206,7 @@ module DirectedEdge
 
     def group_related(items=Set.new, tags=Set.new, params={})
       if !items.is_a?(Array) || items.size < 1
-        return (params['includeProperties'] == 'true') ? InsertOrderHash.new : []
+        return with_properties?(params) ? InsertOrderHash.new : []
       end
       params['items'] = items.to_a.join(',')
       params['tags'] = tags.to_a.join(',')
@@ -708,7 +713,7 @@ module DirectedEdge
     def related(tags=Set.new, params={})
       normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
-      if params['includeProperties'] == 'true'
+      if with_properties?(params)
         property_hash_from_document(read_document('related', params), 'related')
       else
         list_from_document(read_document('related', params), 'related')
@@ -748,7 +753,7 @@ module DirectedEdge
       normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
-      if params['includeProperties'] == 'true'
+      if with_properties?(params)
         property_hash_from_document(read_document('recommended', params), 'recommended')
       else
         list_from_document(read_document('recommended', params), 'recommended')
