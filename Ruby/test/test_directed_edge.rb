@@ -375,6 +375,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
 
     related = item.related(['product'], :include_tags => true)
+    assert(related['product2']['tags'].is_a? Array)
     assert(related['product2']['tags'].include?('product'))
 
     target = DirectedEdge::Item.new(@database, 'product2')

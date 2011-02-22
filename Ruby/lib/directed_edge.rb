@@ -105,7 +105,7 @@ module DirectedEdge
         values[e.text] = {}
         e.attributes.each_attribute { |a| values[e.text][a.name] = a.value }
       end
-      values['tags'] = values['tags'].split(',') if values.include?('tags')
+      values.each { |k, v| v['tags'] = v['tags'].split(',') if v.include?('tags') }
       values
     end
 
