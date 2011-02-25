@@ -26,6 +26,7 @@
 package com.directededge;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -39,6 +40,9 @@ import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.FileRepresentation;
+import org.restlet.resource.InputRepresentation;
+import org.restlet.resource.Representation;
+import org.restlet.resource.StreamRepresentation;
 import org.restlet.resource.StringRepresentation;
 
 /**
@@ -109,6 +113,18 @@ public class Database
     }
 
     /**
+     * Used to import a Directed Edge XML stream.  Usually used in conjunction
+     * with the Exporter.
+     * @param stream An input stream of Directed Edge formatted XML data
+     * @see Exporter
+     */
+    public void importFromStream(InputStream stream) throws ResourceException
+    {
+        importFromRepresentation(
+                new InputRepresentation(stream, MediaType.TEXT_XML));
+    }
+
+    /**
      * Used to import a Directed Edge XML file.  Usually used in conjunction
      * with the Exporter.
      * @param fileName The file path of a Directed Edge XML file.
@@ -116,15 +132,8 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        Request request = new Request(Method.PUT, url(""),
+        importFromRepresentation(
                 new FileRepresentation(fileName, MediaType.TEXT_XML));
-        request.setChallengeResponse(
-                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        Response response = client.handle(request);
-        if(!response.getStatus().isSuccess())
-        {
-            throw new ResourceException(Method.PUT, url(""));
-        }
     }
 
     /**
@@ -175,6 +184,19 @@ public class Database
         request.setChallengeResponse(
                 new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
         Response response = client.handle(request);
+    }
+
+    private void importFromRepresentation(Representation representation)
+            throws ResourceException
+    {
+        Request request = new Request(Method.PUT, url(""), representation);
+        request.setChallengeResponse(
+                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
+        Response response = client.handle(request);
+        if(!response.getStatus().isSuccess())
+        {
+            throw new ResourceException(Method.PUT, url(""));
+        }
     }
 
     private String url(String resource)

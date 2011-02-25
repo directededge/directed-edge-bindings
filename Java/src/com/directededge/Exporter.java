@@ -28,6 +28,9 @@ package com.directededge;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +47,17 @@ public class Exporter
     private BufferedWriter output;
 
     /**
+     * Creates an exporter that will store items in stream.
+     *
+     * @param stream An output stream where the exported data should be stored.
+     * @see #finish()
+     */
+    public Exporter(OutputStream stream)
+    {
+        setup(new OutputStreamWriter(stream));
+    }
+
+    /**
      * Creates an exporter that will store items in fileName.
      * @param fileName The file path where the resulting XML file should be
      * stored.
@@ -51,13 +65,9 @@ public class Exporter
      */
     public Exporter(String fileName)
     {
-        database = new Database(null, null);
-
         try
         {
-            output = new BufferedWriter(new FileWriter(fileName));
-            output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
-            output.write("<directededge version=\"0.1\">\n");
+            setup(new FileWriter(fileName));
         }
         catch (IOException ex)
         {
@@ -103,6 +113,22 @@ public class Exporter
         {
             output.write("</directededge>\n");
             output.close();
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(Exporter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void setup(Writer writer)
+    {
+        database = new Database(null, null);
+
+        try
+        {
+            output = new BufferedWriter(writer);
+            output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+            output.write("<directededge version=\"0.1\">\n");
         }
         catch (IOException ex)
         {

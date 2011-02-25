@@ -1,6 +1,7 @@
 import com.directededge.Exporter;
 import com.directededge.Item;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,8 +18,6 @@ import org.xml.sax.SAXException;
 
 public class ExporterTest
 {
-    private Exporter exporter;
-
     public ExporterTest()
     {
 
@@ -39,7 +38,7 @@ public class ExporterTest
     @Before
     public void setUp()
     {
-        exporter = new Exporter("test.xml");
+
     }
 
     @After
@@ -50,7 +49,21 @@ public class ExporterTest
 
 
     @Test
-    public void exportFile() throws ParserConfigurationException, SAXException, IOException
+    public void exportFile() throws ParserConfigurationException, SAXException,
+            IOException
+    {
+        export(new Exporter("test.xml"));
+    }
+
+    @Test
+    public void exportStream() throws ParserConfigurationException, SAXException,
+            IOException
+    {
+        export(new Exporter(new FileOutputStream("test.xml")));
+    }
+
+    private void export(Exporter exporter) throws ParserConfigurationException,
+            SAXException, IOException
     {
         Item first = new Item(exporter.getDatabase(), "first");
         Item second = new Item(exporter.getDatabase(), "second");
@@ -75,5 +88,4 @@ public class ExporterTest
         assertEquals(itemNodes.item(1).getAttributes().getNamedItem("id").getTextContent(),
                      "second");
     }
-
 }

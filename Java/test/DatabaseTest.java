@@ -1,6 +1,8 @@
+import java.io.FileInputStream;
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
+import java.io.FileNotFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -10,8 +12,6 @@ import static org.junit.Assert.*;
 
 public class DatabaseTest
 {
-    private Database database;
-
     public DatabaseTest()
     {
 
@@ -32,8 +32,7 @@ public class DatabaseTest
     @Before
     public void setUp() throws ResourceException
     {
-        database = new Database("testdb", "test");
-        database.importFromFile("../testdb.xml");
+
     }
 
     @After
@@ -43,7 +42,22 @@ public class DatabaseTest
     }
 
     @Test
-    public void importTest()
+    public void fileImportTest() throws ResourceException
+    {
+        Database database = new Database("testdb", "test");
+        database.importFromFile("../testdb.xml");
+        importTest(database);
+    }
+
+    @Test
+    public void streamImportTest() throws ResourceException, FileNotFoundException
+    {
+        Database database = new Database("testdb", "test");
+        database.importFromStream(new FileInputStream("../testdb.xml"));
+        importTest(database);
+    }
+
+    private void importTest(Database database)
     {
         Item customer0 = new Item(database, "customer0");
         assertEquals(customer0.getLinks().size(), 10);
@@ -53,5 +67,4 @@ public class DatabaseTest
         assertTrue(product49.getTags().contains("product"));
         assertFalse(product49.getTags().contains("user"));
     }
-
 }
