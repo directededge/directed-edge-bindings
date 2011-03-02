@@ -846,7 +846,7 @@ module DirectedEdge
         end
       end
 
-      @tags_to_remove.each { |tag| item.add_element('tag').add_text(tag.to_s) }
+      @tags_to_remove.each { |tag| item.add_element('tag').add_text("#{tag}") }
       @preselected_to_remove.each { |p| item.add_element('preselected').add_text(p.to_s) }
       @blacklisted_to_remove.each { |b| item.add_element('blacklisted').add_text(b.to_s) }
       @properties_to_remove.each do |property|
@@ -862,12 +862,12 @@ module DirectedEdge
           element = item.add_element('link')
           element.add_attribute('type', type) unless type.empty?
           element.add_attribute('weight', weight.to_s) unless weight == 0
-          element.add_text(link.to_s)
+          element.add_text("#{link}")
         end
       end
-      @tags.each { |tag| item.add_element('tag').add_text(tag.to_s) }
-      @preselected.each { |p| item.add_element('preselected').add_text(p.to_s) }
-      @blacklisted.each { |b| item.add_element('blacklisted').add_text(b.to_s) }
+      @tags.each { |tag| item.add_element('tag').add_text("#{tag}") }
+      @preselected.each { |p| item.add_element('preselected').add_text("#{p}") }
+      @blacklisted.each { |b| item.add_element('blacklisted').add_text("#{b}") }
       @properties.each do |key, value|
         property = item.add_element('property')
         property.add_attribute('name', key.to_s)
