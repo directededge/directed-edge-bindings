@@ -114,7 +114,7 @@ module DirectedEdge
     # :foo_bar to 'fooBar'
 
     def normalize_params!(hash)
-      hash.each do |key, value|
+      hash.clone.each do |key, value|
         if !key.is_a?(String)
           hash.delete(key)
           key = key.to_s
