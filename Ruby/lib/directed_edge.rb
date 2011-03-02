@@ -788,7 +788,7 @@ module DirectedEdge
           type = type ? type.to_s : ''
           weight = link_element.attribute('weight').to_s.to_i
           target = link_element.text
-          @links[type][target] = weight unless @links[type][target]
+          @links[type][target] = weight unless target.nil? || @links[type][target]
         end
 
         @tags.merge(list_from_document(document, 'tag'))
