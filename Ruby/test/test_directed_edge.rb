@@ -164,7 +164,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     second_item.destroy
     first_item.reload
 
-    assert(0, first_item.links.length)
+    assert_equal(0, first_item.links.length)
   end
 
   def test_tags
