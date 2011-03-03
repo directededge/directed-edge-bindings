@@ -54,7 +54,7 @@ public class Exporter
      */
     public Exporter(OutputStream stream)
     {
-        setup(new OutputStreamWriter(stream));
+        begin(new OutputStreamWriter(stream));
     }
 
     /**
@@ -67,12 +67,17 @@ public class Exporter
     {
         try
         {
-            setup(new FileWriter(fileName));
+            begin(new FileWriter(fileName));
         }
         catch (IOException ex)
         {
             Logger.getLogger(Exporter.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    protected Exporter()
+    {
+
     }
 
     /**
@@ -120,9 +125,9 @@ public class Exporter
         }
     }
 
-    private void setup(Writer writer)
+    final protected void begin(Database database, Writer writer)
     {
-        database = new Database(null, null);
+        this.database = database;
 
         try
         {
@@ -134,5 +139,10 @@ public class Exporter
         {
             Logger.getLogger(Exporter.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void begin(Writer writer)
+    {
+        begin(new Database(null, null), writer);
     }
 }

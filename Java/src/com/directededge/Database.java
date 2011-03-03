@@ -42,7 +42,6 @@ import org.restlet.data.Response;
 import org.restlet.resource.FileRepresentation;
 import org.restlet.resource.InputRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.StreamRepresentation;
 import org.restlet.resource.StringRepresentation;
 
 /**
