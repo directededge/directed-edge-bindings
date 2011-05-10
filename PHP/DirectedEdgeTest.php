@@ -56,7 +56,7 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
     public function testRelated()
     {
-        $this->assertEquals(5, count($this->product->getRelated(array(), array(maxResults => 5))));
+        $this->assertEquals(5, count($this->product->getRelated(array(), array('maxResults' => 5))));
         $this->assertContains('product21', $this->product->getRelated(array('product')));
     }
 
@@ -172,7 +172,7 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $items = array('product1', 'product2', 'product3');
         $tags = array('product');
         $related = $this->database->getRelated(
-            $items, $tags, array(threshold => 0.5 /* , countOnly => 'true' */));
+            $items, $tags, array('threshold' => 0.5 /* , countOnly => 'true' */));
 
         $results = $this->database->getRelated(array('product1', 'product2'), array('product'));
         $this->assertEquals(2, count($results));

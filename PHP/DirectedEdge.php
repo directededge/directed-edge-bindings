@@ -131,7 +131,7 @@ class DirectedEdgeResource
     public function __construct($base, $params = array())
     {
         $this->base = $base;
-        $this->timeout = $params['timeout'] ? $params['timeout'] : 10;
+        $this->timeout = isset($params['timeout']) ? $params['timeout'] : 10;
     }
     
     /**
@@ -267,13 +267,15 @@ class DirectedEdgeDatabase
 
     public function __construct($name, $password = '', $protocol = 'http', $params = array())
     {
-        $host = $_ENV['DIRECTEDEDGE_HOST'];
-
-        if($params['host'])
+        if(isset($params['host']))
         {
             $host = $params['host'];
         }
-        else if(!$host)
+        else if(getenv('DIRECTEDEDGE_HOST'))
+        {
+            $host = getenv('DIRECTEDEDGE_HOST');
+        }
+        else
         {
             $host = 'webservices.directededge.com';
         }
@@ -327,7 +329,7 @@ class DirectedEdgeDatabase
         $items = DirectedEdgeItem::toStringList($items);
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
-        $options[items] = implode(',', $items);
+        $options['items'] = implode(',', $items);
         $content = $this->resource->get('related', $options);
         $document = new DOMDocument();
         $document->loadXML($content);
@@ -339,7 +341,7 @@ class DirectedEdgeDatabase
         {
             $id = $itemElements->item($i)->attributes->getNamedItem('id')->value;
 
-            if($options[countOnly] == 'true')
+            if(isset($options['countOnly']) && $options['countOnly'] == 'true')
             {
                 $count = DirectedEdgeItem::getValuesByTagName($itemElements->item($i), 'count');
                 $results[$id] = $count[0];
@@ -369,8 +371,8 @@ class DirectedEdgeDatabase
         $items = DirectedEdgeItem::toStringList($items);
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
-        $options[items] = implode(',', $items);
-        $options[union] = 'true';
+        $options['items'] = implode(',', $items);
+        $options['union'] = 'true';
         $content = $this->resource->get('related', $options);
         $document = new DOMDocument();
         $document->loadXML($content);
@@ -488,7 +490,7 @@ class DirectedEdgeItem
     {
         $this->read();
 
-        if($this->links[$type] == null)
+        if(!isset($this->links[$type]))
         {
             return array();
         }
@@ -774,7 +776,7 @@ class DirectedEdgeItem
 
     public function getRecommended($tags = array(), $options = array(), $linkWeights = array())
     {
-        if(empty($options[excludeLinked]))
+        if(empty($options['excludeLinked']))
         {
             $options['excludeLinked'] = 'true';
         }
@@ -900,13 +902,13 @@ class DirectedEdgeItem
             for($i = 0; $i < $linkNodes->length; $i++)
             {
                 $link = $linkNodes->item($i)->textContent;
-                $type = $linkNodes->item($i)->attributes->getNamedItem('type')->value;
+                $type = $linkNodes->item($i)->getAttribute('type');
 
                 # Don't overwrite links that the user has created.
 
                 if(!isset($this->links[$type][$link]))
                 {
-                    $weight = $linkNodes->item($i)->attributes->getNamedItem('weight')->value;
+                    $weight = $linkNodes->item($i)->getAttribute('weight');
                     $this->links[$type][$link] = $weight ? $weight : 0;
                 }
             }
@@ -963,7 +965,7 @@ class DirectedEdgeItem
                 }
                 else
                 {
-                    throw Exception('Dupliate value found in result set.');
+                    throw new Exception('Dupliate value found in result set.');
                 }
             }
         }
@@ -983,7 +985,7 @@ class DirectedEdgeItem
             $options["${type}Weight"] = $weight;
         }
 
-        $options[tags] = is_array($tags) ? implode(',', $tags) : $tags;
+        $options['tags'] = is_array($tags) ? implode(',', $tags) : $tags;
 
         return $options;
     }
@@ -1112,7 +1114,7 @@ class DirectedEdgeExporter
         else
         {
             $this->database->getResource()->put(
-                $this->data, 'add', array(createMissingLinks => 'true'));
+                $this->data, 'add', array('createMissingLinks' => 'true'));
             $this->data = '';
         }
     }
