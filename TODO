@@ -14,5 +14,5 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Preselected / black-listing support                   | X    |     |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Support for grabbing properties in related query      | X    |     |        |      |
+| Support for grabbing properties in related query      | X    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|

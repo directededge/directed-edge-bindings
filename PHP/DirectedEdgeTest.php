@@ -60,6 +60,19 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertContains('product21', $this->product->getRelated(array('product')));
     }
 
+    public function testRelatedWithProperties()
+    {
+        $recommended = $this->customer->getRecommended(array('product'), array('maxResults' => 1));
+        $first = new DirectedEdgeItem($this->database, $recommended[0]);
+        $first->setProperty('foo', 'bar');
+        $first->save();
+
+        $recommended = $this->customer->getRecommended(
+            array('product'), array('maxResults' => 1, 'includeProperties' => 'true'));
+        $ids = array_keys($recommended);
+        $this->assertEquals('bar', $recommended[$ids[0]]['foo']);
+    }
+
     public function testGroupRelated()
     {
         $results = $this->database->getGroupRelated(array('product1', 'product2'), array('product'));

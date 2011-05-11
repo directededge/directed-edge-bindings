@@ -377,7 +377,9 @@ class DirectedEdgeDatabase
         $document = new DOMDocument();
         $document->loadXML($content);
 
-        return DirectedEdgeItem::getValuesByTagName($document, 'related');
+        return DirectedEdgeItem::getValuesByTagName($document, 'related', null, array(),
+                                                    isset($options['includeProperties']) ?
+                                                    array('hash' => true) : array());
     }
 }
 
@@ -940,13 +942,29 @@ class DirectedEdgeItem
      */
 
     public static function getValuesByTagName($document, $element, $attribute = null,
-                                              $values = array())
+                                              $values = array(), $options = array())
     {
         $nodes = $document->getElementsByTagName($element);
 
         for($i = 0; $i < $nodes->length; $i++)
         {
-            if($attribute)
+            if(isset($options['hash']))
+            {
+                $name = $nodes->item($i)->textContent;
+
+                if(!isset($values[$name]))
+                {
+                    $properties = array();
+
+                    foreach($nodes->item($i)->attributes as $a)
+                    {
+                        $properties[$a->nodeName] = $a->textContent;
+                    }
+
+                    $values[$name] = $properties;
+                }
+            }
+            else if($attribute)
             {
                 $key = $nodes->item($i)->attributes->getNamedItem($attribute)->textContent;
 
@@ -998,7 +1016,9 @@ class DirectedEdgeItem
         $document = new DOMDocument();
         $document->loadXML($content);
 
-        return $this->getValuesByTagName($document, $method);
+        return $this->getValuesByTagName($document, $method, null, array(),
+                                         isset($options['includeProperties']) ?
+                                         array('hash' => true) : array());
     }
 }
 
