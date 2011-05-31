@@ -270,7 +270,7 @@ module DirectedEdge
         @file = File.new(destination, 'w')
       elsif destination.is_a?(Database)
         @database = destination
-        @data = ""
+        @data = []
       else
         raise TypeError.new("Exporter must be passed a file name or database object.")
       end
@@ -289,21 +289,13 @@ module DirectedEdge
 
     def finish
       write("</directededge>\n")
-      if !@file.nil?
-        @file.close
-      else
-        @database.resource['add'].put(@data)
-      end
+      @file ? @file.close : @database.resource['add'].put(@data.join)
     end
 
     private
 
     def write(data)
-      if !@file.nil?
-        @file.write(data)
-      else
-        @data += data
-      end
+      @file ? @file.write(data) : @data.push(data)
     end
   end
 
