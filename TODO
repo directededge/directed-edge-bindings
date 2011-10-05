@@ -8,8 +8,6 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Group / basket recommendations                        | x    | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Link-type support                                     | x    | x   | x      |      |
-|-------------------------------------------------------|------|-----|--------|------|
 | Link-type weights in related / recommended queries    | X    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
 | Preselected / black-listing support                   | X    |     |        |      |

@@ -68,10 +68,10 @@ public class Item
     private Database database;
     private String id;
     private boolean isCached;
-    private Map<String, Integer> links;
+    private Map<String, Map<String, Integer>> links;
     private Set<String> tags;
     private Map<String, String> properties;
-    private Set<String> linksToRemove;
+    private Map<String, Set<String>> linksToRemove;
     private Set<String> tagsToRemove;
     private Set<String> propertiesToRemove;
 
@@ -92,10 +92,10 @@ public class Item
         this.id = id;
 
         isCached = false;
-        links = new HashMap<String, Integer>();
+        links = new HashMap<String, Map<String, Integer>>();
         tags = new HashSet<String>();
         properties = new HashMap<String, String>();
-        linksToRemove = new HashSet<String>();
+        linksToRemove = new HashMap<String, Set<String>>();
         tagsToRemove = new HashSet<String>();
         propertiesToRemove = new HashSet<String>();
     }
@@ -124,10 +124,20 @@ public class Item
      * @see #unlinkFrom(com.directededge.Item)
      * @see #unlinkFrom(java.lang.String)
      */
-    public Map<String, Integer> getLinks()
+    public Map<String, Map<String, Integer>> getLinks()
     {
         read();
         return links;
+    }
+
+    public Map<String, Integer> getLinks(String linkType)
+    {
+        read();
+        if(!links.containsKey(linkType))
+        {
+            return new HashMap<String, Integer>();
+        }
+        return links.get(linkType);
     }
 
     /**
@@ -152,14 +162,7 @@ public class Item
      */
     public void linkTo(String other, int weight)
     {
-        if(weight < 0 || weight > 10)
-        {
-            throw new IllegalArgumentException(
-                    "Weights must be in the range of 0 to 10.");
-        }
-
-        links.put(other, weight);
-        linksToRemove.remove(other);
+        linkTo(other, weight, "");
     }
 
     /**
@@ -187,6 +190,46 @@ public class Item
         linkTo(other.getName(), weight);
     }
 
+    public void linkTo(String other, String linkType)
+    {
+        linkTo(other, 0, linkType);
+    }
+
+    public void linkTo(String other, int weight, String linkType)
+    {
+        if(weight < 0 || weight > 10)
+        {
+            throw new IllegalArgumentException(
+                    "Weights must be in the range of 0 to 10.");
+        }
+
+        if(!links.containsKey(linkType))
+        {
+            links.put(linkType, new HashMap<String, Integer>());
+        }
+
+        links.get(linkType).put(other, weight);
+
+        if(linksToRemove.containsKey(linkType))
+        {
+            linksToRemove.get(linkType).remove(other);
+            if(linksToRemove.get(linkType).isEmpty())
+            {
+                linksToRemove.remove(linkType);
+            }
+        }
+    }
+
+    public void linkTo(Item other, String linkType)
+    {
+        linkTo(other.getName(), linkType);
+    }
+
+    public void linkTo(Item other, int weight, String linkType)
+    {
+        linkTo(other.getName(), weight, linkType);
+    }
+
     /**
      * Removes a link from this item to other.
      *
@@ -197,14 +240,7 @@ public class Item
      * @see #linkTo(java.lang.String, int)     */
     public void unlinkFrom(String other)
     {
-        if(isCached)
-        {
-            links.remove(other);
-        }
-        else
-        {
-            linksToRemove.add(other);
-        }
+        unlinkFrom(other, "");
     }
 
     /**
@@ -221,11 +257,30 @@ public class Item
         unlinkFrom(other.getName());
     }
 
+    public void unlinkFrom(String other, String linkType)
+    {
+        if(isCached)
+        {
+            if(links.containsKey(linkType))
+            {
+                links.get(linkType).remove(other);
+            }
+        }
+        else
+        {
+            if(!linksToRemove.containsKey(linkType))
+            {
+                linksToRemove.put(linkType, new HashSet<String>());
+            }
+            linksToRemove.get(linkType).add(other);
+        }
+    }
+
     /**
      * If there is a weight for the item with the identifier specified, return
      * that, otherwise returns zero.
      *
-     * @param other The ID of an item that this item is linked to.
+     * @param item The ID of an item that this item is linked to.
      * @return The weight for other if found, or zero if the link is
      * unweighted or no link exists.
      * @see #linkTo(com.directededge.Item)
@@ -233,10 +288,9 @@ public class Item
      * @see #linkTo(com.directededge.Item, int)
      * @see #linkTo(java.lang.String, int)
      */
-    public int weightFor(String other)
+    public int weightFor(String item)
     {
-        read();
-        return links.containsKey(other) ? links.get(other) : 0;
+        return weightFor(item, "");
     }
 
     /**
@@ -255,6 +309,18 @@ public class Item
     public int weightFor(Item item)
     {
         return weightFor(item.getName());
+    }
+
+    public int weightFor(String item, String linkType)
+    {
+        read();
+
+        if(!links.containsKey(linkType) || !links.get(linkType).containsKey(item))
+        {
+            return 0;
+        }
+
+        return links.get(linkType).get(item);
     }
 
     /**
@@ -503,14 +569,24 @@ public class Item
         else
         {
             database.put(encodedId() + "/add", toXML());
+
             if(!linksToRemove.isEmpty() ||
                !tagsToRemove.isEmpty() ||
                !propertiesToRemove.isEmpty())
             {
-                HashMap<String, Integer> linkMap = new HashMap<String, Integer>();
-                for(String link : linksToRemove)
+                HashMap<String, Map<String, Integer>> linkMap =
+                        new HashMap<String, Map<String, Integer>>();
+
+                for(String linkType : linksToRemove.keySet())
                 {
-                    linkMap.put(link, 0);
+                    if(!linkMap.containsKey(linkType))
+                    {
+                        linkMap.put(linkType, new HashMap<String, Integer>());
+                    }
+                    for(String link : linksToRemove.get(linkType))
+                    {
+                        linkMap.get(linkType).put(link, 0);
+                    }
                 }
 
                 HashMap<String, String> propertyMap = new HashMap<String, String>();
@@ -536,7 +612,7 @@ public class Item
         return toXML(tags, links, properties, false);
     }
 
-    private String toXML(Set<String> tags, Map<String, Integer> links,
+    private String toXML(Set<String> tags, Map<String, Map<String, Integer>> links,
             Map<String, String> properties, boolean includeDocument)
     {
         try
@@ -554,15 +630,27 @@ public class Item
                 itemElement.appendChild(tagElement);
             }
 
-            for(String linkName : links.keySet())
+            for(String linkType : links.keySet())
             {
-                Element linkElement = doc.createElement("link");
-                linkElement.setTextContent(linkName);
-                if(links.get(linkName) > 0)
+                Map<String, Integer> linkMap = links.get(linkType);
+
+                for(String linkName : linkMap.keySet())
                 {
-                    linkElement.setAttribute("weight", links.get(linkName).toString());
+                    Element linkElement = doc.createElement("link");
+                    linkElement.setTextContent(linkName);
+
+                    if(linkType != null && !linkType.isEmpty())
+                    {
+                        linkElement.setAttribute("type", linkType);
+                    }
+
+                    if(linkMap.get(linkName) > 0)
+                    {
+                        linkElement.setAttribute("weight", linkMap.get(linkName).toString());
+                    }
+
+                    itemElement.appendChild(linkElement);
                 }
-                itemElement.appendChild(linkElement);
             }
 
             for(String key : properties.keySet())
@@ -581,6 +669,7 @@ public class Item
         {
             Logger.getLogger(Item.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         return "";
     }
 
@@ -597,19 +686,34 @@ public class Item
         for(int i = 0; i < nodes.getLength(); i++)
         {
             int weight = 0;
+            String linkType = "";
 
             Node weightAttribute =
                     nodes.item(i).getAttributes().getNamedItem("weight");
+
             if(weightAttribute != null)
             {
                 weight = Integer.parseInt(weightAttribute.getTextContent());
             }
 
+            Node typeAttribute =
+                    nodes.item(i).getAttributes().getNamedItem("type");
+
+            if(typeAttribute != null)
+            {
+                linkType = weightAttribute.getTextContent();
+            }
+
             String target = nodes.item(i).getTextContent();
+
+            if(!links.containsKey(linkType))
+            {
+                links.put(linkType, new HashMap<String, Integer>());
+            }
 
             if(!links.containsKey(target))
             {
-                links.put(target, weight);
+                links.get(linkType).put(target, weight);
             }
         }
 
@@ -705,7 +809,7 @@ public class Item
 
     private String queryString(Set<String> tags, boolean excludeLinked, int maxResults)
     {
-        HashMap options = new HashMap<String, Object>();
+        HashMap<String, Object> options = new HashMap<String, Object>();
         options.put("excludeLinked", excludeLinked);
         options.put("maxResults", maxResults);
         return queryString(tags, options);

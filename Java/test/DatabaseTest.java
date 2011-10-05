@@ -60,10 +60,10 @@ public class DatabaseTest
     private void importTest(Database database)
     {
         Item customer0 = new Item(database, "customer0");
-        assertEquals(customer0.getLinks().size(), 10);
+        assertEquals(customer0.getLinks("").size(), 10);
 
         Item product49 = new Item(database, "product49");
-        assertEquals(product49.getLinks().size(), 0);
+        assertEquals(product49.getLinks("").size(), 0);
         assertTrue(product49.getTags().contains("product"));
         assertFalse(product49.getTags().contains("user"));
     }

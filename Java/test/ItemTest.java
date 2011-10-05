@@ -54,8 +54,8 @@ public class ItemTest
         item.save();
 
         item = new Item(database, "test");
-        assertTrue(item.getLinks().containsKey("customer0"));
-        assertTrue(item.getLinks().containsKey("customer1"));
+        assertTrue(item.getLinks("").containsKey("customer0"));
+        assertTrue(item.getLinks("").containsKey("customer1"));
     }
 
     @Test
@@ -66,12 +66,12 @@ public class ItemTest
         customer0.save();
 
         customer0 = new Item(database, "customer0");
-        assertTrue(customer0.getLinks().containsKey("customer1"));
+        assertTrue(customer0.getLinks("").containsKey("customer1"));
 
         customer0.unlinkFrom("customer1");
         customer0.save();
         customer0 = new Item(database, "customer0");
-        assertFalse(customer0.getLinks().containsKey("customer1"));
+        assertFalse(customer0.getLinks("").containsKey("customer1"));
     }
 
     @Test
@@ -82,14 +82,14 @@ public class ItemTest
         customer0.save();
 
         customer0 = new Item(database, "customer0");
-        assertTrue(customer0.getLinks().containsKey("product7"));
-        assertEquals((int) customer0.getLinks().get("product7"), 5);
+        assertTrue(customer0.getLinks("").containsKey("product7"));
+        assertEquals((int) customer0.getLinks("").get("product7"), 5);
         assertEquals(customer0.weightFor("product7"), 5);
 
         customer0.unlinkFrom("product7");
         customer0.save();
         customer0 = new Item(database, "customer0");
-        assertFalse(customer0.getLinks().containsKey("product7"));
+        assertFalse(customer0.getLinks("").containsKey("product7"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -130,7 +130,6 @@ public class ItemTest
     {
         Item customer = new Item(database, "customer0");
         customer.setProperty("test", "first");
-        System.out.println("properties: " + customer.getProperties().size());
         assertEquals("first", customer.getProperty("test"));
         customer.setProperty("test", "second");
         assertEquals("second", customer.getProperty("test"));
