@@ -1,8 +1,6 @@
-import java.io.FileInputStream;
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
-import java.io.FileNotFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,14 +44,6 @@ public class DatabaseTest
     {
         Database database = new Database("testdb", "test");
         database.importFromFile("../testdb.xml");
-        importTest(database);
-    }
-
-    @Test
-    public void streamImportTest() throws ResourceException, FileNotFoundException
-    {
-        Database database = new Database("testdb", "test");
-        database.importFromStream(new FileInputStream("../testdb.xml"));
         importTest(database);
     }
 

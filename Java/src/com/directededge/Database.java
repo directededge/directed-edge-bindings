@@ -26,7 +26,6 @@
 package com.directededge;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -40,7 +39,6 @@ import org.restlet.data.Protocol;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.FileRepresentation;
-import org.restlet.resource.InputRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.StringRepresentation;
 
@@ -109,18 +107,6 @@ public class Database
     public Database(String username, String password)
     {
         this(Protocol.HTTP, username, password);
-    }
-
-    /**
-     * Used to import a Directed Edge XML stream.  Usually used in conjunction
-     * with the Exporter.
-     * @param stream An input stream of Directed Edge formatted XML data
-     * @see Exporter
-     */
-    public void importFromStream(InputStream stream) throws ResourceException
-    {
-        importFromRepresentation(
-                new InputRepresentation(stream, MediaType.TEXT_XML));
     }
 
     /**
