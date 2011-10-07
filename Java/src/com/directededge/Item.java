@@ -564,11 +564,11 @@ public class Item
     {
         if(isCached)
         {
-            database.put(encodedId(), toXML());
+            database.put(encodedId(), toXML(tags, links, properties, true));
         }
         else
         {
-            database.put(encodedId() + "/add", toXML());
+            database.put(encodedId() + "/add", toXML(tags, links, properties, true));
 
             if(!linksToRemove.isEmpty() ||
                !tagsToRemove.isEmpty() ||
@@ -701,7 +701,7 @@ public class Item
 
             if(typeAttribute != null)
             {
-                linkType = weightAttribute.getTextContent();
+                linkType = typeAttribute.getTextContent();
             }
 
             String target = nodes.item(i).getTextContent();
@@ -711,7 +711,7 @@ public class Item
                 links.put(linkType, new HashMap<String, Integer>());
             }
 
-            if(!links.containsKey(target))
+            if(!links.get(linkType).containsKey(target))
             {
                 links.get(linkType).put(target, weight);
             }

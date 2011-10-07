@@ -109,6 +109,25 @@ public class ItemTest
     }
 
     @Test
+    public void typedLinks()
+    {
+        Item customer = new Item(database, "customer0");
+        Item product = new Item(database, "product0");
+        customer.linkTo(product, "purchase");
+        customer.save();
+
+        customer = new Item(database, "customer0");
+        assertTrue(customer.getLinks("purchase").containsKey("product0"));
+
+        customer.linkTo(product, 5, "wishlist");
+        customer.save();
+
+        customer = new Item(database, "customer0");
+        customer.getLinks();
+        assertEquals(5, customer.getLinks("wishlist").get("product0").intValue());
+    }
+
+    @Test
     public void tags()
     {
         Item customer = new Item(database, "customer0");
