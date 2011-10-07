@@ -139,6 +139,9 @@ class QueryTest(unittest.TestCase):
             self.assert_(item["foo"] == "bar")
 
     def testTimeout(self):
+        if not "TEST_TIMEOUT" in os.environ:
+            return
+
         database = directed_edge.Database("dummy", "dummy", "http",
                                           timeout = 5, host = "localhost:4567")
 

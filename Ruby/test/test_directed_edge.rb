@@ -443,6 +443,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_timeout
+    return unless ENV['TEST_TIMEOUT']
     timeout = 5
     database = DirectedEdge::Database.new('dummy', 'dummy', 'http',
                                           :host => 'localhost:4567', :timeout => timeout)

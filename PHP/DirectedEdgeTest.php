@@ -208,6 +208,11 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
     public function testTimeout()
     {
+        if(!getenv('TEST_TIMEOUT'))
+        {
+            return;
+        }
+
         $timeout = 5;
         $database = new DirectedEdgeDatabase('dummy', 'dummy', 'http',
                                              array('host' => 'localhost:4567',
