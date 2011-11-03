@@ -59,7 +59,7 @@ public class Database
         HTTP,
         HTTPS
     }
-    
+
     public enum Method
     {
         GET,
@@ -67,7 +67,7 @@ public class Database
         POST,
         DELETE
     }
-    
+
     private String name;
     private String password;
     private String host;
@@ -106,14 +106,14 @@ public class Database
         this.password = password;
 
         host = System.getenv("DIRECTEDEDGE_HOST");
-        
+
         if(host == null)
         {
             host = "webservices.directededge.com";
         }
 
         client = new DefaultHttpClient();
-        
+
         if(username != null)
         {
             client.getCredentialsProvider().setCredentials(
@@ -166,8 +166,8 @@ public class Database
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResourceException(Method.GET, url(resource));
         }
-        return "";
     }
 
     /**
@@ -176,7 +176,7 @@ public class Database
      *
      * @param resource The subresource to write to.
      */
-    public void put(String resource, String data)
+    public void put(String resource, String data) throws ResourceException
     {
         try
         {
@@ -201,7 +201,7 @@ public class Database
         HttpConnectionParams.setSoTimeout(params, 1);
     }
 
-    private void put(String resource, HttpEntity entity)
+    private void put(String resource, HttpEntity entity) throws ResourceException
     {
         HttpPut request = new HttpPut(url(resource));
         request.setEntity(entity);
@@ -212,6 +212,7 @@ public class Database
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResourceException(Method.PUT, url(resource));
         }
     }
 
