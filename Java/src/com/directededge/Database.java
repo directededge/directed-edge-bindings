@@ -25,22 +25,24 @@
 
 package com.directededge;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.restlet.Client;
-import org.restlet.data.ChallengeResponse;
-import org.restlet.data.ChallengeScheme;
-import org.restlet.data.MediaType;
-import org.restlet.data.Method;
-import org.restlet.data.Protocol;
-import org.restlet.data.Request;
-import org.restlet.data.Response;
-import org.restlet.resource.FileRepresentation;
-import org.restlet.resource.Representation;
-import org.restlet.resource.StringRepresentation;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
 
 /**
  * Represents a database on the Directed Edge servers.  A database is simply
@@ -50,11 +52,25 @@ import org.restlet.resource.StringRepresentation;
 
 public class Database
 {
+    public enum Protocol
+    {
+        HTTP,
+        HTTPS
+    }
+    
+    public enum Method
+    {
+        GET,
+        PUT,
+        POST,
+        DELETE
+    }
+    
     private String name;
     private String password;
     private String host;
     private Protocol protocol;
-    private Client client;
+    private DefaultHttpClient client;
 
     /**
      * This is thrown when a resource cannot be read or written for some reason.
@@ -66,7 +82,7 @@ public class Database
 
         ResourceException(Method method, String url)
         {
-            super("Error doing " + method.getName() + " on " + url);
+            super("Error doing " + method.toString() + " on " + url);
             this.method = method;
             this.url = url;
         }
@@ -94,7 +110,14 @@ public class Database
             host = "webservices.directededge.com";
         }
 
-        client = new Client(Protocol.HTTP);
+        client = new DefaultHttpClient();
+        
+        if(username != null)
+        {
+            client.getCredentialsProvider().setCredentials(
+                    new AuthScope(host, protocol == Protocol.HTTP ? 80 : 443),
+                    new UsernamePasswordCredentials(username, password));
+        }
     }
 
     /**
@@ -117,8 +140,7 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        importFromRepresentation(
-                new FileRepresentation(fileName, MediaType.TEXT_XML));
+        put("", new FileEntity(new File(fileName), "text/xml"));
     }
 
     /**
@@ -133,27 +155,17 @@ public class Database
      */
     public String get(String resource) throws ResourceException
     {
-        Request request = new Request(Method.GET, url(resource));
-        request.setChallengeResponse(
-                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        Response response = client.handle(request);
-
-        if(response.getStatus().isSuccess())
+        HttpGet request = new HttpGet(url(resource));
+        try
         {
-            try
-            {
-                return response.getEntity().getText();
-            }
-            catch (IOException ex)
-            {
-                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-                return null;
-            }
+            HttpResponse response = client.execute(request);
+            return EntityUtils.toString(response.getEntity());
         }
-        else
+        catch (IOException ex)
         {
-            throw new ResourceException(Method.GET, url(resource));
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return "";
     }
 
     /**
@@ -164,23 +176,27 @@ public class Database
      */
     public void put(String resource, String data)
     {
-        Request request = new Request(Method.PUT, url(resource),
-                new StringRepresentation(data, MediaType.TEXT_XML));
-        request.setChallengeResponse(
-                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        Response response = client.handle(request);
-    }
-
-    private void importFromRepresentation(Representation representation)
-            throws ResourceException
-    {
-        Request request = new Request(Method.PUT, url(""), representation);
-        request.setChallengeResponse(
-                new ChallengeResponse(ChallengeScheme.HTTP_BASIC, name, password));
-        Response response = client.handle(request);
-        if(!response.getStatus().isSuccess())
+        try
         {
-            throw new ResourceException(Method.PUT, url(""));
+            put(resource, new StringEntity(data, "text/xml", "UTF-8"));
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void put(String resource, HttpEntity entity)
+    {
+        HttpPut request = new HttpPut(url(resource));
+        request.setEntity(entity);
+        try
+        {
+            EntityUtils.consume(client.execute(request).getEntity());
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -188,7 +204,8 @@ public class Database
     {
         try
         {
-            URL url = new URL(protocol.getName(), host, "/api/v1/" + name + "/" + resource);
+            URL url = new URL(protocol.toString().toLowerCase(), host,
+                    "/api/v1/" + name + "/" + resource);
             return url.toString();
         }
         catch (MalformedURLException ex)
