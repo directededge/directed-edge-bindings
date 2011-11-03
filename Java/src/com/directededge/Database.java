@@ -197,8 +197,8 @@ public class Database
     public void setTimeout(int milliseconds)
     {
         HttpParams params = client.getParams();
-        HttpConnectionParams.setConnectionTimeout(params, 1);
-        HttpConnectionParams.setSoTimeout(params, 1);
+        HttpConnectionParams.setConnectionTimeout(params, milliseconds);
+        HttpConnectionParams.setSoTimeout(params, milliseconds);
     }
 
     private void put(String resource, HttpEntity entity) throws ResourceException
