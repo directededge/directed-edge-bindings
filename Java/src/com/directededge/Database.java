@@ -41,6 +41,8 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 
@@ -186,6 +188,19 @@ public class Database
         }
     }
     
+    /**
+     * Sets the connection and socket timeouts.
+     * @param milliseconds The number of milliseconds to wait before aborting
+     * HTTP operations.
+     */
+
+    public void setTimeout(int milliseconds)
+    {
+        HttpParams params = client.getParams();
+        HttpConnectionParams.setConnectionTimeout(params, 1);
+        HttpConnectionParams.setSoTimeout(params, 1);
+    }
+
     private void put(String resource, HttpEntity entity)
     {
         HttpPut request = new HttpPut(url(resource));
