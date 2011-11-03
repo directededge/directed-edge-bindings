@@ -1,6 +1,9 @@
 package com.directededge;
 
+import com.directededge.Database.ResourceException;
 import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * Copyright (C) 2011 Directed Edge, Inc.
@@ -55,6 +58,13 @@ public class Updater extends Exporter
     public void finish()
     {
         super.finish();
-        getDatabase().put("add", writer.toString());
+        try
+        {
+            getDatabase().put("add", writer.toString());
+        }
+        catch (ResourceException ex)
+        {
+            Logger.getLogger(Updater.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

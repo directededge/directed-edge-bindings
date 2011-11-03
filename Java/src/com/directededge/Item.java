@@ -562,42 +562,50 @@ public class Item
      */
     public void save()
     {
-        if(isCached)
+        try
         {
-            database.put(encodedId(), toXML(tags, links, properties, true));
-        }
-        else
-        {
-            database.put(encodedId() + "/add", toXML(tags, links, properties, true));
-
-            if(!linksToRemove.isEmpty() ||
-               !tagsToRemove.isEmpty() ||
-               !propertiesToRemove.isEmpty())
+            if(isCached)
             {
-                HashMap<String, Map<String, Integer>> linkMap =
-                        new HashMap<String, Map<String, Integer>>();
-
-                for(String linkType : linksToRemove.keySet())
-                {
-                    if(!linkMap.containsKey(linkType))
-                    {
-                        linkMap.put(linkType, new HashMap<String, Integer>());
-                    }
-                    for(String link : linksToRemove.get(linkType))
-                    {
-                        linkMap.get(linkType).put(link, 0);
-                    }
-                }
-
-                HashMap<String, String> propertyMap = new HashMap<String, String>();
-                for(String property : propertiesToRemove)
-                {
-                    propertyMap.put(property, "");
-                }
-
-                database.put(encodedId() + "/remove",
-                        toXML(tagsToRemove, linkMap, propertyMap, true));
+                database.put(encodedId(), toXML(tags, links, properties, true));
             }
+            else
+            {
+                database.put(encodedId() + "/add", toXML(tags, links, properties, true));
+
+                if(!linksToRemove.isEmpty() ||
+                   !tagsToRemove.isEmpty() ||
+                   !propertiesToRemove.isEmpty())
+                {
+                    HashMap<String, Map<String, Integer>> linkMap =
+                            new HashMap<String, Map<String, Integer>>();
+
+                    for(String linkType : linksToRemove.keySet())
+                    {
+                        if(!linkMap.containsKey(linkType))
+                        {
+                            linkMap.put(linkType, new HashMap<String, Integer>());
+                        }
+                        for(String link : linksToRemove.get(linkType))
+                        {
+                            linkMap.get(linkType).put(link, 0);
+                        }
+                    }
+
+                    HashMap<String, String> propertyMap = new HashMap<String, String>();
+                    for(String property : propertiesToRemove)
+                    {
+                        propertyMap.put(property, "");
+                    }
+
+                    database.put(encodedId() + "/remove",
+                            toXML(tagsToRemove, linkMap, propertyMap, true));
+                }
+            }
+        }
+        catch (ResourceException ex)
+        {
+            Logger.getLogger(Item.class.getName()).log(Level.SEVERE,
+                    null, ex);
         }
     }
 
