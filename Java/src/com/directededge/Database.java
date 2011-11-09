@@ -161,6 +161,7 @@ public class Database
         try
         {
             HttpResponse response = client.execute(request);
+            checkResponseCode(Method.GET, resource, response);
             return EntityUtils.toString(response.getEntity());
         }
         catch (IOException ex)
@@ -207,7 +208,9 @@ public class Database
         request.setEntity(entity);
         try
         {
-            EntityUtils.consume(client.execute(request).getEntity());
+            HttpResponse response = client.execute(request);
+            checkResponseCode(Method.PUT, resource, response);
+            EntityUtils.consume(response.getEntity());
         }
         catch (IOException ex)
         {
@@ -228,6 +231,18 @@ public class Database
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return null;
+        }
+    }
+
+    private void checkResponseCode(Method method, String resource, HttpResponse response)
+            throws ResourceException, IOException
+    {
+        int code = response.getStatusLine().getStatusCode();
+
+        if(code != 200)
+        {
+            EntityUtils.consume(response.getEntity());
+            throw new ResourceException(method, url(resource));
         }
     }
 }

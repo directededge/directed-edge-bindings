@@ -220,4 +220,11 @@ public class ItemTest
         item = new Item(database, "foo/bar");
         assertEquals("bar", item.getProperty("foo"));
     }
+
+    @Test
+    public void missingItem()
+    {
+        Item item = new Item(database, "missing");
+        item.getRelated();
+    }
 }
