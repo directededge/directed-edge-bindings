@@ -825,6 +825,7 @@ module DirectedEdge
     def complete_document
       document = REXML::Document.new
       insert_item(document)
+      document
     end
 
     def removal_document
