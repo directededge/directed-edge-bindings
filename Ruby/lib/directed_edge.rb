@@ -835,7 +835,7 @@ module DirectedEdge
         links.each do |link|
           element = item.add_element('link')
           element.add_attribute(type) unless type.empty?
-          element.add_text(link.to_s)
+          element.add_text(link.to_s.dup)
         end
       end
 
