@@ -191,14 +191,14 @@ public class ItemTest
         assertEquals(20, product.getRelated(tags).size());
         assertEquals(5, product.getRelated(tags, 5).size());
 
-        HashMap options = new HashMap<String, Object>();
+        HashMap<String, Object> options = new HashMap<String, Object>();
         options.put("popularity", 5);
 
-        List popular = product.getRelated(tags, options);
+        List<String> popular = product.getRelated(tags, options);
 
         options.put("popularity", 1);
 
-        List unpopular = product.getRelated(tags, options);
+        List<String> unpopular = product.getRelated(tags, options);
 
         assertFalse(popular.equals(unpopular));
     }

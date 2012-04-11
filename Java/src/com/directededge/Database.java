@@ -69,7 +69,6 @@ public class Database
     }
 
     private String name;
-    private String password;
     private String host;
     private Protocol protocol;
     private DefaultHttpClient client;
@@ -77,6 +76,7 @@ public class Database
     /**
      * This is thrown when a resource cannot be read or written for some reason.
      */
+    @SuppressWarnings("serial")
     public class ResourceException extends Exception
     {
         public Method method;
@@ -103,8 +103,6 @@ public class Database
     {
         this.protocol = protocol;
         name = username;
-        this.password = password;
-
         host = System.getenv("DIRECTEDEDGE_HOST");
 
         if(host == null)
