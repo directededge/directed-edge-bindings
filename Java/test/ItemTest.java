@@ -204,6 +204,32 @@ public class ItemTest
     }
 
     @Test
+    public void tagOperations()
+    {
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("product");
+
+        Item product = new Item(database, "product0");
+        assertTrue(product.getRelated(tags).size() > 0);
+
+        tags.add("customer");
+        assertTrue(product.getRelated(tags).size() > 0);
+
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        options.put("tagOperation", "OR");
+        assertTrue(product.getRelated(tags, options).size() > 0);
+
+        options.put("tagOperation", "AND");
+        assertFalse(product.getRelated(tags, options).size() > 0);
+
+        Item taggedAsBoth = new Item(database, "product35");
+        taggedAsBoth.addTag("customer");
+        taggedAsBoth.save();
+
+        assertTrue(product.getRelated(tags, options).size() > 0);
+    }
+
+    @Test
     public void characters()
     {
         Item item = new Item(database, ";@%&!");
