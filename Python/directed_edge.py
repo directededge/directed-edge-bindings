@@ -26,7 +26,6 @@ import urllib
 import urllib2
 import httplib2
 import xml.dom.minidom
-from sets import Set
 
 try:
     import cStringIO as StringIO
@@ -417,7 +416,7 @@ class Exporter(object):
         elif isinstance(destination, Database):
             self.__database = destination
         else:
-            print "The exporter has to be called on a file name or Database instance."
+            print("The exporter has to be called on a file name or Database instance.")
 
         self.__write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n")
         self.__write("<directededge version=\"0.1\">\n")
