@@ -87,6 +87,13 @@ class QueryTest(unittest.TestCase):
         bar = item("Bar")
         self.assert_("Foo" not in bar.links())
 
+    def testDestroy(self):
+        customer = directed_edge.Item(self.database, "customer1")
+        self.assert_(len(customer.links()) > 0)
+        customer.destroy()
+        customer = directed_edge.Item(self.database, "customer1")
+        self.assert_(len(customer.links()) == 0)
+
     def testExport(self):
         exporter = directed_edge.Exporter("exported.xml")
 

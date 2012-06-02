@@ -61,6 +61,9 @@ class Resource(object):
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data)
 
+    def delete(self, sub=""):
+        response, content = self.__http.request(self.path(sub), "DELETE")
+
     def read_list(self, document, element_name):
         values = []
         for node in document.getElementsByTagName(element_name):
@@ -360,6 +363,12 @@ class Item(object):
                 self.__links_to_remove.clear()
                 self.__tags_to_remove.clear()
                 self.__properties_to_remove.clear()
+
+    def destroy(self):
+        """Destroy this item from the database. All incoming links will also be
+        destroyed."""
+
+        self.database.resource.delete(self.id)
 
     def __set_link(self, type, target, weight=0):
         if type not in self.__links:
