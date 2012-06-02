@@ -107,8 +107,8 @@ class Database(object):
         - maxResults (integer)
         - excludeLinked (true / false)"""
 
-        params["items"] = ",".join(Set(items))
-        params["tags"] = ",".join(Set(tags))
+        params["items"] = ",".join(set(items))
+        params["tags"] = ",".join(set(tags))
         params["union"] = "true"
 
         content = self.resource.get("related", params)
@@ -132,12 +132,12 @@ class Item(object):
         self.id = id
 
         self.__links = {}
-        self.__tags = Set()
+        self.__tags = set()
         self.__properties = {}
 
-        self.__links_to_remove = Set()
-        self.__tags_to_remove = Set()
-        self.__properties_to_remove = Set()
+        self.__links_to_remove = set()
+        self.__tags_to_remove = set()
+        self.__properties_to_remove = set()
 
         self.__cached = False
         
@@ -277,7 +277,7 @@ class Item(object):
         - maxResults (integer)
         - excludeLinked (true / false)"""
 
-        params["tags"] = ",".join(Set(tags))
+        params["tags"] = ",".join(set(tags))
         return self.database.resource.read_list(self.__document("related", params), "related")
 
     def recommended(self, tags=[], **params):
@@ -294,7 +294,7 @@ class Item(object):
         - maxResults (integer)
         - excludeLinked (true / false) default true"""
 
-        params["tags"] = ",".join(Set(tags))
+        params["tags"] = ",".join(set(tags))
         if not params.has_key("excludeLinked"):
             params["excludeLinked"] = "true"
         return self.database.resource.read_list(self.__document("recommended", params), "recommended")
