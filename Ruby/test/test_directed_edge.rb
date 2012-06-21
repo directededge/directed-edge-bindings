@@ -14,7 +14,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     user = ENV['DIRECTEDEDGE_TEST_DB']
     pass = ENV['DIRECTEDEDGE_TEST_PASS']
     @database = DirectedEdge::Database.new(user, pass)
-    @database.import('../testdb.xml')
+    @database.import(File.expand_path('../../../testdb.xml', __FILE__))
   end
 
   def test_exporter
