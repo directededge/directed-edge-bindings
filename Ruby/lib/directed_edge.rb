@@ -95,7 +95,7 @@ module DirectedEdge
 
     # Reads an item from the database and puts it into an XML document.
 
-    def read_document(method='', params={})
+    def read_document(method = '', params = {})
       REXML::Document.new(@resource[method][params].get(:accept => 'text/xml').to_s)
     end
 
@@ -218,7 +218,7 @@ module DirectedEdge
     #
     # @see Item#related
 
-    def group_related(items=Set.new, tags=Set.new, params={})
+    def group_related(items = Set.new, tags = Set.new, params = {})
       if !items.is_a?(Array) || items.size < 1
         return with_properties?(params) ? InsertOrderHash.new : []
       end
@@ -391,7 +391,7 @@ module DirectedEdge
 
     # @deprecated Use new / save instead.
 
-    def create(links={}, tags=Set.new, properties={})
+    def create(links = {}, tags = Set.new, properties = {})
       warn 'DirectedEdge::Item::create has been deprecated. Use new / save instead.'
       @links[''] = links
       @tags = tags
@@ -409,7 +409,7 @@ module DirectedEdge
     #
     # @return [Item]
 
-    def save(options={})
+    def save(options = {})
       if options[:overwrite] || @cached
         post(complete_document)
       else
@@ -466,7 +466,7 @@ module DirectedEdge
     # @param [String] type Only links for the specified link-type will be
     #  returned.
 
-    def links(type='')
+    def links(type = '')
       read
       @links[type.to_s]
     end
@@ -568,7 +568,7 @@ module DirectedEdge
     # 
     # @return [String] The item ID just linked to
 
-    def link_to(other, weight=0, type='')
+    def link_to(other, weight = 0, type = '')
       raise RangeError if (weight < 0 || weight > 10)
       @links_to_remove[type.to_s].delete(other)
       @links[type.to_s][other.to_s] = weight
@@ -584,7 +584,7 @@ module DirectedEdge
     # @return [String] The item ID just unlinked from.
     # @see Item#link_to
 
-    def unlink_from(other, type='')
+    def unlink_from(other, type = '')
       @links_to_remove[type.to_s].add(other.to_s) unless @cached
       @links[type.to_s].delete(other.to_s)
       other
@@ -599,7 +599,7 @@ module DirectedEdge
     # @return [Integer] The weight for a link from this item to the specified
     #  item, or nil if not found.
 
-    def weight_for(other, type='')
+    def weight_for(other, type = '')
       read
       @links[type.to_s][other.to_s]
     end
@@ -716,7 +716,7 @@ module DirectedEdge
     #
     # @see Item#recommended
 
-    def related(tags=Set.new, params={})
+    def related(tags = Set.new, params = {})
       normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
       if with_properties?(params)
@@ -755,7 +755,7 @@ module DirectedEdge
     #
     # @see Item#related
 
-    def recommended(tags=Set.new, params={})
+    def recommended(tags = Set.new, params = {})
       normalize_params!(params)
       params['tags'] = tags.to_a.join(',')
       params.key?('excludeLinked') || params['excludeLinked'] = 'true'
