@@ -26,6 +26,21 @@ require 'rest_client'
 require 'rexml/document'
 require 'cgi'
 
+module RestClient
+  class Resource
+    alias_method :original_index, :[]
+    def [](*args)
+      return original_index(*args) if args.empty? || !args[0].is_a?(Hash)
+      params = args.first.map do |key, value|
+        key = URI.encode(key.to_s.gsub(/_[a-z]/) { |s| s[1, 1].upcase })
+        value = URI.encode(value.to_s)
+        "#{key}=#{value}"
+      end
+      original_index('?' + params.join('&'))
+    end
+  end
+end
+
 # The DirectedEdge module contains three classes:
 #
 # - Database - encapsulation of connection a database hosted by Directed Edge.
@@ -81,8 +96,7 @@ module DirectedEdge
     # Reads an item from the database and puts it into an XML document.
 
     def read_document(method='', params={})
-      method << '?' << params.map { |key, value| "#{URI.encode(key)}=#{URI.encode(value)}" }.join('&')
-      REXML::Document.new(@resource[method].get(:accept => 'text/xml').to_s)
+      REXML::Document.new(@resource[method][params].get(:accept => 'text/xml').to_s)
     end
 
     # @return [Array] The elements from the document matching the given
@@ -289,7 +303,7 @@ module DirectedEdge
 
     def finish
       write("</directededge>\n")
-      @file ? @file.close : @database.resource['add'].put(@data.join)
+      @file ? @file.close : @database.resource[:update_method => :add].post(@data.join)
     end
 
     private
@@ -397,14 +411,14 @@ module DirectedEdge
 
     def save(options={})
       if options[:overwrite] || @cached
-        put(complete_document)
+        post(complete_document)
       else
 
         # The web services API allows to add or remove things incrementally.
         # Since we're not in the cached case, let's check to see which action(s)
         # are appropriate.
 
-        put(complete_document, 'add')
+        post(complete_document, :update_method => :add)
 
         ### CHECKING LINKS_TO_REMOVE.EMPTY? ISN'T CORRECT ANYMORE
 
@@ -413,7 +427,7 @@ module DirectedEdge
             !@preselected_to_remove.empty? ||
             !@blacklisted_to_remove.empty? ||
             !@properties_to_remove.empty?
-          put(removal_document, 'remove')
+          post(removal_document, :update_method => :subtract)
           @links_to_remove.clear
           @tags_to_remove.clear
           @properties_to_remove.clear
@@ -811,12 +825,10 @@ module DirectedEdge
       end
     end
 
-    # Uploads the changes to the Directed Edge database.  The optional method
-    # parameter may be used for either add or remove which do only incremental
-    # updates to the item.
+    # Uploads the changes to the Directed Edge database.
 
-    def put(document, method='')
-      @resource[method].put(document.to_s, :content_type => 'text/xml')
+    def post(document, params = {})
+      @resource[params].post(document.to_s, :content_type => 'text/xml')
     end
 
     # Creates a document for an entire item including the links, tags and
