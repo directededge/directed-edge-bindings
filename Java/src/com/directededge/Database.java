@@ -36,7 +36,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
@@ -140,7 +142,7 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        put("", new FileEntity(new File(fileName), "text/xml"));
+        upload(Method.PUT, "", new FileEntity(new File(fileName), "text/xml"));
     }
 
     /**
@@ -179,14 +181,26 @@ public class Database
     {
         try
         {
-            put(resource, new StringEntity(data, "text/xml", "UTF-8"));
+            upload(Method.PUT, resource, new StringEntity(data, "text/xml", "UTF-8"));
         }
         catch (UnsupportedEncodingException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
+    public void post(String resource, String data) throws ResourceException
+    {
+        try
+        {
+            upload(Method.POST, resource, new StringEntity(data, "text/xml", "UTF-8"));
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     /**
      * Sets the connection and socket timeouts.
      * @param milliseconds The number of milliseconds to wait before aborting
@@ -200,10 +214,26 @@ public class Database
         HttpConnectionParams.setSoTimeout(params, milliseconds);
     }
 
-    private void put(String resource, HttpEntity entity) throws ResourceException
+    private void upload(Method method, String resource, HttpEntity entity)
+            throws ResourceException
     {
-        HttpPut request = new HttpPut(url(resource));
+        HttpEntityEnclosingRequestBase request;
+
+        if(method == Method.PUT)
+        {
+            request = new HttpPut(url(resource));
+        }
+        else if(method == Method.POST)
+        {
+            request = new HttpPost(url(resource));
+        }
+        else
+        {
+            throw new IllegalArgumentException();
+        }
+
         request.setEntity(entity);
+
         try
         {
             HttpResponse response = client.execute(request);
