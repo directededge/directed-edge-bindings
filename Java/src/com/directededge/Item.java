@@ -477,7 +477,6 @@ public class Item
                 queryString(tags, false, maxResults)), "related");
     }
 
-
     /**
      * A list of similar items.  Note the distinction between "related" and
      * "recommended" -- related items are for instance, for a product or page,
@@ -570,7 +569,10 @@ public class Item
             }
             else
             {
-                database.put(encodedId() + "/add", toXML(tags, links, properties, true));
+                HashMap<String, Object> options = new HashMap<String, Object>();
+                options.put("updateMethod", "add");
+
+                database.post(encodedId(), toXML(tags, links, properties, true), options);
 
                 if(!linksToRemove.isEmpty() ||
                    !tagsToRemove.isEmpty() ||
@@ -591,14 +593,18 @@ public class Item
                         }
                     }
 
-                    HashMap<String, String> propertyMap = new HashMap<String, String>();
+                    HashMap<String, String> propertyMap =
+                            new HashMap<String, String>();
+
                     for(String property : propertiesToRemove)
                     {
                         propertyMap.put(property, "");
                     }
 
-                    database.put(encodedId() + "/remove",
-                            toXML(tagsToRemove, linkMap, propertyMap, true));
+                    options.clear();
+                    options.put("updateMethod", "subtract");
+
+                    database.post(encodedId(), toXML(tagsToRemove, linkMap, propertyMap, true), options);
                 }
             }
         }

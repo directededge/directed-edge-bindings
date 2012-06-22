@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -142,7 +144,8 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        upload(Method.PUT, "", new FileEntity(new File(fileName), "text/xml"));
+        upload(Method.PUT, "", new HashMap<String, Object>(),
+                new FileEntity(new File(fileName), "text/xml"));
     }
 
     /**
@@ -179,9 +182,16 @@ public class Database
      */
     public void put(String resource, String data) throws ResourceException
     {
+        put(resource, data, new HashMap<String, Object>());
+    }
+
+    public void put(String resource, String data, Map<String, Object> options)
+            throws ResourceException
+    {
         try
         {
-            upload(Method.PUT, resource, new StringEntity(data, "text/xml", "UTF-8"));
+            upload(Method.PUT, resource, options,
+                    new StringEntity(data, "text/xml", "UTF-8"));
         }
         catch (UnsupportedEncodingException ex)
         {
@@ -191,9 +201,16 @@ public class Database
 
     public void post(String resource, String data) throws ResourceException
     {
+        post(resource, data, new HashMap<String, Object>());
+    }
+
+    public void post(String resource, String data, Map<String, Object> options)
+            throws ResourceException
+    {
         try
         {
-            upload(Method.POST, resource, new StringEntity(data, "text/xml", "UTF-8"));
+            upload(Method.POST, resource, options,
+                    new StringEntity(data, "text/xml", "UTF-8"));
         }
         catch (UnsupportedEncodingException ex)
         {
@@ -214,10 +231,12 @@ public class Database
         HttpConnectionParams.setSoTimeout(params, milliseconds);
     }
 
-    private void upload(Method method, String resource, HttpEntity entity)
-            throws ResourceException
+    private void upload(Method method, String resource, Map<String, Object> options,
+            HttpEntity entity) throws ResourceException
     {
         HttpEntityEnclosingRequestBase request;
+
+        resource += queryString(options);
 
         if(method == Method.PUT)
         {
@@ -272,5 +291,17 @@ public class Database
             EntityUtils.consume(response.getEntity());
             throw new ResourceException(method, url(resource));
         }
+    }
+
+    private String queryString(Map<String, Object> options)
+    {
+        ArrayList<String> pairs = new ArrayList<String>();
+
+        for(String key : options.keySet())
+        {
+            pairs.add(key + "=" + options.get(key).toString());
+        }
+
+        return pairs.size() > 0 ? "?" + StringUtils.join(pairs, "&") : "";
     }
 }
