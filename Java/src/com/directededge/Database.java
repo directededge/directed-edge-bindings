@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
@@ -160,17 +162,24 @@ public class Database
      */
     public String get(String resource) throws ResourceException
     {
-        HttpGet request = new HttpGet(url(resource));
+        return get(resource, new HashMap<String, Object>());
+    }
+
+    public String get(String resource, Map<String, Object> options) throws ResourceException
+    {
+        System.out.println(url(resource, options));
+
+        HttpGet request = new HttpGet(url(resource, options));
         try
         {
             HttpResponse response = client.execute(request);
-            checkResponseCode(Method.GET, resource, response);
+            checkResponseCode(Method.GET, resource, options, response);
             return EntityUtils.toString(response.getEntity());
         }
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResourceException(Method.GET, url(resource));
+            throw new ResourceException(Method.GET, url(resource, options));
         }
     }
 
@@ -236,15 +245,13 @@ public class Database
     {
         HttpEntityEnclosingRequestBase request;
 
-        resource += queryString(options);
-
         if(method == Method.PUT)
         {
-            request = new HttpPut(url(resource));
+            request = new HttpPut(url(resource, options));
         }
         else if(method == Method.POST)
         {
-            request = new HttpPost(url(resource));
+            request = new HttpPost(url(resource, options));
         }
         else
         {
@@ -256,22 +263,22 @@ public class Database
         try
         {
             HttpResponse response = client.execute(request);
-            checkResponseCode(Method.PUT, resource, response);
+            checkResponseCode(Method.PUT, resource, options, response);
             EntityUtils.consume(response.getEntity());
         }
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResourceException(Method.PUT, url(resource));
+            throw new ResourceException(Method.PUT, url(resource, options));
         }
     }
 
-    private String url(String resource)
+    private String url(String resource, Map<String, Object> options)
     {
         try
         {
             URL url = new URL(protocol.toString().toLowerCase(), host,
-                    "/api/v1/" + name + "/" + resource);
+                    "/api/v1/" + name + "/" + resource + queryString(options));
             return url.toString();
         }
         catch (MalformedURLException ex)
@@ -281,7 +288,8 @@ public class Database
         }
     }
 
-    private void checkResponseCode(Method method, String resource, HttpResponse response)
+    private void checkResponseCode(Method method, String resource,
+            Map<String, Object> options, HttpResponse response)
             throws ResourceException, IOException
     {
         int code = response.getStatusLine().getStatusCode();
@@ -289,7 +297,7 @@ public class Database
         if(code != 200)
         {
             EntityUtils.consume(response.getEntity());
-            throw new ResourceException(method, url(resource));
+            throw new ResourceException(method, url(resource, options));
         }
     }
 

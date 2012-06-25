@@ -49,6 +49,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -473,8 +474,10 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, int maxResults)
     {
-        return readList(document(encodedId() + "/related" +
-                queryString(tags, false, maxResults)), "related");
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        options.put("maxResults", maxResults);
+        options.put("excludeLinked", false);
+        return readList(document(encodedId() + "/related", options), "related");
     }
 
     /**
@@ -490,8 +493,8 @@ public class Item
      */
     public List<String> getRelated(Set<String> tags, Map<String, Object> options)
     {
-        return readList(document(encodedId() + "/related" +
-                queryString(tags, options)), "related");
+        options.put("tags", StringUtils.join(tags, ','));
+        return readList(document(encodedId() + "/related", options), "related");
     }
 
     /**
@@ -535,8 +538,11 @@ public class Item
      */
     public List<String> getRecommended(Set<String> tags, int maxResults)
     {
-         return readList(document(encodedId() + "/recommended" +
-                 queryString(tags, true, maxResults)), "recommended");
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        options.put("tags", StringUtils.join(tags, ','));
+        options.put("maxResults", maxResults);
+        options.put("excludeLinked", true);
+        return readList(document(encodedId() + "/recommended", options), "recommended");
     }
 
     /**
@@ -552,8 +558,8 @@ public class Item
      */
     public List<String> getRecommended(Set<String> tags, Map<String, Object> options)
     {
-         return readList(document(encodedId() + "/recommended" +
-                 queryString(tags, options)), "recommended");
+        options.put("tags", StringUtils.join(tags, ','));
+        return readList(document(encodedId() + "/recommended", options), "recommended");
     }
 
     /**
@@ -694,7 +700,7 @@ public class Item
             return;
         }
 
-        Document doc = document(encodedId());
+        Document doc = document(encodedId(), new HashMap<String, Object>());
 
         NodeList nodes = doc.getElementsByTagName("link");
         for(int i = 0; i < nodes.getLength(); i++)
@@ -749,7 +755,7 @@ public class Item
         isCached = true;
     }
 
-    private Document document(String resource)
+    private Document document(String resource, Map<String, Object> options)
     {
         try
         {
@@ -760,7 +766,7 @@ public class Item
 
             try
             {
-                stream = new ByteArrayInputStream(database.get(resource).getBytes());
+                stream = new ByteArrayInputStream(database.get(resource, options).getBytes());
             }
             catch (ResourceException ex)
             {
@@ -819,36 +825,6 @@ public class Item
             ex.printStackTrace();
             return null;
         }
-    }
-
-    private String queryString(Set<String> tags, boolean excludeLinked, int maxResults)
-    {
-        HashMap<String, Object> options = new HashMap<String, Object>();
-        options.put("excludeLinked", excludeLinked);
-        options.put("maxResults", maxResults);
-        return queryString(tags, options);
-    }
-
-    private String queryString(Set<String> tags, Map<String, Object> options)
-    {
-        String query = "?tags=";
-
-        for(String tag : tags)
-        {
-            query += tag + ",";
-        }
-
-        if(tags.size() > 0)
-        {
-            query = query.substring(0, query.length() - 1);
-        }
-
-        for(String key : options.keySet())
-        {
-            query += "&" + key + "=" + options.get(key).toString();
-        }
-
-        return query;
     }
 
     private String encodedId()
