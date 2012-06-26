@@ -2,6 +2,7 @@ package com.directededge;
 
 import com.directededge.Database.ResourceException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,7 +64,7 @@ public class Updater extends Exporter
         {
             HashMap<String, Object> options = new HashMap<String, Object>();
             options.put("updateMethod", "add");
-            getDatabase().post("", writer.toString(), options);
+            getDatabase().post(new ArrayList<String>(), writer.toString(), options);
         }
         catch (ResourceException ex)
         {

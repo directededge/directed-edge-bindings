@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -146,58 +148,59 @@ public class Database
      */
     public void importFromFile(String fileName) throws ResourceException
     {
-        upload(Method.PUT, "", new HashMap<String, Object>(),
+        upload(Method.PUT, new ArrayList<String>(), new HashMap<String, Object>(),
                 new FileEntity(new File(fileName), "text/xml"));
     }
 
     /**
-     * Grabs the contents of the sub-resource, e.g. "item1/related".  This is
+     * Grabs the contents of the sub-resources, e.g. "item1/related".  This is
      * primarily for internal usage.
      *
-     * @param resource The subresource to fetch.
-     * @return The content of the sub resource.
-     * @throws ResourceException Throws a ResourceException if the resource
+     * @param resources The subresource to fetch.
+     * @return The content of the sub resources.
+     * @throws ResourceException Throws a ResourceException if the resources
      * cannot be found, or if there is an authentication error.
      * @see ResourceException
      */
-    public String get(String resource) throws ResourceException
+    public String get(List<String> resources) throws ResourceException
     {
-        return get(resource, new HashMap<String, Object>());
+        return get(resources, new HashMap<String, Object>());
     }
 
-    public String get(String resource, Map<String, Object> options) throws ResourceException
+    public String get(List<String> resources, Map<String, Object> options)
+            throws ResourceException
     {
-        HttpGet request = new HttpGet(url(resource, options));
+        HttpGet request = new HttpGet(url(resources, options));
         try
         {
             HttpResponse response = client.execute(request);
-            checkResponseCode(Method.GET, resource, options, response);
+            checkResponseCode(Method.GET, resources, options, response);
             return EntityUtils.toString(response.getEntity());
         }
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResourceException(Method.GET, url(resource, options));
+            throw new ResourceException(Method.GET, url(resources, options));
         }
     }
 
     /**
-     * Grabs the contents of the sub-resource, e.g. "item1".  This is
+     * Grabs the contents of the sub-resources, e.g. "item1".  This is
      * primarily for internal usage.
      *
-     * @param resource The subresource to write to.
+     * @param resources The subresource to write to.
      */
-    public void put(String resource, String data) throws ResourceException
+    public void put(List<String> resources, String data) throws ResourceException
     {
-        put(resource, data, new HashMap<String, Object>());
+        put(resources, data, new HashMap<String, Object>());
     }
 
-    public void put(String resource, String data, Map<String, Object> options)
+    public void put(List<String> resources, String data, Map<String, Object> options)
             throws ResourceException
     {
         try
         {
-            upload(Method.PUT, resource, options,
+            upload(Method.PUT, resources, options,
                     new StringEntity(data, "text/xml", "UTF-8"));
         }
         catch (UnsupportedEncodingException ex)
@@ -206,17 +209,17 @@ public class Database
         }
     }
 
-    public void post(String resource, String data) throws ResourceException
+    public void post(List<String> resources, String data) throws ResourceException
     {
-        post(resource, data, new HashMap<String, Object>());
+        post(resources, data, new HashMap<String, Object>());
     }
 
-    public void post(String resource, String data, Map<String, Object> options)
+    public void post(List<String> resources, String data, Map<String, Object> options)
             throws ResourceException
     {
         try
         {
-            upload(Method.POST, resource, options,
+            upload(Method.POST, resources, options,
                     new StringEntity(data, "text/xml", "UTF-8"));
         }
         catch (UnsupportedEncodingException ex)
@@ -238,18 +241,17 @@ public class Database
         HttpConnectionParams.setSoTimeout(params, milliseconds);
     }
 
-    private void upload(Method method, String resource, Map<String, Object> options,
-            HttpEntity entity) throws ResourceException
+    private void upload(Method method, List<String> resources, Map<String, Object> options, HttpEntity entity) throws ResourceException
     {
         HttpEntityEnclosingRequestBase request;
 
         if(method == Method.PUT)
         {
-            request = new HttpPut(url(resource, options));
+            request = new HttpPut(url(resources, options));
         }
         else if(method == Method.POST)
         {
-            request = new HttpPost(url(resource, options));
+            request = new HttpPost(url(resources, options));
         }
         else
         {
@@ -261,22 +263,34 @@ public class Database
         try
         {
             HttpResponse response = client.execute(request);
-            checkResponseCode(Method.PUT, resource, options, response);
+            checkResponseCode(Method.PUT, resources, options, response);
             EntityUtils.consume(response.getEntity());
         }
         catch (IOException ex)
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ResourceException(Method.PUT, url(resource, options));
+            throw new ResourceException(Method.PUT, url(resources, options));
         }
     }
 
-    private String url(String resource, Map<String, Object> options)
+    private String url(List<String> resources, Map<String, Object> options)
     {
         try
         {
-            URL url = new URL(protocol.toString().toLowerCase(), host,
-                    "/api/v1/" + name + "/" + resource + queryString(options));
+            resources = new ArrayList(resources);
+
+            for(int i = 0; i < resources.size(); i++)
+            {
+                resources.set(i, encode(resources.get(i)));
+            }
+
+            URL url = new URL(String.format("%s://%s/api/v1/%s/%s%s",
+                    protocol.toString().toLowerCase(),
+                    host,
+                    name,
+                    StringUtils.join(resources, '/'),
+                    queryString(options)));
+
             return url.toString();
         }
         catch (MalformedURLException ex)
@@ -284,9 +298,14 @@ public class Database
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+        catch (UnsupportedEncodingException ex)
+        {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
-    private void checkResponseCode(Method method, String resource,
+    private void checkResponseCode(Method method, List<String> resources,
             Map<String, Object> options, HttpResponse response)
             throws ResourceException, IOException
     {
@@ -295,19 +314,25 @@ public class Database
         if(code != 200)
         {
             EntityUtils.consume(response.getEntity());
-            throw new ResourceException(method, url(resource, options));
+            throw new ResourceException(method, url(resources, options));
         }
     }
 
     private String queryString(Map<String, Object> options)
+            throws UnsupportedEncodingException
     {
         ArrayList<String> pairs = new ArrayList<String>();
 
         for(String key : options.keySet())
         {
-            pairs.add(key + "=" + options.get(key).toString());
+            pairs.add(encode(key) + "=" + encode(options.get(key)));
         }
 
         return pairs.size() > 0 ? "?" + StringUtils.join(pairs, "&") : "";
+    }
+
+    private String encode(Object s) throws UnsupportedEncodingException
+    {
+        return URLEncoder.encode(s.toString(), "UTF-8");
     }
 }
