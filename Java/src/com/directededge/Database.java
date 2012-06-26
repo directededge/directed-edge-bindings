@@ -167,8 +167,6 @@ public class Database
 
     public String get(String resource, Map<String, Object> options) throws ResourceException
     {
-        System.out.println(url(resource, options));
-
         HttpGet request = new HttpGet(url(resource, options));
         try
         {
