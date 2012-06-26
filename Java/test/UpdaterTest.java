@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 public class UpdaterTest
 {
     private Updater updater;
+    private Database database;
 
     public UpdaterTest()
     {
@@ -34,9 +35,8 @@ public class UpdaterTest
     @Before
     public void setUp() throws ResourceException
     {
-        Database database = new Database("testdb", "test");
+        database = new Database("testdb", "test");
         database.importFromFile("../testdb.xml");
-        updater = new Updater(database);
     }
 
     @After
@@ -46,8 +46,9 @@ public class UpdaterTest
     }
 
     @Test
-    public void update()
+    public void add()
     {
+        updater = new Updater(database);
         Item item = new Item(updater.getDatabase(), "test1");
         item.addTag("test2");
         item.setProperty("test3", "test4");
@@ -57,5 +58,22 @@ public class UpdaterTest
         item = new Item(updater.getDatabase(), "test1");
         assertTrue(item.getTags().contains("test2"));
         assertEquals("test4", item.getProperty("test3"));
+    }
+
+    @Test
+    public void subtract()
+    {
+        updater = new Updater(database, Updater.Method.Subtract);
+        Item item = new Item(updater.getDatabase(), "customer1");
+        assertTrue(item.getTags().contains("customer"));
+
+        item = new Item(updater.getDatabase(), "customer1");
+        item.removeTag("customer");
+        updater.export(item);
+        updater.finish();
+
+        item = new Item(updater.getDatabase(), "customer1");
+        assertFalse(item.getTags().contains("customer"));
+        assertTrue(item.getLinks().size() > 0);
     }
 }

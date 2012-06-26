@@ -42,14 +42,29 @@ import java.util.logging.Logger;
  */
 public class Updater extends Exporter
 {
+    public enum Method
+    {
+        Add,
+        Subtract,
+        Replace,
+        Delete
+    }
+
     private StringWriter writer;
+    private Method method;
 
     /**
      * @param database The database to be updated.
      */
     public Updater(Database database)
     {
-        writer = new StringWriter();
+        this(database, Method.Add);
+    }
+
+    public Updater(Database database, Method method)
+    {
+        this.writer = new StringWriter();
+        this.method = method;
         begin(database, writer);
     }
 
@@ -63,12 +78,17 @@ public class Updater extends Exporter
         try
         {
             HashMap<String, Object> options = new HashMap<String, Object>();
-            options.put("updateMethod", "add");
+            options.put("updateMethod", method.toString().toLowerCase());
             getDatabase().post(new ArrayList<String>(), writer.toString(), options);
         }
         catch (ResourceException ex)
         {
             Logger.getLogger(Updater.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    protected Updater.Method method()
+    {
+        return method;
     }
 }

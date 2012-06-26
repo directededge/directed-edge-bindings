@@ -100,7 +100,7 @@ public class Exporter
     {
         try
         {
-            output.write(item.toXML() + "\n");
+            output.write(item.toXML(method(), false) + "\n");
         }
         catch (IOException ex)
         {
@@ -144,5 +144,10 @@ public class Exporter
     private void begin(Writer writer)
     {
         begin(new Database(null, null), writer);
+    }
+
+    protected Updater.Method method()
+    {
+        return Updater.Method.Replace;
     }
 }

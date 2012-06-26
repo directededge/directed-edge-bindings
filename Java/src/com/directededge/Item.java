@@ -583,33 +583,8 @@ public class Item
                    !tagsToRemove.isEmpty() ||
                    !propertiesToRemove.isEmpty())
                 {
-                    HashMap<String, Map<String, Integer>> linkMap =
-                            new HashMap<String, Map<String, Integer>>();
-
-                    for(String linkType : linksToRemove.keySet())
-                    {
-                        if(!linkMap.containsKey(linkType))
-                        {
-                            linkMap.put(linkType, new HashMap<String, Integer>());
-                        }
-                        for(String link : linksToRemove.get(linkType))
-                        {
-                            linkMap.get(linkType).put(link, 0);
-                        }
-                    }
-
-                    HashMap<String, String> propertyMap =
-                            new HashMap<String, String>();
-
-                    for(String property : propertiesToRemove)
-                    {
-                        propertyMap.put(property, "");
-                    }
-
-                    options.clear();
-                    options.put("updateMethod", "subtract");
-
-                    database.post(Arrays.asList(id), toXML(tagsToRemove, linkMap, propertyMap, true), options);
+                    database.post(Arrays.asList(id),
+                            toXML(Updater.Method.Subtract, true), options);
                 }
             }
         }
@@ -626,9 +601,37 @@ public class Item
      *
      * @return An XML representation of the item.
      */
-    public String toXML()
+    public String toXML(Updater.Method method, boolean includeDocument)
     {
-        return toXML(tags, links, properties, false);
+        if(method == Updater.Method.Add || method == Updater.Method.Replace)
+        {
+            return toXML(tags, links, properties, false);
+        }
+
+        HashMap<String, Map<String, Integer>> linkMap =
+                new HashMap<String, Map<String, Integer>>();
+
+        for(String linkType : linksToRemove.keySet())
+        {
+            if(!linkMap.containsKey(linkType))
+            {
+                linkMap.put(linkType, new HashMap<String, Integer>());
+            }
+            for(String link : linksToRemove.get(linkType))
+            {
+                linkMap.get(linkType).put(link, 0);
+            }
+        }
+
+        HashMap<String, String> propertyMap =
+                new HashMap<String, String>();
+
+        for(String property : propertiesToRemove)
+        {
+            propertyMap.put(property, "");
+        }
+
+        return toXML(tagsToRemove, linkMap, propertyMap, includeDocument);
     }
 
     private String toXML(Set<String> tags, Map<String, Map<String, Integer>> links,
