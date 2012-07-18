@@ -1,4 +1,4 @@
-= directed-edge
+= directededge
 
 Bindings for the Directed Edge Web-services API
 

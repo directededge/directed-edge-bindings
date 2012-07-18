@@ -4,8 +4,8 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{directed-edge}
-  s.version = "0.2.0"
+  s.name = %q{directededge}
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Directed Edge"]
@@ -21,11 +21,11 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
-     "directed-edge.gemspec",
+     "directededge.gemspec",
      "examples/example_store.rb",
-     "lib/directed_edge.rb",
+     "lib/directededge.rb",
      "test/helper.rb",
-     "test/test_directed_edge.rb"
+     "test/test_directededge.rb"
   ]
   s.homepage = %q{http://developer.directededge.com/}
   s.rdoc_options = ["--charset=UTF-8"]

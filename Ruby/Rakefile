@@ -4,7 +4,7 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "directed-edge"
+    gem.name = "directededge"
     gem.summary = "Bindings for the Directed Edge webservices API"
     gem.description = "Bindings for the Directed Edge webservices API"
     gem.email = "info@directededge.com"
@@ -46,7 +46,7 @@ Rake::RDocTask.new do |rdoc|
   version = File.exist?('VERSION') ? File.read('VERSION') : ""
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "directed-edge #{version}"
+  rdoc.title = "directededge #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end

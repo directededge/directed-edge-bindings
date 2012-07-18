@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'activerecord'
-require 'directed_edge'
+require 'directededge'
 
 ActiveRecord::Base.establish_connection(:adapter => 'mysql',
                                         :host => 'localhost',
