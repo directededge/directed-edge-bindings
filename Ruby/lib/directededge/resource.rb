@@ -35,5 +35,20 @@ module DirectedEdge
       end
       super('?' + params.join('&'))
     end
+
+    def get(additional_headers = {}, &block)
+      additional_headers[:content_type] ||= 'text/xml'
+      super(additional_headers, &block)
+    end
+
+    def put(payload, additional_headers = {}, &block)
+      additional_headers[:content_type] ||= 'text/xml'
+      super(payload, additional_headers, &block)
+    end
+
+    def post(payload, additional_headers = {}, &block)
+      additional_headers[:content_type] ||= 'text/xml'
+      super(payload, additional_headers, &block)
+    end
   end
 end

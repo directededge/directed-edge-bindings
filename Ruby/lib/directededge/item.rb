@@ -39,9 +39,10 @@ module DirectedEdge
     end
 
     def save
-      xml(:cached_data) if cached?
-      xml(:add_queue) if queued?(:add)
-      xml(:remove_queue) if queued?(:remove)
+      resource.put(xml(:cached_data)) if cached?
+      resource[:update_method => :add].post(xml(:add_queue)) if queued?(:add)
+      resource[:update_method => :subtract].post(xml(:remove_queue)) if queued?(:remove)
+      @data.values.each(&:clear)
     end
 
     private

@@ -30,11 +30,9 @@ module DirectedEdge
     SUPPORTED_TYPES = [ Array, Hash, Set ]
 
     def initialize(klass, &loader)
-      @cached = false
-      @cached_data = klass.new
-      @add_queue = klass.new
-      @remove_queue = klass.new
+      @klass = klass
       @loader = loader
+      clear
     end
 
     def add(value)
@@ -94,6 +92,13 @@ module DirectedEdge
       @remove_queue.clear
 
       values
+    end
+
+    def clear
+      @cached = false
+      @cached_data = @klass.new
+      @add_queue = @klass.new
+      @remove_queue = @klass.new
     end
 
     def cached?
