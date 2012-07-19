@@ -29,7 +29,9 @@ module DirectedEdge
       @data = {
         :links => ContainerProxy.new(Array) { load },
         :tags => ContainerProxy.new(Array) { load },
-        :properties => ContainerProxy.new(Hash) { load }
+        :properties => ContainerProxy.new(Hash) { load },
+        :preselected => ContainerProxy.new(Array) { load },
+        :blacklisted => ContainerProxy.new(Array) { load }
       }
     end
 
