@@ -26,33 +26,22 @@ module DirectedEdge
     def initialize(database, id)
       @database = database
       @id = id.to_s
-    end
-
-    def links
-      load
-      @links
-    end
-
-    def tags
-      load
-    end
-
-    def properties
-      load
-    end
-
-    def preselected
-      load
-    end
-
-    def blacklisted
-      load
+      @data = {
+        :links => ContainerProxy.new(Array) { load },
+        :tags => ContainerProxy.new(Array) { load },
+        :properties => ContainerProxy.new(Hash) { load }
+      }
     end
 
     private
 
     def load
-      @links = XML.parse(@database.resource[@id].get).first[:links]
+      data = XML.parse(@database.resource[@id].get).first
+      @data.keys.each { |key| @data[key].set(data[key]) }
+    end
+
+    def method_missing(name, *args, &block)
+      @data.include?(name) ? @data[name] : super(name, *args, &block)
     end
   end
 end
