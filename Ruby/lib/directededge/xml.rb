@@ -23,7 +23,6 @@
 
 require 'rubygems'
 require 'libxml'
-require 'pp'
 
 module DirectedEdge
   class XML

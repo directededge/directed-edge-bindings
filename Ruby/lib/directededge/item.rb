@@ -63,8 +63,8 @@ module DirectedEdge
     end
 
     def to_xml(data_method, with_header = true)
-      XML.generate(Hash[@data.map { |k, v| [ k, v.send(data_method) ] }].merge(:id => @id),
-                   with_header)
+      values = Hash[@data.map { |k, v| [ k, v.send(data_method) ] }].merge(:id => @id)
+      XML.generate(values, with_header)
     end
 
     def method_missing(name, *args, &block)
