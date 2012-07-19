@@ -89,8 +89,8 @@ module DirectedEdge
       def self.hash(parent, element_name, attribute_name, values)
         values.each do |key, value|
           parent << node = LibXML::XML::Node.new(element_name)
-          node[attribute_name] = key
-          node << value
+          node[attribute_name] = key.to_s
+          node << value.to_s
         end if values
       end
     end
