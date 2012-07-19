@@ -36,6 +36,7 @@ module DirectedEdge
     def load
       data = XML.parse(resource.get).first
       @data.keys.each { |key| @data[key].set(data[key]) }
+      self
     end
 
     def save
