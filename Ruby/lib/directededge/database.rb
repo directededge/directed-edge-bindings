@@ -26,8 +26,9 @@ require 'rest-client'
 
 module DirectedEdge
   class Database
-    attr_reader :resource
+    attr_reader :resource, :name
     def initialize(name, password, options = {})
+      @name = name
       host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
       protocol = options[:protocol] || 'http'
       url = "#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}"

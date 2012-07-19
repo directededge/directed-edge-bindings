@@ -42,9 +42,9 @@ module DirectedEdge
     end
 
     def save
-      resource.put(xml(:cached_data)) if cached?
-      resource[:update_method => :add].post(xml(:add_queue)) if queued?(:add)
-      resource[:update_method => :subtract].post(xml(:remove_queue)) if queued?(:remove)
+      resource.put(to_xml(:cached_data)) if cached?
+      resource[:update_method => :add].post(to_xml(:add_queue)) if queued?(:add)
+      resource[:update_method => :subtract].post(to_xml(:remove_queue)) if queued?(:remove)
       @data.values.each(&:clear)
     end
 
@@ -62,8 +62,9 @@ module DirectedEdge
       @database.resource[@id]
     end
 
-    def xml(data_method)
-      XML.generate(Hash[@data.map { |k, v| [ k, v.send(data_method) ] }].merge(:id => @id))
+    def to_xml(data_method, with_header = true)
+      XML.generate(Hash[@data.map { |k, v| [ k, v.send(data_method) ] }].merge(:id => @id),
+                   with_header)
     end
 
     def method_missing(name, *args, &block)

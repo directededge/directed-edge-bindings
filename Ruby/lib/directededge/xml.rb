@@ -23,6 +23,7 @@
 
 require 'rubygems'
 require 'libxml'
+require 'pp'
 
 module DirectedEdge
   class XML
@@ -40,30 +41,30 @@ module DirectedEdge
       end
     end
 
-    def self.generate(items)
-      items = [ items ] unless items.is_a?(Array)
+    def self.generate(item, with_root = true)
+      item_node = LibXML::XML::Node.new('item')
 
-      doc = LibXML::XML::Document.new
-      doc.root = LibXML::XML::Node.new('directededge')
-      doc.root['version'] = '0.1'
-
-      items.each do |item|
-        doc.root << item_node = LibXML::XML::Node.new('item')
-
-        item_node['id'] = item[:id]
-
-        Writer.object(item_node, 'link', item[:links]) do |node, link|
-          node << link.target.to_s
-          node['weight'] = link.weight.to_s if link.weight > 0
-          node['type'] = link.type.to_s unless link.type.to_s.empty?
-        end
-
-        Writer.list(item_node, 'tag', item[:tags])
-        Writer.list(item_node, 'preselected', item[:preselected])
-        Writer.list(item_node, 'blacklisted', item[:blacklisted])
-        Writer.hash(item_node, 'property', 'name', item[:properties])
+      if with_root
+        doc = LibXML::XML::Document.new
+        doc.root = LibXML::XML::Node.new('directededge')
+        doc.root['version'] = '0.1'
+        doc.root << item_node
       end
-      doc.to_s
+
+      item_node['id'] = item[:id]
+
+      Writer.object(item_node, 'link', item[:links]) do |node, link|
+        node << link.target.to_s
+        node['weight'] = link.weight.to_s if link.weight > 0
+        node['type'] = link.type.to_s unless link.type.to_s.empty?
+      end
+
+      Writer.list(item_node, 'tag', item[:tags])
+      Writer.list(item_node, 'preselected', item[:preselected])
+      Writer.list(item_node, 'blacklisted', item[:blacklisted])
+      Writer.hash(item_node, 'property', 'name', item[:properties])
+
+      with_root ? doc.to_s : item_node.to_s
     end
 
     private
