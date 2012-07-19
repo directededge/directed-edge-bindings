@@ -45,16 +45,7 @@ module DirectedEdge
           @cached_data.merge!(value)
         end
       else
-        if array?
-          @add_queue.push(value)
-          @remove_queue.delete(value)
-        elsif set?
-          @add_queue.add(value)
-          @remove_queue.delete(value)
-        elsif hash?
-          @add_queue.merge!(value)
-          @remove_queue.delete(value.keys.first)
-        end
+        queue(@add_queue, @remove_queue, value)
       end
       value
     end
@@ -67,16 +58,7 @@ module DirectedEdge
           @cached_data.delete(value.is_a?(Hash) ? value.keys.first : value)
         end
       else
-        if array?
-          @remove_queue.push(value)
-          @add_queue.delete(value)
-        elsif set?
-          @remove_queue.add(value)
-          @add_queue.delete(value)
-        elsif hash?
-          @remove_queue.merge!((value.is_a?(Hash) ? value.keys.first : value) => nil)
-          @add_queue.delete(value.is_a?(Hash) ? value.keys.first : value)
-        end
+        queue(@remove_queue, @add_queue, value)
       end
       value
     end
@@ -106,6 +88,20 @@ module DirectedEdge
     end
 
     private
+
+    def queue(add, subtract, value)
+      if array?
+        add.push(value)
+        subtract.delete(value)
+      elsif set?
+        add.add(value)
+        subtract.delete(value)
+      elsif hash?
+        value = { value => nil } unless value.is_a?(Hash)
+        add.merge!(value)
+        subtract.delete(value.keys.first)
+      end
+    end
 
     def method_missing(name, *args, &block)
       SUPPORTED_TYPES.each do |type|
