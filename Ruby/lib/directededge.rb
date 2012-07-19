@@ -23,6 +23,7 @@
 
 require 'directededge/link'
 require 'directededge/xml'
+require 'directededge/resource'
 require 'directededge/database'
 require 'directededge/containerproxy'
 require 'directededge/item'
