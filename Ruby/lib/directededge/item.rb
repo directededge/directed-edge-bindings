@@ -33,11 +33,33 @@ module DirectedEdge
       }
     end
 
+    def load
+      data = XML.parse(resource.get).first
+      @data.keys.each { |key| @data[key].set(data[key]) }
+    end
+
+    def save
+      xml(:cached_data) if cached?
+      xml(:add_queue) if queued?(:add)
+      xml(:remove_queue) if queued?(:remove)
+    end
+
     private
 
-    def load
-      data = XML.parse(@database.resource[@id].get).first
-      @data.keys.each { |key| @data[key].set(data[key]) }
+    def cached?
+      @data.first.last.cached?
+    end
+
+    def queued?(add_or_remove)
+      @data.values.reduce(false) { |c, v| c || !v.send("#{add_or_remove}_queue").empty? }
+    end
+
+    def resource
+      @database.resource[@id]
+    end
+
+    def xml(data_method)
+      XML.generate(Hash[@data.map { |k, v| [ k, v.send(data_method) ] }].merge(:id => @id))
     end
 
     def method_missing(name, *args, &block)
