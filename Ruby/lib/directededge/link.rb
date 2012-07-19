@@ -21,5 +21,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'directededge/link'
-require 'directededge/xml'
+module DirectedEdge
+  class Link
+    attr_accessor :source, :target, :weight, :type
+
+    def initialize(source, target, options = {})
+      @source = source
+      @target = target
+      @weight = options[:weight] || 0
+      @type = options[:type] || ''
+    end
+  end
+end
