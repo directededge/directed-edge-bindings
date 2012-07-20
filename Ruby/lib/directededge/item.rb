@@ -36,7 +36,7 @@ module DirectedEdge
     end
 
     def load
-      data = XML.parse(resource.get).first
+      data = XML.parse(resource.get)
       @data.keys.each { |key| @data[key].set(data[key]) }
       self
     end
@@ -51,7 +51,7 @@ module DirectedEdge
     private
 
     def cached?
-      @data.first.last.cached?
+      @data.values.first.cached?
     end
 
     def queued?(add_or_remove)

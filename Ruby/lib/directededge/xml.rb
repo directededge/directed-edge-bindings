@@ -28,16 +28,15 @@ module DirectedEdge
   class XML
     def self.parse(text)
       doc = LibXML::XML::Parser.string(text).parse
-      doc.find('//item').map do |item|
-        {
-          :id => item['id'],
-          :links => item.find('//link').map { |l| Link.new(item['id'], l.first.to_s, l) },
-          :tags => Reader.list(item, '//tag'),
-          :preselcted => Reader.list(item, '//preselected'),
-          :blacklisted => Reader.list(item, '//blacklisted'),
-          :properties => Hash[item.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
-        }
-      end
+      item = doc.find('//item').first
+      {
+        :id => item['id'],
+        :links => item.find('//link').map { |l| Link.new(item['id'], l.first.to_s, l) },
+        :tags => Reader.list(item, '//tag'),
+        :preselcted => Reader.list(item, '//preselected'),
+        :blacklisted => Reader.list(item, '//blacklisted'),
+        :properties => Hash[item.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
+      }
     end
 
     def self.generate(item, with_root = true)
