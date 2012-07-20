@@ -2,3 +2,5 @@ coverage
 rdoc
 pkg
 .yardoc
+Gemfile.lock
+install
