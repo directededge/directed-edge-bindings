@@ -31,7 +31,7 @@ module DirectedEdge
       item = doc.find('//item').first
       {
         :id => item['id'],
-        :links => item.find('//link').map { |l| Link.new(item['id'], l.first.to_s, l) },
+        :links => item.find('//link').map { |l| Link.new(l.first.to_s, l) },
         :tags => Reader.list(item, '//tag'),
         :preselcted => Reader.list(item, '//preselected'),
         :blacklisted => Reader.list(item, '//blacklisted'),
@@ -57,7 +57,7 @@ module DirectedEdge
       item_node['id'] = item[:id]
 
       Writer.object(item_node, 'link', item[:links]) do |node, link|
-        node << link.target.to_s
+        node << link.target
         node['weight'] = link.weight.to_s if link.weight > 0
         node['type'] = link.type.to_s unless link.type.to_s.empty?
       end

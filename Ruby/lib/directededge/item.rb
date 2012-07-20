@@ -27,7 +27,7 @@ module DirectedEdge
       @database = database
       @id = id.to_s
       @data = {
-        :links => ContainerProxy.new(Array) { load },
+        :links => LinkProxy.new(Array) { load },
         :tags => ContainerProxy.new(Array) { load },
         :properties => ContainerProxy.new(Hash) { load },
         :preselected => ContainerProxy.new(Array) { load },
@@ -58,6 +58,20 @@ module DirectedEdge
     end
 
     private
+
+    class LinkProxy < ContainerProxy
+      def add(value, options = {})
+        super(objectify(value, options))
+      end
+
+      def remove(value, options = {})
+        super(objectify(value, options))
+      end
+
+      def objectify(value, options)
+        (value.is_a?(String) || value.is_a?(Symbol)) ? Link.new(value, options) : value
+      end
+    end
 
     def cached?
       @data.values.first.cached?
