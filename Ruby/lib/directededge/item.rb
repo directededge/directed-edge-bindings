@@ -33,6 +33,7 @@ module DirectedEdge
         :preselected => ContainerProxy.new(Array) { load },
         :blacklisted => ContainerProxy.new(Array) { load }
       }
+      @query_cache = {}
     end
 
     def load
@@ -48,6 +49,14 @@ module DirectedEdge
       @data.values.each(&:clear)
     end
 
+    def related(options = {})
+      query(:related, options)
+    end
+
+    def recommended(options = {})
+      query(:recommended, options)
+    end
+
     private
 
     def cached?
@@ -60,6 +69,11 @@ module DirectedEdge
 
     def resource
       @database.resource[@id]
+    end
+
+    def query(type, options)
+      @query_cache[type] ||= {}
+      @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get)
     end
 
     def to_xml(data_method, with_header = true)

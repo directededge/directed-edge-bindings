@@ -39,6 +39,11 @@ module DirectedEdge
       }
     end
 
+    def self.parse_list(element, text)
+      doc = LibXML::XML::Parser.string(text).parse
+      Reader.list(doc.find('//item').first, "//#{element}")
+    end
+
     def self.generate(item, with_root = true)
       item_node = LibXML::XML::Node.new('item')
 
