@@ -29,7 +29,7 @@ module DirectedEdge
     FOOTER = "</directededge>\n"
 
     def initialize(database, mode)
-      raise ArgumentError.new unless [ :replace, :update ].include?(mode)
+      validate_mode(mode)
       @database = database
       @mode = mode
       @add_file = temp(:add)
@@ -60,6 +60,16 @@ module DirectedEdge
       end
     end
 
+    def self.import_from_file(database, filename, mode = :replace)
+      validate_mode(mode)
+      file = File.open(filename, 'r')
+      if mode == :replace
+        database.resource.put(file)
+      elsif mode == :update
+        database.resource[:update_method => :add].post(file)
+      end
+    end
+
     private
 
     class Item < DirectedEdge::Item
@@ -81,10 +91,8 @@ module DirectedEdge
       end
     end
 
-    def temp(action)
-      file = Tempfile.new("#{@database.name}-#{action}")
-      file.puts(HEADER)
-      file
+    def self.validate_mode(mode)
+      raise ArgumentError.new unless [ :replace, :update ].include?(mode)
     end
 
     def validate_updates(item)
@@ -96,6 +104,12 @@ module DirectedEdge
           end
         end
       end
+    end
+
+    def temp(action)
+      file = Tempfile.new("#{@database.name}-#{action}")
+      file.puts(HEADER)
+      file
     end
   end
 end
