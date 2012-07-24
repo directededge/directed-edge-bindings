@@ -57,6 +57,14 @@ module DirectedEdge
       query(:recommended, options)
     end
 
+    def [](key)
+      @data[:properties][key]
+    end
+
+    def []=(key, value)
+      @data[:properties].add(key => value)
+    end
+
     private
 
     class LinkProxy < ContainerProxy
