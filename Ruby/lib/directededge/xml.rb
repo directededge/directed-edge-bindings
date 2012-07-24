@@ -73,8 +73,17 @@ module DirectedEdge
     private
 
     class Reader
-      def self.list(node, search)
-        node.find(search).map { |v| v.first.to_s }
+      module Properties
+        attr_accessor :properties
+      end
+
+      def self.list(node, element)
+        node.find(element).map do |node|
+          value = node.first.to_s
+          value.extend(Properties)
+          value.properties = node.attributes.to_h
+          value
+        end
       end
     end
 
