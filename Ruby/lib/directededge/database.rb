@@ -35,5 +35,21 @@ module DirectedEdge
       options[:timeout] ||= 10
       @resource = DirectedEdge::Resource.new(url, options)
     end
+
+    def export_to_file(filename)
+      uri = URI(@resource.url)
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request.basic_auth(uri.user, uri.password)
+        http.request request do |response|
+          open(filename, 'w') { |io| response.read_body { |chunk| io.write(chunk) } }
+        end
+      end
+    end
+
+    def import_from_file(filename)
+      file = File.open(filename, 'r')
+      @resource.put(file)
+    end
   end
 end

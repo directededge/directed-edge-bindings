@@ -29,7 +29,7 @@ module DirectedEdge
     FOOTER = "</directededge>\n"
 
     def initialize(database, mode)
-      validate_mode(mode)
+      raise ArgumentError.new unless [ :replace, :update ].include?(mode)
       @database = database
       @mode = mode
       @add_file = temp(:add)
@@ -60,27 +60,6 @@ module DirectedEdge
       end
     end
 
-    def self.export_to_file(database, filename)
-      uri = URI(database.resource.url)
-      Net::HTTP.start(uri.host, uri.port) do |http|
-        request = Net::HTTP::Get.new(uri.request_uri)
-        request.basic_auth(uri.user, uri.password)
-        http.request request do |response|
-          open(filename, 'w') { |io| response.read_body { |chunk| io.write chunk } }
-        end
-      end
-    end
-
-    def self.import_from_file(database, filename, mode = :replace)
-      validate_mode(mode)
-      file = File.open(filename, 'r')
-      if mode == :replace
-        database.resource.put(file)
-      elsif mode == :update
-        database.resource[:update_method => :add].post(file)
-      end
-    end
-
     private
 
     class Item < DirectedEdge::Item
@@ -100,10 +79,6 @@ module DirectedEdge
       def save
         raise StandardError.new('You can\'t call save on Updater::Item')
       end
-    end
-
-    def self.validate_mode(mode)
-      raise ArgumentError.new unless [ :replace, :update ].include?(mode)
     end
 
     def validate_updates(item)
