@@ -27,8 +27,8 @@ module DirectedEdge
 
     def initialize(target, options = {})
       @target = target.to_s
-      @weight = options[:weight] || 0
-      @type = options[:type] || ''
+      @weight = options[:weight].to_i || 0
+      @type = options[:type].to_s || ''
     end
   end
 end
