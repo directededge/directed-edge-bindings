@@ -60,6 +60,17 @@ module DirectedEdge
       end
     end
 
+    def self.export_to_file(database, filename)
+      uri = URI(database.resource.url)
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request.basic_auth(uri.user, uri.password)
+        http.request request do |response|
+          open(filename, 'w') { |io| response.read_body { |chunk| io.write chunk } }
+        end
+      end
+    end
+
     def self.import_from_file(database, filename, mode = :replace)
       validate_mode(mode)
       file = File.open(filename, 'r')
