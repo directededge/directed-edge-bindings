@@ -27,6 +27,7 @@ require 'rest-client'
 module DirectedEdge
   class Database
     attr_reader :resource, :name
+
     def initialize(name, password, options = {})
       @name = name
       host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
@@ -41,8 +42,8 @@ module DirectedEdge
       Net::HTTP.start(uri.host, uri.port) do |http|
         request = Net::HTTP::Get.new(uri.request_uri)
         request.basic_auth(uri.user, uri.password)
-        http.request request do |response|
-          open(filename, 'w') { |io| response.read_body { |chunk| io.write(chunk) } }
+        http.request(request) do |response|
+          File.open(filename, 'w') { |io| response.read_body { |chunk| io.write(chunk) } }
         end
       end
     end

@@ -28,14 +28,13 @@ module DirectedEdge
   class XML
     def self.parse(text)
       doc = LibXML::XML::Parser.string(text).parse
-      item = doc.find('//item').first
+      node = doc.find('//item').first
       {
-        :id => item['id'],
-        :links => item.find('//link').map { |l| Link.new(l.first.to_s, l) },
-        :tags => Reader.list(item, '//tag'),
-        :preselcted => Reader.list(item, '//preselected'),
-        :blacklisted => Reader.list(item, '//blacklisted'),
-        :properties => Hash[item.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
+        :links => node.find('//link').map { |l| Link.new(l.first.to_s, l) },
+        :tags => Reader.list(node, '//tag'),
+        :preselcted => Reader.list(node, '//preselected'),
+        :blacklisted => Reader.list(node, '//blacklisted'),
+        :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
       }
     end
 
