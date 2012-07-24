@@ -52,5 +52,11 @@ module DirectedEdge
       file = File.open(filename, 'r')
       @resource.put(file)
     end
+
+    def related(items, options = {})
+      options[:items] = items
+      options[:union] = true
+      XML.parse_list(:related, @resource[:related][options].get)
+    end
   end
 end
