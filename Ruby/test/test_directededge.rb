@@ -288,8 +288,8 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_group_related
-    assert_equal(0, @database.group_related([], ['product']).size)
-    assert_equal(20, @database.group_related(['product1', 'product2'], ['product']).size)
+    assert_equal(0, @database.related([], :tags => 'product').size)
+    assert_equal(20, @database.related([ 'product1', 'product2' ], :tags => 'product').size)
   end
 
   def test_unsafe_chars
