@@ -30,5 +30,13 @@ module DirectedEdge
       @weight = options[:weight].to_i || 0
       @type = options[:type].to_s || ''
     end
+
+    def ==(other)
+      if other.is_a?(Link)
+        @target == other.target && @weight == other.weight && @type == other.type
+      elsif other.is_a?(String) || other.is_a?(Symbol)
+        @target == other.to_s
+      end
+    end
   end
 end
