@@ -38,7 +38,7 @@ module DirectedEdge
 
     def item(id, &block)
       item = Item.new(@database, id)
-      block.call(item)
+      block.call(item) if block
       validate_updates(item)
       @add_file.puts(item.to_xml(:add))
       @remove_file.puts(item.to_xml(:remove)) if @mode == :update
