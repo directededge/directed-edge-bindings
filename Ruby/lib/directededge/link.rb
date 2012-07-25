@@ -34,8 +34,12 @@ module DirectedEdge
     def ==(other)
       if other.is_a?(Link)
         @target == other.target && @weight == other.weight && @type == other.type
+      elsif other.is_a?(Item)
+        @target == other.id
       elsif other.is_a?(String) || other.is_a?(Symbol)
         @target == other.to_s
+      else
+        false
       end
     end
   end
