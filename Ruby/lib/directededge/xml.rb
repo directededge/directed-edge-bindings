@@ -57,7 +57,7 @@ module DirectedEdge
 
       Writer.object(item_node, 'link', item[:links]) do |node, link|
         node << link.target
-        node['weight'] = link.weight.to_s if link.weight > 0
+        node['weight'] = link.weight.to_s
         node['type'] = link.type.to_s unless link.type.to_s.empty?
       end
 
