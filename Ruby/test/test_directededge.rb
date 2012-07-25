@@ -144,24 +144,24 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_tags
     item = DirectedEdge::Item.new(@database, 'customer1')
-    item.add_tag('dude')
+    item.tags.add('dude')
     assert(item.tags.include?('dude'))
 
     item.save
-    item.reload
+    item.load
     assert(item.tags.include?('dude'))
 
-    item.remove_tag('dude')
-    item.add_tag('greek')
+    item.tags.remove('dude')
+    item.tags.add('greek')
     item.save
-    item.reload
+    item.load
     assert(item.tags.include?('greek'))
     assert(!item.tags.include?('dude'))
 
     item = DirectedEdge::Item.new(@database, 'customer1')
-    item.remove_tag('greek')
+    item.tags.remove('greek')
     item.save
-    item.reload
+    item.load
     
     assert(!item.tags.include?('greek'))
   end
@@ -189,13 +189,13 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     # Test the cached example of clearing a property
     
-    item.clear_property('test_property_1')
+    item.properties.remove('test_property_1')
     assert(!item.properties.include?('test_property_1'))
 
     # Make sure that it stays gone when reloading
 
     item.save
-    item.reload
+    item.load
     assert(!item.properties.include?('test_property_1'))
 
     # Test the incremental update
@@ -204,9 +204,9 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
 
     item = DirectedEdge::Item.new(@database, 'customer1')
-    item.clear_property('test_property_1')
+    item.properties.remove('test_property_1')
     item.save
-    item.reload
+    item.load
     assert(!item.properties.include?('test_property_1'))
   end
 
