@@ -271,20 +271,20 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     # Test an out of range ranking.
 
-    customer1.links[customer2] = -1
+    customer1.links.add(customer2, :weight => -1)
     assert_raise(RestClient::UnprocessableEntity) { customer1.save }
 
     # And another.
 
-    customer1.reload
-    customer1.links[customer2] = 100
+    customer1.reset
+    customer1.links.add(customer2, :weight => 100)
     assert_raise(RestClient::UnprocessableEntity) { customer1.save }
 
-    customer1.reload
-    customer1.link_to(customer3, 10)
+    customer1.reset
+    customer1.links.add(customer3, :weight => 10)
     customer1.save
-    customer1.reload
-    assert_equal(10, customer1.weight_for(customer3))
+    customer1.reset
+    assert_equal(10, customer1.links[customer3].weight)
   end
 
   def test_group_related
