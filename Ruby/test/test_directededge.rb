@@ -368,10 +368,10 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     first = item.related[0]
 
-    item.add_preselected('product2')
-    item.add_preselected('product3')
+    item.preselected.add('product2')
+    item.preselected.add('product3')
     item.save
-    item.reload
+
     assert_equal(2, item.preselected.length)
     assert_equal('product2', item.preselected[0])
     assert_equal('product3', item.preselected[1])
@@ -380,12 +380,11 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal('product2', item.related[0])
     assert_equal('product3', item.related[1])
 
-    item.remove_preselected('product2')
+    item.preselected.remove('product2')
     item.save
-    item.reload
     assert_equal(1, item.preselected.length)
 
-    item.remove_preselected('product3')
+    item.preselected.remove('product3')
     item.save
     assert_equal(first, item.related[0])
 
@@ -393,9 +392,8 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     item['foo'] = 'bar'
     item.save
-    item.add_preselected('product2')
+    item.preselected.add('product2')
     item.save
-    item.reload
     assert_equal(item['foo'], 'bar')
   end
 
