@@ -333,7 +333,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     other = DirectedEdge::Item.new(@database, 'product21')
     other['foo'] = 'bar'
     other.save
-    related = item.related(['product'], :include_properties => true)
+    related = item.related(:tags => 'product', :include_properties => true)
     assert_equal('bar', related['product21']['foo'])
 
     related = @database.group_related(['product1'], ['product'], :include_properties => true)
@@ -341,7 +341,7 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     customer = DirectedEdge::Item.new(@database, 'customer2')
     recommended = customer.recommended(['product'], :include_properties => true)
-    assert_equal('bar', recommended['product21']['foo'])
+    assert_equal('bar', recommended['product21'].properties['foo'])
   end
 
   def test_include_tags
