@@ -52,6 +52,11 @@ module DirectedEdge
       @query_cache.clear
     end
 
+    def destroy
+      resource.delete
+      self
+    end
+
     def related(options = {})
       query(:related, options)
     end
