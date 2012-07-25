@@ -27,11 +27,11 @@ require 'rest-client'
 module DirectedEdge
   class Resource < RestClient::Resource
     def [](*args)
-      return super(*args) if args.empty? || !args[0].is_a?(Hash)
+      return super(*(args.map { |v| CGI.escape(v.to_s) })) if args.empty? || !args[0].is_a?(Hash)
       params = args.first.map do |key, value|
-        key = URI.encode(key.to_s.gsub(/_\w/) { |s| s[1, 1].upcase })
+        key = CGI.escape(key.to_s.gsub(/_\w/) { |s| s[1, 1].upcase })
         value = value.join(',') if value.is_a?(Array)
-        value = URI.encode(value.to_s)
+        value = CGI.escape(value.to_s)
         "#{key}=#{value}"
       end
       super('?' + params.join('&'))
