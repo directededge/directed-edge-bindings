@@ -49,6 +49,7 @@ module DirectedEdge
       resource[:update_method => :add].post(to_xml(:add_queue))
       resource[:update_method => :subtract].post(to_xml(:remove_queue)) if queued?(:remove)
       @data.values.each(&:clear)
+      @query_cache.clear
     end
 
     def related(options = {})
