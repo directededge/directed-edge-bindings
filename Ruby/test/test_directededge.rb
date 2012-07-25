@@ -216,18 +216,18 @@ class TestDirectedEdge < Test::Unit::TestCase
     first.save
     second.save
 
-    first.link_to(second, 0, :test)
+    first.links.add(second, :type => :test)
     first.save
 
     first = DirectedEdge::Item.new(@database, 'item_1')
     second = DirectedEdge::Item.new(@database, 'item_2')
 
     first.save
-    first.reload
-    second.reload
+    first.load
+    second.load
 
-    assert(first.links(:test).include?('item_2'))
-    assert(!first.links.include?('item_2'))
+    assert(first.links.include?(DirectedEdge::Link.new('item_2', :type => :test)))
+    assert(!first.links.include?(DirectedEdge::Link.new('item_2')))
   end
 
   def test_load
