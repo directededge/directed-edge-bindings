@@ -64,16 +64,16 @@ class TestDirectedEdge < Test::Unit::TestCase
     first_item.save
 
     second_item = DirectedEdge::Item.new(@database, 'test_2')
-    second_item.link_to(first_item)
+    second_item.links.add(first_item)
     second_item.save
 
     third_item = DirectedEdge::Item.new(@database, 'test_3')
-    third_item.link_to(first_item)
-    third_item.link_to(second_item)
-    third_item.add_tag('test_tag')
+    third_item.links.add(first_item)
+    third_item.links.add(second_item)
+    third_item.tags.add('test_tag')
     third_item.save
 
-    assert_equal('test_1', first_item.name)
+    assert_equal('test_1', first_item.id)
 
     # Make sure that the number of tags / links for the first item is zero
 
@@ -82,7 +82,7 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     # Link the first item to the second item and make sure it worked
 
-    first_item.link_to(second_item)
+    first_item.links.add(second_item)
     first_item.save
     assert_equal(1, first_item.links.length)
 
@@ -95,8 +95,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Make sure that the third item is linked to both the first and second items
 
     assert_equal(2, third_item.links.length)
-    assert(third_item.links.include?(first_item.to_s))
-    assert(third_item.links.include?(second_item.to_s))
+    assert(third_item.links.include?(first_item))
+    assert(third_item.links.include?(second_item))
 
     # Make sure that the first and second items show up in the related items for
     # the third item
@@ -109,20 +109,20 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     assert_equal(0, third_item.recommended.length)
     assert_equal(1, second_item.recommended.length)
-    assert_equal(0, second_item.recommended(['unknown_tag']).length)
-    assert_equal([third_item.to_s], first_item.recommended(['test_tag']))
+    assert_equal(0, second_item.recommended(:tags => 'unknown_tag').length)
+    assert_equal(third_item.to_s, first_item.recommended(:tags => 'test_tag').first.to_s)
 
     # Remove the link from the second item and assure that it was removed
 
-    second_item.unlink_from(first_item)
+    second_item.links.remove(first_item)
     second_item.save
 
     assert_equal(0, second_item.links.length)
 
     # Remove the links from the third item and assure that they were removed
 
-    third_item.unlink_from(first_item)
-    third_item.unlink_from(second_item)
+    third_item.links.remove(first_item)
+    third_item.links.remove(second_item)
     third_item.save
 
     assert_equal(0, third_item.links.length)
@@ -137,7 +137,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal(1, first_item.links.length)
 
     second_item.destroy
-    first_item.reload
+    first_item.load
 
     assert_equal(0, first_item.links.length)
   end
