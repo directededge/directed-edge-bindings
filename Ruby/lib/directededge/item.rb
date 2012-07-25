@@ -46,7 +46,7 @@ module DirectedEdge
 
     def save
       resource.put(to_xml(:cached_data)) if cached?
-      resource[:update_method => :add].post(to_xml(:add_queue)) if queued?(:add)
+      resource[:update_method => :add].post(to_xml(:add_queue))
       resource[:update_method => :subtract].post(to_xml(:remove_queue)) if queued?(:remove)
       @data.values.each(&:clear)
     end

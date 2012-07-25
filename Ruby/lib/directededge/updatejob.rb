@@ -67,7 +67,7 @@ module DirectedEdge
 
       def to_xml(add_or_remove)
         method = add_or_remove == :add ? :add_queue : :remove_queue
-        queued?(add_or_remove) ? super(method, false) : ''
+        (method == :remove_queue && !queued?(:remove)) ? '' : super(method, false)
       end
 
       private
