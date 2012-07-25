@@ -23,7 +23,7 @@
 
 module DirectedEdge
   class Link
-    attr_accessor :source, :target, :weight, :type
+    attr_accessor :target, :weight, :type
 
     def initialize(target, options = {})
       @target = target.to_s
