@@ -23,6 +23,8 @@
 
 module DirectedEdge
   class Item
+    attr_reader :id
+
     def initialize(database, id)
       @database = database
       @id = id.to_s
@@ -77,7 +79,13 @@ module DirectedEdge
       end
 
       def objectify(value, options)
-        (value.is_a?(String) || value.is_a?(Symbol)) ? Link.new(value, options) : value
+        if value.is_a?(String) || value.is_a?(Symbol)
+          Link.new(value, options)
+        elsif value.is_a?(Item)
+          Link.new(value.id, options)
+        else
+          value
+        end
       end
     end
 
