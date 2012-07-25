@@ -21,6 +21,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+require 'libxml'
+require 'rest_client'
+
 require 'directededge/link'
 require 'directededge/xml'
 require 'directededge/resource'
