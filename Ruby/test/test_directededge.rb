@@ -391,21 +391,17 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_blacklisted
     customer = DirectedEdge::Item.new(@database, 'customer1')
-    first = customer.recommended(['product']).first
-    customer.add_blacklisted(first)
+    first = customer.recommended(:tags => 'product').first
+    customer.blacklisted.add(first)
     customer.save
-    assert(!customer.recommended(['product']).include?(first))
+    assert(!customer.recommended(:tags => 'product').include?(first))
 
     assert(customer.blacklisted.include?(first))
-    customer.reload
-    assert(customer.blacklisted.include?(first))
 
-    customer.remove_blacklisted(first)
+    customer.blacklisted.remove(first)
     customer.save
     assert(!customer.blacklisted.include?(first))
-    customer.reload
-    assert(!customer.blacklisted.include?(first))
-    assert(customer.recommended(['product']).include?(first))
+    assert(customer.recommended(:tags => 'product').include?(first))
   end
 
   def test_timeout
