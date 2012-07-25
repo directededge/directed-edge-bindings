@@ -17,40 +17,34 @@ class TestDirectedEdge < Test::Unit::TestCase
     @database.import(File.expand_path('../../../testdb.xml', __FILE__))
   end
 
-  def test_exporter
-    exporter = DirectedEdge::Exporter.new('exported.xml')
+  def test_updatejob
+    job = DirectedEdge::UpdateJob.new(@database, :replace)
 
-    product = DirectedEdge::Item.new(exporter.database, 'test_product')
-    product.add_tag('product')
-    product['name'] = 'Test Product'
-    exporter.export(product)
+    job.item('test_product') do |product|
+      product.tags.add('product')
+      product[:name] = 'Test Product'
+    end
 
-    first_user = DirectedEdge::Item.new(exporter.database, 'test_user_1')
-    second_user = DirectedEdge::Item.new(exporter.database, 'test_user_2')
-    first_user.add_tag('user')
-    first_user['name'] = 'Test User'
+    second_user = job.item('test_user_2')
 
-    first_user.link_to(second_user)
-    first_user.link_to(product, 5)
+    job.item('test_user_1') do |first_user|
+      first_user.tags.add 'user'
+      first_user[:name] = 'Test User'
+      first_user.links.add(second_user)
+      first_user.links.add('test_product', :weight => 5)
+    end
 
-    exporter.export(first_user)
-    exporter.export(second_user)
+    job.run
 
-    exporter.finish
-
-    database = DirectedEdge::Database.new('testdb', 'test')
-    database.import('exported.xml')
-
-    user = DirectedEdge::Item.new(database, 'test_user_1')
-    product = DirectedEdge::Item.new(database, 'test_product')
+    user = DirectedEdge::Item.new(@database, 'test_user_1')
+    product = DirectedEdge::Item.new(@database, 'test_product')
 
     assert(user.tags.include?('user'))
     assert_equal('Test User', user['name'])
 
     assert(user.links.include?('test_product'))
     assert(user.links.include?('test_user_2'))
-
-    assert_equal(5, user.links['test_product'])
+    assert(user.links.cached_data.include?(DirectedEdge::Link.new('test_product', :weight => 5)))
 
     assert(product.tags.include?('product'))
     assert_equal('Test Product', product['name'])
