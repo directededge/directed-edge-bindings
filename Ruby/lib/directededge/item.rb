@@ -56,7 +56,7 @@ module DirectedEdge
     end
 
     def recommended(options = {})
-      query(:recommended, options)
+      query(:recommended, options.merge(:exclude_linked => true))
     end
 
     def [](key)
