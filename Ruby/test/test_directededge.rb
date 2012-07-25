@@ -148,20 +148,17 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(item.tags.include?('dude'))
 
     item.save
-    item.reset
     assert(item.tags.include?('dude'))
 
     item.tags.remove('dude')
     item.tags.add('greek')
     item.save
-    item.reset
     assert(item.tags.include?('greek'))
     assert(!item.tags.include?('dude'))
 
     item = DirectedEdge::Item.new(@database, 'customer1')
     item.tags.remove('greek')
     item.save
-    item.reset
     
     assert(!item.tags.include?('greek'))
   end
@@ -195,7 +192,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Make sure that it stays gone when reloading
 
     item.save
-    item.reset
     assert(!item.properties.include?('test_property_1'))
 
     # Test the incremental update
@@ -206,7 +202,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     item = DirectedEdge::Item.new(@database, 'customer1')
     item.properties.remove('test_property_1')
     item.save
-    item.reset
     assert(!item.properties.include?('test_property_1'))
   end
 
@@ -223,8 +218,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     second = DirectedEdge::Item.new(@database, 'item_2')
 
     first.save
-    first.reset
-    second.reset
 
     assert(first.links.include?(DirectedEdge::Link.new('item_2', :type => :test)))
     assert(!first.links.include?(DirectedEdge::Link.new('item_2')))
@@ -283,7 +276,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     customer1.reset
     customer1.links.add(customer3, :weight => 10)
     customer1.save
-    customer1.reset
     assert_equal(10, customer1.links[customer3].weight)
   end
 
