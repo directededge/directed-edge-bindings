@@ -59,23 +59,6 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal('Bar', item['name'])
   end
 
-  def test_tags
-    item = DirectedEdge::Item.new(@database, 'customer1')
-    test_tag = 'test_tag'
-
-    assert(!item.tags.include?(test_tag))
-
-    item.add_tag(test_tag);
-    item.save
-
-    assert(item.tags.include?(test_tag))
-
-    item.remove_tag(test_tag);
-    item.save
-
-    assert(!item.tags.include?(test_tag))
-  end
-
   def test_items
     first_item = DirectedEdge::Item.new(@database, 'test_1')
     first_item.save
