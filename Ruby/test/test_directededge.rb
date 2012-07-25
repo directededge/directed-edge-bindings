@@ -403,24 +403,4 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(!customer.blacklisted.include?(first))
     assert(customer.recommended(:tags => 'product').include?(first))
   end
-
-  def test_timeout
-    return unless ENV['TEST_TIMEOUT']
-    timeout = 5
-    database = DirectedEdge::Database.new('dummy', 'dummy', 'http',
-                                          :host => 'localhost:4567', :timeout => timeout)
-    start = Time.now
-    timed_out = false
-
-    begin
-      item = DirectedEdge::Item.new(database, 'dummy')
-      item.tags
-    rescue RestClient::RequestTimeout
-      timed_out = true
-      assert(Time.now - start < timeout + 1)
-    rescue
-    end
-
-    assert(timed_out)
-  end
 end
