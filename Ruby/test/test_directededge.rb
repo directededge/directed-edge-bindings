@@ -313,19 +313,19 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_raise(RestClient::ResourceNotFound) { item.destroy }
 
     item = DirectedEdge::Item.new(@database, 'customer1')
-    item.link_to('also does not exist')
+    item.links.add('also does not exist')
     assert_raise(RestClient::UnprocessableEntity) { item.save }
   end
 
   def test_query_parameters
     item = DirectedEdge::Item.new(@database, 'product1')
-    assert_equal(5, item.related(['product'], :max_results => 5).size)
+    assert_equal(5, item.related(:tags => 'product', :max_results => 5).size)
 
-    item.link_to('product21')
+    item.links.add('product21')
     item.save
 
-    assert(item.related(['product']).include?('product21'))
-    assert(!item.related(['product'], :exclude_linked => true).include?('product21'))
+    assert(item.related(:tags => 'product').include?('product21'))
+    assert(!item.related(:tags => 'product', :exclude_linked => true).include?('product21'))
   end
 
   def test_include_properties
