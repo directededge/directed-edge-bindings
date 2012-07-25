@@ -37,7 +37,7 @@ module DirectedEdge
       @resource = DirectedEdge::Resource.new(url, options)
     end
 
-    def export_to_file(filename)
+    def export(filename)
       uri = URI(@resource.url)
       Net::HTTP.start(uri.host, uri.port) do |http|
         request = Net::HTTP::Get.new(uri.request_uri)
@@ -48,7 +48,7 @@ module DirectedEdge
       end
     end
 
-    def import_from_file(filename)
+    def import(filename)
       file = File.open(filename, 'r')
       @resource.put(file)
     end
