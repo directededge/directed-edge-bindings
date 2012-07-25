@@ -76,13 +76,24 @@ module DirectedEdge
         attr_accessor :properties
       end
 
+      module Lookup
+        def [](*args)
+          return index_without_lookup(*args) if args.first.is_a?(Integer)
+          each { |member| return member if member == args.first } ; nil
+        end
+
+        def self.extended(base)
+          base.class.send :alias_method, :index_without_lookup, :[]
+        end
+      end
+
       def self.list(node, element)
         node.find(element).map do |node|
           value = node.first.to_s
           value.extend(Properties)
           value.properties = node.attributes.to_h
           value
-        end
+        end.extend(Lookup)
       end
     end
 
