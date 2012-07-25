@@ -346,20 +346,21 @@ class TestDirectedEdge < Test::Unit::TestCase
 
   def test_include_tags
     item = DirectedEdge::Item.new(@database, 'product1')
-    item.add_preselected('product2')
+    item.preselected.add('product2')
     item.save
 
-    related = item.related(['product'], :include_tags => true)
-    assert(related['product2']['tags'].is_a? Array)
-    assert(related['product2']['tags'].include?('product'))
+    related = item.related(:tags => 'product', :include_tags => true)
+    assert(related['product2'].properties['tags'].include?('product'))
 
     target = DirectedEdge::Item.new(@database, 'product2')
-    target.add_tag('foo')
+    target.tags.add('foo')
     target.save
 
-    related = item.related(['product'], :include_tags => true)
-    assert(related['product2']['tags'].include?('product'))
-    assert(related['product2']['tags'].include?('foo'))
+    item.reset
+    related = item.related(:tags => 'product', :include_tags => true)
+
+    assert(related['product2'].properties['tags'].split(',').include?('product'))
+    assert(related['product2'].properties['tags'].split(',').include?('foo'))
   end
 
   def test_preselected
