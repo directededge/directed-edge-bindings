@@ -32,7 +32,7 @@ module DirectedEdge
       {
         :links => node.find('//link').map { |l| Link.new(l.first.to_s, l) },
         :tags => Reader.list(node, '//tag'),
-        :preselcted => Reader.list(node, '//preselected'),
+        :preselected => Reader.list(node, '//preselected'),
         :blacklisted => Reader.list(node, '//blacklisted'),
         :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
       }
