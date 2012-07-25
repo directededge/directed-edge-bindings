@@ -67,6 +67,10 @@ module DirectedEdge
       @data[:properties].add(key => value)
     end
 
+    def to_s
+      @id
+    end
+
     private
 
     class LinkProxy < ContainerProxy
