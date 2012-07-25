@@ -93,6 +93,11 @@ module DirectedEdge
         super(objectify(value, options))
       end
 
+      def [](id, type = '')
+        return super(id) if id.is_a?(Integer)
+        each { |member| return member if member == id && member.type == type.to_s } ; nil
+      end
+
       def objectify(value, options)
         if value.is_a?(String) || value.is_a?(Symbol)
           Link.new(value, options)
