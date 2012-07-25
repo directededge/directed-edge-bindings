@@ -50,12 +50,10 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal('Test Product', product['name'])
   end
 
-  def test_add
-    exporter = DirectedEdge::Exporter.new(@database)
-    item = DirectedEdge::Item.new(exporter.database, 'Foo')
-    item['name'] = 'Bar'
-    exporter.export(item)
-    exporter.finish
+  def test_updatejob_update
+    job = DirectedEdge::UpdateJob.new(@database, :update)
+    job.item('Foo') { |item| item['name'] = 'Bar' }
+    job.run
     
     item = DirectedEdge::Item.new(@database, 'Foo')
     assert_equal('Bar', item['name'])
