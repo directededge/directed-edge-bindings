@@ -31,7 +31,8 @@ module DirectedEdge
         :tags => Reader.list(node, '//tag'),
         :preselected => Reader.list(node, '//preselected'),
         :blacklisted => Reader.list(node, '//blacklisted'),
-        :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }]
+        :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }],
+        :history_entries => node.find('//history').map { |h| HistoryEntry.new(h.first.to_s, h) }
       }
     end
 
@@ -62,6 +63,13 @@ module DirectedEdge
       Writer.list(item_node, 'preselected', item[:preselected])
       Writer.list(item_node, 'blacklisted', item[:blacklisted])
       Writer.hash(item_node, 'property', 'name', item[:properties])
+
+      Writer.object(item_node, 'history', item[:history_entries]) do |node, entry|
+        node << entry.target
+        node['from'] = entry.from.to_s
+        node['to'] = entry.to.to_s
+        node['timestamp'] = entry.timestamp.to_s if entry.timestamp
+      end
 
       with_root ? doc.to_s : item_node.to_s
     end

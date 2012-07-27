@@ -33,7 +33,8 @@ module DirectedEdge
         :tags => ContainerProxy.new(Array) { load },
         :properties => ContainerProxy.new(Hash) { load },
         :preselected => ContainerProxy.new(Array) { load },
-        :blacklisted => ContainerProxy.new(Array) { load }
+        :blacklisted => ContainerProxy.new(Array) { load },
+        :history_entries => ContainerProxy.new(Array) { load }
       }
       @query_cache = {}
     end

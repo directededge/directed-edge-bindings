@@ -21,14 +21,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'libxml'
-require 'rest_client'
+module DirectedEdge
+  class HistoryEntry
+    attr_accessor :target, :from, :to, :timestamp
 
-require 'directededge/link'
-require 'directededge/historyentry'
-require 'directededge/xml'
-require 'directededge/resource'
-require 'directededge/database'
-require 'directededge/containerproxy'
-require 'directededge/item'
-require 'directededge/updatejob'
+    def initialize(target, options)
+      @target = target.to_s
+      @from = options[:from].to_s
+      @to = options[:to].to_s
+      @timestamp = options[:timestamp].to_i || Time.now.to_i
+    end
+  end
+end
