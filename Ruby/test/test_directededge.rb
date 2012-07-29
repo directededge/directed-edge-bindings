@@ -11,13 +11,29 @@ end
 
 class TestDirectedEdge < Test::Unit::TestCase
   def setup
-    user = ENV['DIRECTEDEDGE_TEST_DB']
-    pass = ENV['DIRECTEDEDGE_TEST_PASS']
-    @database = DirectedEdge::Database.new(user, pass)
+    @user = ENV['DIRECTEDEDGE_TEST_DB']
+    @pass = ENV['DIRECTEDEDGE_TEST_PASS']
+    @database = DirectedEdge::Database.new(@user, @pass)
     @database.import(File.expand_path('../../../testdb.xml', __FILE__))
   end
 
   def test_updatejob
+    DirectedEdge::UpdateJob.run(@database, :update) do |job|
+      job.item('test_1') { |i| i.tags.add 'test' }
+    end
+
+    assert(DirectedEdge::Item.new(@database, 'test_1').tags.include?('test'))
+
+    DirectedEdge::UpdateJob.run(@user, @pass, :update) do |job|
+      job.item('test_2') { |i| i.tags.add 'test' }
+    end
+
+    assert(DirectedEdge::Item.new(@database, 'test_2').tags.include?('test'))
+
+    DirectedEdge::UpdateJob.run(@database, :update) do |job|
+      job.item('test_1') { |i| i.tags.add 'test' }
+    end
+
     job = DirectedEdge::UpdateJob.new(@database, :replace)
 
     job.item('test_product') do |product|
@@ -137,8 +153,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal(1, first_item.links.length)
 
     second_item.destroy
-    first_item.load
 
+    first_item.reset
     assert_equal(0, first_item.links.length)
   end
 
