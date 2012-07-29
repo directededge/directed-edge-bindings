@@ -60,6 +60,20 @@ module DirectedEdge
       end
     end
 
+    def self.run(*args, &block)
+      job =
+        if args.length == 2
+          raise ArgumentError.new unless args.first.is_a?(Database)
+          self.new(args.first, args.last)
+        elsif args.length == 3
+          self.new(DirectedEdge::Database.new(args[0], args[1]), args[2])
+        else
+          raise ArgumentError.new
+        end
+      block.call(job)
+      job.run
+    end
+
     private
 
     class Item < DirectedEdge::Item
