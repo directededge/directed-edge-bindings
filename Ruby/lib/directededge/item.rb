@@ -131,8 +131,8 @@ module DirectedEdge
       XML.generate(values, with_header)
     end
 
-    def method_missing(name, *args, &block)
-      @data.include?(name) ? @data[name] : super(name, *args, &block)
+    def method_missing(method, *args, &block)
+      @data.include?(method.to_sym) ? @data[method.to_sym] : super
     end
   end
 end
