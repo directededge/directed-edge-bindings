@@ -419,4 +419,14 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(!customer.blacklisted.include?(first))
     assert(customer.recommended(:tags => 'product').include?(first))
   end
+
+  def test_exists
+    item = DirectedEdge::Item.new(@database, 'does_not_exist')
+    assert(!item.exists?)
+    assert(item.links.empty?)
+
+    item = DirectedEdge::Item.new(@database, 'customer1')
+    assert(item.exists?)
+    assert(!item.links.empty?)
+  end
 end

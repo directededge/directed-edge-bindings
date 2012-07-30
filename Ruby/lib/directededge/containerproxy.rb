@@ -25,7 +25,7 @@ require 'set'
 
 module DirectedEdge
   class ContainerProxy
-    attr_reader :cached_data, :add_queue, :remove_queue
+    attr_reader :klass, :cached_data, :add_queue, :remove_queue
 
     SUPPORTED_TYPES = [ Array, Hash, Set ]
 

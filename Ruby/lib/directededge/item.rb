@@ -39,8 +39,13 @@ module DirectedEdge
     end
 
     def load
-      data = XML.parse(resource.get)
-      @data.keys.each { |key| @data[key].set(data[key]) }
+      begin
+        data = XML.parse(resource.get)
+        @exists = true
+      rescue RestClient::ResourceNotFound
+        @exists = false
+      end
+      @data.keys.each { |key| @data[key].set(@exists ? data[key] : @data[key].klass.new) }
       self
     end
 
@@ -57,6 +62,7 @@ module DirectedEdge
     end
 
     def reset
+      @exists = nil
       @data.values.each(&:clear)
       @query_cache.clear
       self
@@ -76,6 +82,11 @@ module DirectedEdge
 
     def []=(key, value)
       @data[:properties].add(key => value)
+    end
+
+    def exists?
+      load if @exists.nil?
+      @exists
     end
 
     def to_s
