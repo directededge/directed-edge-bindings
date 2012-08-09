@@ -303,6 +303,8 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_unsafe_chars
+    return unless @database.resource.head.headers[:server].include?('nginx')
+
     item = DirectedEdge::Item.new(@database, ';@%&!')
     item['foo'] = 'bar'
     item.save
