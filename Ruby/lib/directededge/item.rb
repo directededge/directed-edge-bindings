@@ -133,7 +133,7 @@ module DirectedEdge
     end
 
     def resource
-      @database.resource[@id]
+      @database.resource['items'][@id]
     end
 
     def query(type, options)
