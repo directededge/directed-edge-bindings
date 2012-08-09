@@ -175,6 +175,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     item = DirectedEdge::Item.new(@database, 'customer1')
     item.tags.remove('greek')
     item.save
+
+    assert_raise(TypeError) { item.tags.push('mutable') }
     
     assert(!item.tags.include?('greek'))
   end
