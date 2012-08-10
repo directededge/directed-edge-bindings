@@ -59,5 +59,11 @@ module DirectedEdge
     def histories
       @history_proxy ||= History::Proxy.new(self)
     end
+
+    def histories=(list)
+      resource[:histories].put(History::Proxy.to_xml(list))
+      @history_proxy = nil
+      list
+    end
   end
 end
