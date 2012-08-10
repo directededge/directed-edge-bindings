@@ -76,5 +76,9 @@ module DirectedEdge
       @from = (options[:from] || options['from']).to_s
       @to = (options[:to] || options['to']).to_s
     end
+
+    def ==(other)
+      @from == other.from && @to == other.to
+    end
   end
 end
