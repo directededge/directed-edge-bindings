@@ -55,5 +55,9 @@ module DirectedEdge
       options[:union] = true
       XML.parse_list(:related, @resource[:related][options].get)
     end
+
+    def histories
+      @history_proxy ||= History::Proxy.new(self)
+    end
   end
 end

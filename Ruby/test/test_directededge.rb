@@ -432,4 +432,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(item.exists?)
     assert(!item.links.empty?)
   end
+
+  def test_history_entries
+
+  end
 end

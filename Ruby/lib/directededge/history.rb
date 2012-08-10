@@ -21,15 +21,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'libxml'
-require 'rest_client'
+module DirectedEdge
+  class History
+    attr_accessor :from, :to
 
-require 'directededge/link'
-require 'directededge/history'
-require 'directededge/historyentry'
-require 'directededge/xml'
-require 'directededge/resource'
-require 'directededge/database'
-require 'directededge/containerproxy'
-require 'directededge/item'
-require 'directededge/updatejob'
+    def initialize(options)
+      @from = (options[:from] || options['from']).to_s
+      @to = (options[:to] || options['to']).to_s
+    end
+
+    class Proxy
+      def initialize(database)
+        @database = database
+        load
+      end
+
+      def add
+      end
+
+      def remove
+      end
+
+      private
+
+      def method_missing(name, *args, &block)
+        @data.clone.freeze.send(name, *args, &block)
+      end
+
+      def load
+        @data ||= XML.parse_list('history', @database.resource[:histories].get).map do |history|
+          History.new(history.properties)
+        end
+      end
+    end
+  end
+end

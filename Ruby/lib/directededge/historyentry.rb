@@ -23,12 +23,11 @@
 
 module DirectedEdge
   class HistoryEntry
-    attr_accessor :target, :from, :to, :timestamp
+    attr_accessor :target, :history, :timestamp
 
     def initialize(target, options)
       @target = target.to_s
-      @from = options[:from].to_s
-      @to = options[:to].to_s
+      @history = options[:history]
       @timestamp = options[:timestamp].to_i || Time.now.to_i
     end
   end
