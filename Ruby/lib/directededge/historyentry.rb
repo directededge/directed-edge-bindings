@@ -28,7 +28,7 @@ module DirectedEdge
     def initialize(target, options)
       @target = target.to_s
       @history = options[:history]
-      @timestamp = options[:timestamp].to_i || Time.now.to_i
+      @timestamp = options[:timestamp] ? options[:timestamp].to_i : Time.now.to_i
     end
   end
 end
