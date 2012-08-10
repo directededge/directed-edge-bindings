@@ -45,9 +45,7 @@ module DirectedEdge
       item_node = LibXML::XML::Node.new('item')
 
       if with_root
-        doc = LibXML::XML::Document.new
-        doc.root = LibXML::XML::Node.new('directededge')
-        doc.root['version'] = '0.1'
+        doc = document
         doc.root << item_node
       end
 
@@ -72,6 +70,13 @@ module DirectedEdge
       end
 
       with_root ? doc.to_s : item_node.to_s
+    end
+
+    def self.document
+      doc = LibXML::XML::Document.new
+      doc.root = LibXML::XML::Node.new('directededge')
+      doc.root['version'] = '0.1'
+      doc
     end
 
     private

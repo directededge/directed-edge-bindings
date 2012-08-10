@@ -23,29 +23,44 @@
 
 module DirectedEdge
   class History
-    attr_accessor :from, :to
-
-    def initialize(options)
-      @from = (options[:from] || options['from']).to_s
-      @to = (options[:to] || options['to']).to_s
-    end
-
     class Proxy
       def initialize(database)
         @database = database
-        load
       end
 
-      def add
+      def add(history)
+        resource[:update_method => :add].post(self.class.to_xml([ history ]))
+        reset
       end
 
-      def remove
+      def remove(history)
+        resource[:update_method => :subtract].post(self.class.to_xml([ history ]))
+        reset
       end
 
       private
 
+      def resource
+        @database.resource[:histories]
+      end
+
       def method_missing(name, *args, &block)
-        @data.clone.freeze.send(name, *args, &block)
+        load.clone.freeze.send(name, *args, &block)
+      end
+
+      def reset
+        @data = nil
+      end
+
+      def self.to_xml(histories)
+        doc = XML.document
+        histories.each do |history|
+          node = LibXML::XML::Node.new('history')
+          node['from'] = history.from
+          node['to'] = history.to
+          doc.root << node
+        end
+        doc.to_s
       end
 
       def load
@@ -53,6 +68,13 @@ module DirectedEdge
           History.new(history.properties)
         end
       end
+    end
+
+    attr_reader :from, :to
+
+    def initialize(options)
+      @from = (options[:from] || options['from']).to_s
+      @to = (options[:to] || options['to']).to_s
     end
   end
 end
