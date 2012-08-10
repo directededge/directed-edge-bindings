@@ -433,7 +433,37 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(!item.links.empty?)
   end
 
-  def test_history_entries
+  def test_histories
+    assert(@database.histories.empty?)
 
+    history = DirectedEdge::History.new(:from => :customer, :to => :product)
+
+    @database.histories.add(history)
+
+    assert(@database.histories.size == 1)
+    assert(@database.histories.first == history)
+
+    dummy = DirectedEdge::History.new(:from => :foo, :to => :bar)
+
+    @database.histories.add(dummy)
+
+    assert(@database.histories.size == 2)
+    assert(@database.histories.include?(history))
+    assert(@database.histories.include?(dummy))
+
+    @database.histories.remove(dummy)
+
+    assert(@database.histories.size == 1)
+    assert(@database.histories.first == history)
+
+    @database.histories = []
+
+    assert(@database.histories.empty?)
+
+    @database.histories = [ history, dummy ]
+
+    assert(@database.histories.size == 2)
+    assert(@database.histories.include?(history))
+    assert(@database.histories.include?(dummy))
   end
 end
