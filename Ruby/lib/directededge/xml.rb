@@ -64,8 +64,8 @@ module DirectedEdge
 
       Writer.object(item_node, 'history', item[:history_entries]) do |node, entry|
         node << entry.target
-        node['from'] = entry.from.to_s
-        node['to'] = entry.to.to_s
+        node['from'] = entry.history.from.to_s
+        node['to'] = entry.history.to.to_s
         node['timestamp'] = entry.timestamp.to_s if entry.timestamp
       end
 
