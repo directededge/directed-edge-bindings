@@ -466,4 +466,19 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(@database.histories.include?(history))
     assert(@database.histories.include?(dummy))
   end
+
+  def test_history_entries
+    history = DirectedEdge::History.new(:from => :customer, :to => :product)
+    @database.histories = [ history ]
+
+    customer = DirectedEdge::Item.new(@database, 'customer1')
+    product = DirectedEdge::Item.new(@database, 'product1')
+
+    assert(customer.history_entries.empty?)
+
+    customer.history_entries.add(DirectedEdge::HistoryEntry.new(product, :history => history))
+    customer.save
+
+    assert(customer.history_entries.size == 1)
+  end
 end
