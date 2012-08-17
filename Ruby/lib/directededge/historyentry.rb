@@ -23,7 +23,7 @@
 
 module DirectedEdge
   class HistoryEntry
-    attr_accessor :target, :history, :timestamp
+    attr_accessor :target, :history, :timestamp, :properties
 
     def initialize(history, target, options = {})
       raise ArgumentError.new unless history.is_a?(History) && options.is_a?(Hash)
