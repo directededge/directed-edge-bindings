@@ -25,9 +25,10 @@ module DirectedEdge
   class Item
     attr_reader :id
 
-    def initialize(database, id)
+    def initialize(database, id, options = {})
       @database = database
       @id = id.to_s
+      @options = options
       @data = {
         :links => LinkProxy.new(Array) { load },
         :tags => ContainerProxy.new(Array) { load },
@@ -41,7 +42,7 @@ module DirectedEdge
 
     def load
       begin
-        data = XML.parse(resource.get)
+        data = XML.parse(resource[@options].get)
         @exists = true
       rescue RestClient::ResourceNotFound
         @exists = false

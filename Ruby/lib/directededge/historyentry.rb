@@ -25,10 +25,12 @@ module DirectedEdge
   class HistoryEntry
     attr_accessor :target, :history, :timestamp
 
-    def initialize(target, options)
+    def initialize(history, target, options = {})
+      raise ArgumentError.new unless history.is_a?(History) && options.is_a?(Hash)
+      @history = history
       @target = target.to_s
-      @history = options[:history]
-      @timestamp = options[:timestamp] ? options[:timestamp].to_i : Time.now.to_i
+      @timestamp = options['timestamp'] ? options.delete('timestamp').to_i : Time.now.to_i
+      @properties = options
     end
   end
 end

@@ -32,7 +32,10 @@ module DirectedEdge
         :preselected => Reader.list(node, '//preselected'),
         :blacklisted => Reader.list(node, '//blacklisted'),
         :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }],
-        :history_entries => node.find('//history').map { |h| HistoryEntry.new(h.first.to_s, h) }
+        :history_entries => node.find('//history').map do |node|
+          history = History.new(:from => node[:from], :to => node[:to])
+          HistoryEntry.new(history, node.first.to_s, node.attributes.to_h)
+        end
       }
     end
 

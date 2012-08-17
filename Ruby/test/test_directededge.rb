@@ -476,7 +476,7 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     assert(customer.history_entries.empty?)
 
-    customer.history_entries.add(DirectedEdge::HistoryEntry.new(product, :history => history))
+    customer.history_entries.add(DirectedEdge::HistoryEntry.new(history, product))
     customer.save
 
     assert(customer.history_entries.size == 1)
