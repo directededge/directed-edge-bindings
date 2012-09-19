@@ -4,7 +4,7 @@ require File.expand_path(File.dirname(__FILE__) + '/helper')
 
 module Enumerable
   def concurrently
-    map {|item| Thread.new { yield item }}.each {|t| t.join }
+    map { |item| Thread.new { yield item } }.each { |t| t.join }
   end
 end
 
