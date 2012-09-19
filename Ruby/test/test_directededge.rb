@@ -1,5 +1,4 @@
-require 'helper'
-require 'pp'
+require File.expand_path(File.dirname(__FILE__) + '/helper')
 
 # Defines a multithreaded "each"
 
