@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -48,6 +49,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -80,6 +82,7 @@ public class Database
     private String host;
     private Protocol protocol;
     private DefaultHttpClient client;
+    private UsernamePasswordCredentials credentials;
 
     /**
      * This is thrown when a resource cannot be read or written for some reason.
@@ -122,9 +125,10 @@ public class Database
 
         if(username != null)
         {
+            credentials = new UsernamePasswordCredentials(username, password);
             client.getCredentialsProvider().setCredentials(
                     new AuthScope(host, protocol == Protocol.HTTP ? 80 : 443),
-                    new UsernamePasswordCredentials(username, password));
+                    credentials);
         }
     }
 
@@ -171,6 +175,8 @@ public class Database
             throws ResourceException
     {
         HttpGet request = new HttpGet(url(resources, options));
+        addAuthenticationHeader(request);
+
         try
         {
             HttpResponse response = client.execute(request);
@@ -258,6 +264,7 @@ public class Database
             throw new IllegalArgumentException();
         }
 
+        addAuthenticationHeader(request);
         request.setEntity(entity);
 
         try
@@ -273,11 +280,16 @@ public class Database
         }
     }
 
+    private void addAuthenticationHeader(HttpRequest request)
+    {
+        request.addHeader(BasicScheme.authenticate(credentials, "US-ASCII", false));
+    }
+
     private String url(List<String> resources, Map<String, Object> options)
     {
         try
         {
-            resources = new ArrayList(resources);
+            resources = new ArrayList<String>(resources);
 
             for(int i = 0; i < resources.size(); i++)
             {
