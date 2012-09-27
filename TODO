@@ -14,5 +14,3 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Support for grabbing properties in related query      | X    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Avoids round-trips in HTTP BASIC challenge            | X    | x   |        | x    |
-|-------------------------------------------------------|------|-----|--------|------|

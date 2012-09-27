@@ -22,6 +22,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import base64
 import urllib
 import urllib2
 import httplib2
@@ -39,7 +40,10 @@ class Resource(object):
         params.setdefault("timeout", 10)
         self.__base_url = base_url
         self.__http = httplib2.Http(timeout = params["timeout"])
+
         if user:
+            auth = base64.encodestring("%s:%s" % (user, password))
+            self.__headers = { "Authorization": ("Basic %s" % auth) }
             self.__http.add_credentials(user, password)
 
     def path(self, sub="", params={}):
@@ -53,16 +57,19 @@ class Resource(object):
         return self.__base_url + quoted + "?" + urllib.urlencode(params)
 
     def get(self, sub="", params={}):
-        response, content = self.__http.request(self.path(sub, params), "GET")
+        response, content = self.__http.request(self.path(sub, params), "GET",
+                                                headers = self.__headers)
         if response["status"] != "200":
             return "<directededge/>"
         return content
 
     def put(self, data, sub="", params={}):
-        response, content = self.__http.request(self.path(sub, params), "PUT", data)
+        response, content = self.__http.request(self.path(sub, params), "PUT", data,
+                                                headers = self.__headers)
 
     def delete(self, sub=""):
-        response, content = self.__http.request(self.path(sub), "DELETE")
+        response, content = self.__http.request(self.path(sub), "DELETE",
+                                                headers = self.__headers)
 
     def read_list(self, document, element_name):
         values = []
