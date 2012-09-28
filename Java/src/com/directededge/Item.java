@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -570,20 +571,20 @@ public class Item
         {
             if(isCached)
             {
-                database.put(Arrays.asList(id), toXML(tags, links, properties, true));
+                database.put(Arrays.asList("items", id), toXML(tags, links, properties, true));
             }
             else
             {
                 HashMap<String, Object> options = new HashMap<String, Object>();
                 options.put("updateMethod", "add");
 
-                database.post(Arrays.asList(id), toXML(tags, links, properties, true), options);
+                database.post(Arrays.asList("items", id), toXML(tags, links, properties, true), options);
 
                 if(!linksToRemove.isEmpty() ||
                    !tagsToRemove.isEmpty() ||
                    !propertiesToRemove.isEmpty())
                 {
-                    database.post(Arrays.asList(id),
+                    database.post(Arrays.asList("items", id),
                             toXML(Updater.Method.Subtract, true), options);
                 }
             }
@@ -759,6 +760,11 @@ public class Item
 
     private Document document(List<String> resources, Map<String, Object> options)
     {
+        List<String> withItemPrefix = new ArrayList<String>();
+        withItemPrefix.add("items");
+        withItemPrefix.addAll(resources);
+        resources = withItemPrefix;
+
         try
         {
             DocumentBuilder builder =
