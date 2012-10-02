@@ -1,15 +1,15 @@
-import java.util.HashMap;
 import com.directededge.Database;
 import com.directededge.Database.ResourceException;
 import com.directededge.Item;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class ItemTest
 {
