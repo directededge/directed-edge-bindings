@@ -59,6 +59,29 @@ public class ItemTest
     }
 
     @Test
+    public void delete() throws ResourceException
+    {
+        Item item = new Item(database, "customer1");
+        assertEquals(item.getLinks().size(), 1);
+        item.destroy();
+        item = new Item(database, "customer1");
+        assertEquals(item.getLinks().size(), 0);
+
+        boolean thrown = false;
+
+        try
+        {
+            item.destroy();
+        }
+        catch (ResourceException ex)
+        {
+            thrown = true;
+        }
+
+        assertTrue(thrown);
+    }
+
+    @Test
     public void unweightedLinks()
     {
         Item customer0 = new Item(database, "customer0");

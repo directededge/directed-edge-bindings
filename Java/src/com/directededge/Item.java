@@ -596,6 +596,11 @@ public class Item
         }
     }
 
+    public void destroy() throws ResourceException
+    {
+        database.delete(Arrays.asList("items", id));
+    }
+
     /**
      * Converts this item to an XML representation which can be sent to the
      * server.

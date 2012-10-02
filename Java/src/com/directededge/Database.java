@@ -43,6 +43,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -234,6 +235,24 @@ public class Database
         }
     }
 
+    public void delete(List<String> resources) throws ResourceException
+    {
+        HttpDelete request = new HttpDelete(url(resources, null));
+        addAuthenticationHeader(request);
+
+        try
+        {
+            HttpResponse response = client.execute(request);
+            checkResponseCode(Method.DELETE, resources, null, response);
+            EntityUtils.consume(response.getEntity());
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ResourceException(Method.DELETE, url(resources, null));
+        }
+    }
+
     /**
      * Sets the connection and socket timeouts.
      * @param milliseconds The number of milliseconds to wait before aborting
@@ -333,6 +352,11 @@ public class Database
     private String queryString(Map<String, Object> options)
             throws UnsupportedEncodingException
     {
+        if(options == null)
+        {
+            return "";
+        }
+
         ArrayList<String> pairs = new ArrayList<String>();
 
         for(String key : options.keySet())
