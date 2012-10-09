@@ -477,7 +477,7 @@ public class Item
         HashMap<String, Object> options = new HashMap<String, Object>();
         options.put("maxResults", maxResults);
         options.put("excludeLinked", false);
-        return readList(document(Arrays.asList(id, "related"), options), "related");
+        return readList(document(resource("related"), options), "related");
     }
 
     /**
@@ -494,7 +494,7 @@ public class Item
     public List<String> getRelated(Set<String> tags, Map<String, Object> options)
     {
         options.put("tags", StringUtils.join(tags, ','));
-        return readList(document(Arrays.asList(id, "related"), options), "related");
+        return readList(document(resource("related"), options), "related");
     }
 
     /**
@@ -542,7 +542,7 @@ public class Item
         options.put("tags", StringUtils.join(tags, ','));
         options.put("maxResults", maxResults);
         options.put("excludeLinked", true);
-        return readList(document(Arrays.asList(id, "recommended"), options), "recommended");
+        return readList(document(resource("recommended"), options), "recommended");
     }
 
     /**
@@ -559,7 +559,7 @@ public class Item
     public List<String> getRecommended(Set<String> tags, Map<String, Object> options)
     {
         options.put("tags", StringUtils.join(tags, ','));
-        return readList(document(Arrays.asList(id, "recommended"), options), "recommended");
+        return readList(document(resource("recommended"), options), "recommended");
     }
 
     /**
@@ -571,21 +571,17 @@ public class Item
         {
             if(isCached)
             {
-                database.put(Arrays.asList("items", id), toXML(tags, links, properties, true));
+                database.put(resource(), toXML(Updater.Method.Replace, true));
             }
             else
             {
-                HashMap<String, Object> options = new HashMap<String, Object>();
-                options.put("updateMethod", "add");
+                database.post(resource(), toXML(Updater.Method.Add, true),
+                        options(Updater.Method.Add));
 
-                database.post(Arrays.asList("items", id), toXML(tags, links, properties, true), options);
-
-                if(!linksToRemove.isEmpty() ||
-                   !tagsToRemove.isEmpty() ||
-                   !propertiesToRemove.isEmpty())
+                if(subtractionNeeded())
                 {
-                    database.post(Arrays.asList("items", id),
-                            toXML(Updater.Method.Subtract, true), options);
+                    database.post(resource(), toXML(Updater.Method.Subtract, true),
+                            options(Updater.Method.Subtract));
                 }
             }
         }
@@ -598,7 +594,7 @@ public class Item
 
     public void destroy() throws ResourceException
     {
-        database.delete(Arrays.asList("items", id));
+        database.delete(resource());
     }
 
     /**
@@ -638,6 +634,27 @@ public class Item
         }
 
         return toXML(tagsToRemove, linkMap, propertyMap, includeDocument);
+    }
+
+    private List<String> resource(String... args)
+    {
+        ArrayList<String> list = new ArrayList<String>(Arrays.asList("items", id));
+        list.addAll(Arrays.asList(args));
+        return list;
+    }
+
+    private Map<String, Object> options(Updater.Method method)
+    {
+        HashMap<String, Object> options = new HashMap<String, Object>();
+        options.put("updateMethod", method.name().toLowerCase());
+        return options;
+    }
+
+    private boolean subtractionNeeded()
+    {
+        return (!linksToRemove.isEmpty() ||
+                !tagsToRemove.isEmpty() ||
+                !propertiesToRemove.isEmpty());
     }
 
     private String toXML(Set<String> tags, Map<String, Map<String, Integer>> links,
@@ -708,7 +725,7 @@ public class Item
             return;
         }
 
-        Document doc = document(Arrays.asList(id), new HashMap<String, Object>());
+        Document doc = document(resource(), new HashMap<String, Object>());
 
         NodeList nodes = doc.getElementsByTagName("link");
         for(int i = 0; i < nodes.getLength(); i++)
@@ -765,11 +782,6 @@ public class Item
 
     private Document document(List<String> resources, Map<String, Object> options)
     {
-        List<String> withItemPrefix = new ArrayList<String>();
-        withItemPrefix.add("items");
-        withItemPrefix.addAll(resources);
-        resources = withItemPrefix;
-
         try
         {
             DocumentBuilder builder =
