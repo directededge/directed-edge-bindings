@@ -1,12 +1,3 @@
-package com.directededge;
-
-import com.directededge.Database.ResourceException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /*
  * Copyright (C) 2011 Directed Edge, Inc.
  *
@@ -31,6 +22,15 @@ import java.util.logging.Logger;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+package com.directededge;
+
+import com.directededge.Database.ResourceException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Makes incremental updates to a Directed Edge database.  Updater is used like
