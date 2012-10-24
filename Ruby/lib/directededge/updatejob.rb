@@ -108,6 +108,7 @@ module DirectedEdge
 
     def temp(action)
       file = Tempfile.new("#{@database.name}-#{action}")
+      file.unlink
       file.puts(HEADER)
       file
     end
