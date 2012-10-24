@@ -100,7 +100,7 @@ public class Exporter
     {
         try
         {
-            output.write(item.toXML(method(), false) + "\n");
+            output.write(item.toXML(Item.UpdateMethod.valueOf(method().toString()), false) + "\n");
         }
         catch (IOException ex)
         {

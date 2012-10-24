@@ -66,6 +66,14 @@ import org.xml.sax.SAXException;
  */
 public class Item
 {
+    protected enum UpdateMethod
+    {
+        Add,
+        Subtract,
+        Replace,
+        Delete
+    }
+
     private Database database;
     private String id;
     private boolean isCached;
@@ -571,17 +579,17 @@ public class Item
         {
             if(isCached)
             {
-                database.put(resource(), toXML(Updater.Method.Replace, true));
+                database.put(resource(), toXML(UpdateMethod.Replace, true));
             }
             else
             {
-                database.post(resource(), toXML(Updater.Method.Add, true),
-                        options(Updater.Method.Add));
+                database.post(resource(), toXML(UpdateMethod.Add, true),
+                        options(UpdateMethod.Add));
 
-                if(subtractionNeeded())
+                if(hasContentFor(UpdateMethod.Subtract))
                 {
-                    database.post(resource(), toXML(Updater.Method.Subtract, true),
-                            options(Updater.Method.Subtract));
+                    database.post(resource(), toXML(UpdateMethod.Subtract, true),
+                            options(UpdateMethod.Subtract));
                 }
             }
         }
@@ -597,15 +605,35 @@ public class Item
         database.delete(resource());
     }
 
+    public boolean hasContentFor(UpdateMethod method)
+    {
+        if(method == UpdateMethod.Add)
+        {
+            return (!tags.isEmpty() ||
+                    !links.isEmpty() ||
+                    !properties.isEmpty());
+        }
+        else if(method == UpdateMethod.Subtract)
+        {
+            return (!tagsToRemove.isEmpty() ||
+                    !linksToRemove.isEmpty() ||
+                    !propertiesToRemove.isEmpty());
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /**
      * Converts this item to an XML representation which can be sent to the
      * server.
      *
      * @return An XML representation of the item.
      */
-    public String toXML(Updater.Method method, boolean includeDocument)
+    protected String toXML(UpdateMethod method, boolean includeDocument)
     {
-        if(method == Updater.Method.Add || method == Updater.Method.Replace)
+        if(method == UpdateMethod.Add || method == UpdateMethod.Replace)
         {
             return toXML(tags, links, properties, false);
         }
@@ -643,18 +671,11 @@ public class Item
         return list;
     }
 
-    private Map<String, Object> options(Updater.Method method)
+    protected static Map<String, Object> options(UpdateMethod method)
     {
         HashMap<String, Object> options = new HashMap<String, Object>();
         options.put("updateMethod", method.name().toLowerCase());
         return options;
-    }
-
-    private boolean subtractionNeeded()
-    {
-        return (!linksToRemove.isEmpty() ||
-                !tagsToRemove.isEmpty() ||
-                !propertiesToRemove.isEmpty());
     }
 
     private String toXML(Set<String> tags, Map<String, Map<String, Integer>> links,
