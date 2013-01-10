@@ -139,11 +139,7 @@ module DirectedEdge
 
     def query(type, options)
       @query_cache[type] ||= {}
-      if options[:method] == 'POST'
-        @query_cache[type][options] ||= XML.parse_list(type, resource[type].post(options))
-      else
-        @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get)
-      end
+      @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get)
     end
 
     def to_xml(data_method, with_header = true)
