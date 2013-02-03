@@ -27,9 +27,10 @@ module DirectedEdge
 
     def initialize(name, password, options = {})
       @name = name
-      host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
       protocol = options[:protocol] || 'http'
-      url = "#{protocol}://#{name}:#{password}@#{host}/api/v1/#{name}"
+      host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
+      port = options[:port] || 80
+      url = "#{protocol}://#{name}:#{password}@#{host}:#{port}/api/v1/#{name}"
       options[:timeout] ||= 10
       @resource = DirectedEdge::Resource.new(url, options)
     end
