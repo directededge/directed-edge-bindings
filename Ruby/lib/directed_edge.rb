@@ -846,7 +846,7 @@ module DirectedEdge
       @links_to_remove.each do |type, links|
         links.each do |link|
           element = item.add_element('link')
-          element.add_attribute(type) unless type.empty?
+          element.add_attribute('type', type) unless type.empty?
           element.add_text(link.to_s.dup)
         end
       end
