@@ -35,16 +35,19 @@ module DirectedEdge
     end
 
     def get(additional_headers = {}, &block)
+      puts "GET #{self}" if ENV['DIRECTEDEDGE_DEBUG']
       additional_headers[:content_type] ||= 'text/xml'
       super(additional_headers, &block)
     end
 
     def put(payload, additional_headers = {}, &block)
+      puts "PUT #{self}" if ENV['DIRECTEDEDGE_DEBUG']
       additional_headers[:content_type] ||= 'text/xml'
       super(payload, additional_headers, &block)
     end
 
     def post(payload, additional_headers = {}, &block)
+      puts "POST #{self}" if ENV['DIRECTEDEDGE_DEBUG']
       additional_headers[:content_type] ||= 'text/xml'
       super(payload, additional_headers, &block)
     end
