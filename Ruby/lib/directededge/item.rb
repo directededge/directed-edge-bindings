@@ -22,6 +22,36 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+  # Represents an item in a Directed Edge database.  Items can be products, pages
+  # or users, for instance.  Usually items groups are differentiated from one
+  # another by a set of tags that are provided.
+  #
+  # For instance, a user in the Directed Edge database could be modeled as:
+  #
+  #   user = DirectedEdge::Item.new(database, 'user_1')
+  #   user.tags.add('user')
+  #   user.save
+  #
+  # Similarly a product could be:
+  #
+  #   product = DirectedEdge::Item.new(database, 'product_1')
+  #   product.tags.add('product')
+  #   product['price'] = '$42'
+  #   product.save
+  #
+  # Note here that items have tags and properties.  Tags are a free-form set of
+  # text identifiers that can be associated with an item, e.g. "user", "product",
+  # "page", "science fiction", etc.
+  #
+  # Properties are a set of key-value pairs associated with the item.  For example,
+  # <tt>product['price'] = '$42'</tt>, or <tt>user['first name'] = 'Bob'</tt>.
+  #
+  # If we wanted to link the user to the product, for instance, indicating that the
+  # user had purchased the product we can use:
+  #
+  #   user.links.add(product)
+  #   user.save
+
   class Item
     attr_reader :id
 
@@ -40,6 +70,12 @@ module DirectedEdge
       @query_cache = {}
     end
 
+    # Loads the item's data from the Directed Edge server.
+    #
+    # This is called automatically from accessor methods.
+    #
+    # @return [Item]
+
     def load
       begin
         data = XML.parse(resource[@options].get)
@@ -51,6 +87,11 @@ module DirectedEdge
       self
     end
 
+    # Writes all changes to links, tags and properties back to the database and
+    # returns this item.
+    #
+    # @return [Item]
+
     def save
       if cached?
         resource.put(to_xml(:cached_data))
@@ -59,12 +100,23 @@ module DirectedEdge
         resource[:update_method => :subtract].post(to_xml(:remove_queue)) if queued?(:remove)
       end
       reset
+      self
     end
+
+    # Removes an item from the database, including deleting all links to and
+    # from this item.
+    #
+    # @return [Item]
 
     def destroy
       resource.delete
       self
     end
+
+    # Clears the cached information about this item that was pulled from the
+    # Directed Edge servers in Item#load.
+    #
+    # @return [Item]
 
     def reset
       @exists = nil
@@ -73,26 +125,114 @@ module DirectedEdge
       self
     end
 
+    # Item#related and Item#recommended are the two main methods for querying for
+    # recommendations with the Directed Edge API.  Related is for *similar*
+    # items, e.g. "products like this product", whereas recommended is for
+    # personalized recommendations, i.e. "We think you'd like..."
+    #
+    # @return [Array] List of item IDs related to this one with the most closely
+    # related items first.
+    # 
+    # @param [Hash] options A set of options which are passed directly on to
+    # the web services API in the query string.
+    #
+    # @option params [Array] :tags ()
+    #  Only include items which possess the specified tags
+    # @option params [Array] :excluded_tags ()
+    #  Do not include items which contain the specified tags
+    # @option params [String] :tag_operation ('OR')
+    #  Can specify AND or OR as the means for matching when using multiple
+    #  tags with the options above.
+    # @option params [Array] :excluded ()
+    #  Don't included any of the item IDs listed in the result set
+    # @option params [Boolean] :exclude_linked (false)
+    #  Exclude items which are linked directly from this item.
+    # @option params [Integer] :max_results (20)
+    #  Only returns up to :max_results items.
+    # @option params [Integer] :link_type_weight (1)
+    #  Here link_type should be replace with one of the actual link types in
+    #  use in your database, i.e. :purchase_weight and specifies how strongly
+    #  links of that type should be weighted related to other link types.  For
+    #  Instance if you wanted 20% ratings and 80% purchases you would specify:
+    #  :purchases_weight => 8, :ratings_weight => 2
+    #
+    # This will not reflect any unsaved changes to items.
+    #
+    # @see Item#recommended
+
     def related(options = {})
       query(:related, options)
     end
+
+    # Item#recommended and Item#related are the two main methods for querying for
+    # recommendations with the Directed Edge API.  Related is for *similar*
+    # items, e.g. "products like this product", whereas recommended is for
+    # personalized recommendations, i.e. "We think you'd like..."
+    #
+    # @return [Array] List of item IDs related to this one with the most closely
+    # related items first.
+    # 
+    # @param [Hash] options A set of options which are passed directly on to
+    # the web services API in the query string.
+    #
+    # @option params [Array] :tags ()
+    #  Only include items which possess the specified tags
+    # @option params [Array] :excluded_tags ()
+    #  Do not include items which contain the specified tags
+    # @option params [String] :tag_operation ('OR')
+    #  Can specify AND or OR as the means for matching when using multiple
+    #  tags with the options above.
+    # @option params [Array] :excluded ()
+    #  Don't included any of the item IDs listed in the result set
+    # @option params [Boolean] :exclude_linked (true)
+    #  Exclude items which are linked directly from this item.
+    # @option params [Integer] :max_results (20)
+    #  Only returns up to :max_results items.
+    # @option params [Integer] :link_type_weight (1)
+    #  Here link_type should be replace with one of the actual link types in
+    #  use in your database, i.e. :purchase_weight and specifies how strongly
+    #  links of that type should be weighted related to other link types.  For
+    #  Instance if you wanted 20% ratings and 80% purchases you would specify:
+    #  :purchases_weight => 8, :ratings_weight => 2
+    #
+    # This will not reflect any unsaved changes to items.
+    #
+    # @see Item#related
 
     def recommended(options = {})
       query(:recommended, options.merge(:exclude_linked => true))
     end
 
+    # Fetches a property of the item.
+    #
+    # @return [String] The property for this item.
+
     def [](key)
       @data[:properties][key]
     end
+
+    # Assigns a property value to the given key.
+    #
+    # This will not be written back to the database until Item#save is called.
+    #
+    # @return [Item]
 
     def []=(key, value)
       @data[:properties].add(key => value)
     end
 
+    # Returns true if the item already exists on the Directed Edge server.
+    #
+    # @return [Boolean]
+
     def exists?
       load if @exists.nil?
       @exists
     end
+
+    # Returns the item ID.
+    #
+    # @return [String]
 
     def to_s
       @id
