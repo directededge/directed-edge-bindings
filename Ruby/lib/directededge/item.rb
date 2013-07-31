@@ -51,6 +51,27 @@ module DirectedEdge
   #
   #   user.links.add(product)
   #   user.save
+  #
+  # There are four special pseudo-methods that point to attributes / lists
+  # related to the item:
+  #
+  # - links (Array)
+  # - tags (Array)
+  # - properties (Hash)
+  # - preselected (Array)
+  # - blacklisted (Array)
+  # - history_entries (Array)
+  #
+  # Each of those methods returns a ContainerProxy.  ContainerProxies have a
+  # very simple API.  They simply support the operations:
+  #
+  # - ContainerProxy#add
+  # - ContainerProxy#remove
+  # - ContainerProxy#set
+  # - ContainerProxy#cached?
+  #
+  # Those let you do things like add and remove individual tags (or preselected
+  # items, or whatever) or set the entire list.
 
   class Item
     attr_reader :id
