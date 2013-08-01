@@ -22,6 +22,9 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+
+  # @private
+
   class XML
     def self.parse(text)
       doc = LibXML::XML::Parser.string(text).parse

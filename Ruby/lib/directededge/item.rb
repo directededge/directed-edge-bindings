@@ -262,6 +262,8 @@ module DirectedEdge
 
     private
 
+    # @private
+
     class LinkProxy < ContainerProxy
       def add(value, options = {})
         super(objectify(value, options))

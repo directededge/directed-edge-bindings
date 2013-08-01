@@ -96,6 +96,8 @@ module DirectedEdge
 
     private
 
+    # @private
+
     class Item < DirectedEdge::Item
       attr_reader :data
 

@@ -27,6 +27,9 @@ module DirectedEdge
   # A classical example would be a history between a customer and a product.
 
   class History
+
+    # @private
+
     class Proxy
       def initialize(database)
         @database = database

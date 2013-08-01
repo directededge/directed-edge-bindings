@@ -24,6 +24,8 @@
 module DirectedEdge
 
   # Encapsulation of a resource in the Directed Edge web service
+  #
+  # @private
 
   class Resource < RestClient::Resource
     def [](*args)
