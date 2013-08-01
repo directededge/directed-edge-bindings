@@ -34,7 +34,7 @@ module DirectedEdge
   # Directed Edge's XML format.  Files formatted in that way may be created with
   # the Exporter.
   #
-  # A database is typically instantiated via:
+  # @example
   #
   #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
 
@@ -90,7 +90,7 @@ module DirectedEdge
     #  for which to find related items
     # @return [Array<String>] A list of related items, sorted by relevance
     #
-    # @see {Item#related}
+    # @see Item#related
 
     def related(items, options = {})
       options[:items] = items
@@ -103,7 +103,7 @@ module DirectedEdge
     #
     # @return [Array<History>] The list of defined histories for this database
     #
-    # @see {History}
+    # @see History
 
     def histories
       @history_proxy ||= History::Proxy.new(self)
@@ -111,7 +111,7 @@ module DirectedEdge
 
     # Sets the list of histories
     #
-    # @see {History}
+    # @see History
 
     def histories=(list)
       resource[:histories].put(History::Proxy.to_xml(list))

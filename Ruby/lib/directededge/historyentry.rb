@@ -22,8 +22,16 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+
+  # A single tracked event in a Directed Edge database
+
   class HistoryEntry
     attr_accessor :target, :history, :timestamp, :properties
+
+    # @param [History] history The type of event being tracked
+    # @param [Item, String] target The item being acted upon
+    # @param [Hash] options
+    # @option options [DateTime] :timestamp (Time.now) Time for the event
 
     def initialize(history, target, options = {})
       raise ArgumentError.new unless history.is_a?(History) && options.is_a?(Hash)

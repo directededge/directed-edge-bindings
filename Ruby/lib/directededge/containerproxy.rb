@@ -24,10 +24,22 @@
 require 'set'
 
 module DirectedEdge
+
+  # A class that handles syncronization across the web services for data related
+  # to {Item} instances.  It lets new tags, properties, links, etc. be set while
+  # using a minimal number of calls across the web (using lazy evaluation) to
+  # push or pull that info to the web services.
+
   class ContainerProxy
+    # @private
+
     attr_reader :klass, :cached_data, :add_queue, :remove_queue
 
+    # @private
+
     SUPPORTED_TYPES = [ Array, Hash, Set ]
+
+    # @private
 
     def initialize(klass, &loader)
       @klass = klass
