@@ -1,4 +1,4 @@
-# Copyright (C) 2012 Directed Edge, Inc.
+# Copyright (C) 2012-2013 Directed Edge, Inc.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,23 +52,25 @@ module DirectedEdge
   #   user.links.add(product)
   #   user.save
   #
+  # == Pseudo-methods to return item info
+  #
   # There are four special pseudo-methods that point to attributes / lists
   # related to the item:
   #
-  # - links (Array)
-  # - tags (Array)
+  # - links (Array<String>)
+  # - tags (Array<String>)
   # - properties (Hash)
-  # - preselected (Array)
-  # - blacklisted (Array)
-  # - history_entries (Array)
+  # - preselected (Array<String>)
+  # - blacklisted (Array<String>)
+  # - history_entries (Array<HistoryEntry>)
   #
-  # Each of those methods returns a ContainerProxy.  ContainerProxies have a
+  # Each of those methods returns a {ContainerProxy}.  ContainerProxies have a
   # very simple API.  They simply support the operations:
   #
-  # - ContainerProxy#add
-  # - ContainerProxy#remove
-  # - ContainerProxy#set
-  # - ContainerProxy#cached?
+  # - {ContainerProxy#add}
+  # - {ContainerProxy#remove}
+  # - {ContainerProxy#set}
+  # - {ContainerProxy#cached?}
   #
   # Those let you do things like add and remove individual tags (or preselected
   # items, or whatever) or set the entire list.
@@ -146,32 +148,31 @@ module DirectedEdge
       self
     end
 
-    # Item#related and Item#recommended are the two main methods for querying for
-    # recommendations with the Directed Edge API.  Related is for *similar*
+    # {#related} and {#recommended} are the two main methods for querying
+    # for recommendations with the Directed Edge API.  Related is for *similar*
     # items, e.g. "products like this product", whereas recommended is for
     # personalized recommendations, i.e. "We think you'd like..."
     #
     # @return [Array] List of item IDs related to this one with the most closely
     # related items first.
     # 
-    # @param [Hash] options A set of options which are passed directly on to
-    # the web services API in the query string.
-    #
-    # @option params [Array] :tags ()
+    # @param [Hash] options A set of options which are passed directly on to the
+    #  web services API in the query string.
+    # @option options [String, [Array<String>]] :tags
     #  Only include items which possess the specified tags
-    # @option params [Array] :excluded_tags ()
+    # @option options [String, [Array<String>]] :excluded_tags
     #  Do not include items which contain the specified tags
-    # @option params [String] :tag_operation ('OR')
+    # @option options [String] :tag_operation ('OR')
     #  Can specify AND or OR as the means for matching when using multiple
     #  tags with the options above.
-    # @option params [Array] :excluded ()
+    # @option options [Array] :excluded
     #  Don't included any of the item IDs listed in the result set
-    # @option params [Boolean] :exclude_linked (false)
+    # @option options [Boolean] :exclude_linked (false)
     #  Exclude items which are linked directly from this item.
-    # @option params [Integer] :max_results (20)
+    # @option options [Integer] :max_results (20)
     #  Only returns up to :max_results items.
-    # @option params [Integer] :link_type_weight (1)
-    #  Here link_type should be replace with one of the actual link types in
+    # @option options [Integer] :link_type_weight (1)
+    #  Here `link_type` should be replace with one of the actual link types in
     #  use in your database, i.e. :purchase_weight and specifies how strongly
     #  links of that type should be weighted related to other link types.  For
     #  Instance if you wanted 20% ratings and 80% purchases you would specify:
@@ -185,7 +186,7 @@ module DirectedEdge
       query(:related, options)
     end
 
-    # Item#recommended and Item#related are the two main methods for querying for
+    # {#recommended} and {#related} are the two main methods for querying for
     # recommendations with the Directed Edge API.  Related is for *similar*
     # items, e.g. "products like this product", whereas recommended is for
     # personalized recommendations, i.e. "We think you'd like..."
@@ -196,20 +197,20 @@ module DirectedEdge
     # @param [Hash] options A set of options which are passed directly on to
     # the web services API in the query string.
     #
-    # @option params [Array] :tags ()
+    # @option options [Array] :tags
     #  Only include items which possess the specified tags
-    # @option params [Array] :excluded_tags ()
+    # @option options [Array] :excluded_tags
     #  Do not include items which contain the specified tags
-    # @option params [String] :tag_operation ('OR')
+    # @option options [String] :tag_operation ('OR')
     #  Can specify AND or OR as the means for matching when using multiple
     #  tags with the options above.
-    # @option params [Array] :excluded ()
+    # @option options [Array] :excluded
     #  Don't included any of the item IDs listed in the result set
-    # @option params [Boolean] :exclude_linked (true)
+    # @option options [Boolean] :exclude_linked (true)
     #  Exclude items which are linked directly from this item.
-    # @option params [Integer] :max_results (20)
+    # @option options [Integer] :max_results (20)
     #  Only returns up to :max_results items.
-    # @option params [Integer] :link_type_weight (1)
+    # @option options [Integer] :link_type_weight (1)
     #  Here link_type should be replace with one of the actual link types in
     #  use in your database, i.e. :purchase_weight and specifies how strongly
     #  links of that type should be weighted related to other link types.  For

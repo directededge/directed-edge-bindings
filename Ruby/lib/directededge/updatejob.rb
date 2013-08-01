@@ -24,9 +24,15 @@
 require 'tempfile'
 
 module DirectedEdge
+
+  # A job to update the Directed Edge web services in batch
+
   class UpdateJob
     HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<directededge version=\"0.1\">"
     FOOTER = "</directededge>\n"
+
+    # @param [Database] database
+    # @param [:replate, :update] mode
 
     def initialize(database, mode)
       raise ArgumentError.new unless [ :replace, :update ].include?(mode)
@@ -36,6 +42,15 @@ module DirectedEdge
       @remove_file = temp(:remove) if mode == :update
     end
 
+    # Creates a temporary item in a block to be added to the update job.
+    # Typical usage would be:
+    #
+    #  UpdateJob.run('db', 'pass') do |job|
+    #    job.item('foo') do |item|
+    #      item.tags.add('bar')
+    #    end
+    #  end
+
     def item(id, &block)
       item = Item.new(@database, id)
       block.call(item) if block
@@ -44,6 +59,8 @@ module DirectedEdge
       @remove_file.puts(item.to_xml(:remove)) if @mode == :update
       item
     end
+
+    # Executes the update job
 
     def run
       (@mode == :replace ? [ @add_file ] : [ @add_file, @remove_file ]).each do |file|
@@ -59,6 +76,9 @@ module DirectedEdge
         @database.resource[:update_method => :subtract].post(@remove_file)
       end
     end
+
+    # Allows a job to be run from a block without having to create an instance.
+    # The user name and password should be passed as arguments.
 
     def self.run(*args, &block)
       job =

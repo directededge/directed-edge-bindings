@@ -22,6 +22,9 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+
+  # Encapsulation of a resource in the Directed Edge web service
+
   class Resource < RestClient::Resource
     def [](*args)
       return super(*(args.map { |v| CGI.escape(v.to_s) })) if args.empty? || !args[0].is_a?(Hash)

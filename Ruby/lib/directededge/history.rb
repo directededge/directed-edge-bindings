@@ -22,6 +22,10 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+
+  # This specifies a history for which {HistoryEntry} instances can be created.
+  # A classical example would be a history between a customer and a product.
+
   class History
     class Proxy
       def initialize(database)
@@ -71,6 +75,10 @@ module DirectedEdge
     end
 
     attr_reader :from, :to
+
+    # @param [Hash] options
+    # @option options [String] :from The type of item that is acting on the other
+    # @option options [String] :to The type of item being acted upon
 
     def initialize(options)
       @from = (options[:from] || options['from']).to_s

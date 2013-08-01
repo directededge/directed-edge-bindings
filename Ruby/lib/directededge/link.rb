@@ -22,8 +22,24 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+
+  # A link between two items.
+  #
+  # Links can be weighted or unweighted (weight of 0), and optionally typed.
+  #
+  # Weights should only be used when the weight is intrinsic to the data
+  # itself, not as an attetmpt to skew the results returned by the recommender.
+  #
+  # For that *link types* are appropriate:  with a link type you can change
+  # the relative weight of every link in that category by passing options to
+  # {Item#related} and {Item#recommended}.
+
   class Link
     attr_accessor :target, :weight, :type
+
+    # @param [Hash] options
+    # @option options [Integer] :weight (0)
+    # @option options [String, Symbol] :type
 
     def initialize(target, options = {})
       @target = target.to_s
