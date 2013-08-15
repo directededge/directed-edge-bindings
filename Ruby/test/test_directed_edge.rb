@@ -98,6 +98,12 @@ class TestDirectedEdge < Test::Unit::TestCase
     third_item.add_tag('test_tag')
     third_item.save
 
+    fourth_item = DirectedEdge::Item.new(@database, 'test_4')
+    fourth_item.link_to(first_item)
+    fourth_item.link_to(second_item, 1, 'test_type')
+    fourth_item.link_to(third_item)
+    fourth_item.save
+
     assert_equal('test_1', first_item.name)
 
     # Make sure that the number of tags / links for the first item is zero
@@ -123,6 +129,12 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(third_item.links.include?(first_item.to_s))
     assert(third_item.links.include?(second_item.to_s))
 
+    # Make sure that the fourth item is linked to the second item w/type
+
+    assert_equal(2, fourth_item.links.length)
+    assert_equal(1, fourth_item.links('test_type').length)
+    assert(fourth_item.links('test_type').include?(second_item.to_s))
+
     # Make sure that the first and second items show up in the related items for
     # the third item
 
@@ -132,8 +144,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Since linked items are excluded from recommendations, nothing should show
     # up in the recommended items for the third item.
 
-    assert_equal(0, third_item.recommended.length)
-    assert_equal(1, second_item.recommended.length)
+    assert_equal(1, third_item.recommended.length)
+    assert_equal(2, second_item.recommended.length)
     assert_equal(0, second_item.recommended(['unknown_tag']).length)
     assert_equal([third_item.to_s], first_item.recommended(['test_tag']))
 
@@ -156,6 +168,13 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     assert(!third_item.related.include?(first_item.to_s))
     assert(!third_item.related.include?(second_item.to_s))
+
+    # Remove the link with a type from the fourth item and assure that it was removed
+
+    fourth_item.unlink_from(first_item, 'test_type')
+    fourth_item.save
+
+    assert_equal(2, fourth_item.links.length)
 
     # Test item removal
 
