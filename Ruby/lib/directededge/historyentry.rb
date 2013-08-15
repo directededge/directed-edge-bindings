@@ -37,7 +37,7 @@ module DirectedEdge
       raise ArgumentError.new unless history.is_a?(History) && options.is_a?(Hash)
       @history = history
       @target = target.to_s
-      @timestamp = options['timestamp'] ? options.delete('timestamp').to_i : Time.now.to_i
+      @timestamp = options[:timestamp] ? options.delete(:timestamp).to_i : Time.now.to_i
       @properties = options
     end
   end
