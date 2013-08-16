@@ -175,7 +175,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.tags.remove('greek')
     item.save
 
-    assert_raise(TypeError) { item.tags.push('mutable') }
+    assert_raise(TypeError, RuntimeError) { item.tags.push('mutable') }
     
     assert(!item.tags.include?('greek'))
   end
@@ -243,7 +243,11 @@ class TestDirectedEdge < Test::Unit::TestCase
   def test_load
     return if ENV['NO_LOAD_TEST']
 
-    Process.setrlimit(Process::RLIMIT_NOFILE, 4096, 65536)
+    begin
+      Process.setrlimit(Process::RLIMIT_NOFILE, 4096, 65536)
+    rescue
+      # It's ok if the above fails.
+    end
 
     def run_load_test(prefix, count)
       (1..count).concurrently do |i|
