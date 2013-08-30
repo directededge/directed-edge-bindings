@@ -8,9 +8,11 @@ to keep a list here so that they're tracked and can be completed later.
 |-------------------------------------------------------|------|-----|--------|------|
 | Group / basket recommendations                        | x    | x   | x      |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Link-type weights in related / recommended queries    | X    | x   |        |      |
+| Link-type weights in related / recommended queries    | x    | x   |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Preselected / black-listing support                   | X    |     |        |      |
+| Preselected / black-listing support                   | x    |     |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
-| Support for grabbing properties in related query      | X    | x   |        |      |
+| Support for grabbing properties in related query      | x    | x   |        |      |
+|-------------------------------------------------------|------|-----|--------|------|
+| History support                                       | x    |     |        |      |
 |-------------------------------------------------------|------|-----|--------|------|
