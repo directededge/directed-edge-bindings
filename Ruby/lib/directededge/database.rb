@@ -63,7 +63,7 @@ module DirectedEdge
 
     def items(ids, options = {})
       options.merge!(:items => ids.to_a.join(','))
-      XML.parse_items(@resource[:related][options].get).map { |d| Item.new(self, d[:id], d) }
+      XML.parse_items(@resource[options].get).map { |d| Item.new(self, d[:id], d) }
     end
 
     # Exports the contents of the database on the Directed Edge server to a file
