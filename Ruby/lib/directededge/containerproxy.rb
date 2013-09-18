@@ -99,6 +99,10 @@ module DirectedEdge
       @cached
     end
 
+    def ==(other)
+      method_missing(:==, other)
+    end
+
     private
 
     def queue(add, subtract, value)
