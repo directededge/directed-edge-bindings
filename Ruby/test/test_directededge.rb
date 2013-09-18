@@ -303,6 +303,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   def test_multiple_items
     assert(@database.items('customer1').is_a?(Array))
     assert_equal(1, @database.items('customer1').length)
+    assert_equal([ 'customer' ], @database.items('customer1').tags)
 
     assert(@database.items([ 'customer1' ]).is_a?(Array))
     assert_equal(1, @database.items([ 'customer1' ]).length)
