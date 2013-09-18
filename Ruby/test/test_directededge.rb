@@ -300,6 +300,23 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal(10, customer1.links[customer3].weight)
   end
 
+  def test_multiple_items
+    assert(@database.items('customer1').is_a?(Array))
+    assert_equal(1, @database.items('customer1').length)
+
+    assert(@database.items([ 'customer1' ]).is_a?(Array))
+    assert_equal(1, @database.items([ 'customer1' ]).length)
+
+    assert(@database.items([ 'customer1', 'customer2' ]).is_a?(Array))
+    assert_equal(2, @database.items([ 'customer1', 'customer2' ]).length)
+
+    assert(@database.items([ 'customer1', 'does_not_exist' ]).is_a?(Array))
+    assert_equal(1, @database.items([ 'customer1', 'does_not_exist' ]).length)
+
+    assert(@database.items('does_not_exist').is_a?(Array))
+    assert(@database.items('does_not_exist').empty?)
+  end
+
   def test_group_related
     assert_equal(0, @database.related([], :tags => 'product').size)
     assert_equal(20, @database.related([ 'product1', 'product2' ], :tags => 'product').size)

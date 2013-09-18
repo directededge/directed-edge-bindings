@@ -58,6 +58,14 @@ module DirectedEdge
       @resource = DirectedEdge::Resource.new(url, options)
     end
 
+    # Returns a list of items
+    # @param ids The list of item IDs to return
+
+    def items(ids, options = {})
+      options.merge!(:items => ids.to_a.join(','))
+      XML.parse_items(@resource[:related][options].get).map { |d| Item.new(self, d[:id], d) }
+    end
+
     # Exports the contents of the database on the Directed Edge server to a file
     #
     # @param [String] filename

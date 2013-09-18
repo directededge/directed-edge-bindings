@@ -90,6 +90,9 @@ module DirectedEdge
         :blacklisted => ContainerProxy.new(Array) { load },
         :history_entries => ContainerProxy.new(Array) { load }
       }
+
+      @data.keys.each { |key| @data[key].set(options[key]) if options[key] }
+
       @query_cache = {}
     end
 

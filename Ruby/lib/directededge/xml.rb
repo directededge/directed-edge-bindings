@@ -27,19 +27,25 @@ module DirectedEdge
 
   class XML
     def self.parse(text)
+      self.parse_items(text).first
+    end
+
+    def self.parse_items(text)
       doc = LibXML::XML::Parser.string(text).parse
-      node = doc.find('//item').first
-      {
-        :links => node.find('//link').map { |l| Link.new(l.first.to_s, l) },
-        :tags => Reader.list(node, '//tag'),
-        :preselected => Reader.list(node, '//preselected'),
-        :blacklisted => Reader.list(node, '//blacklisted'),
-        :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }],
-        :history_entries => node.find('//history').map do |node|
-          history = History.new(:from => node[:from], :to => node[:to])
-          HistoryEntry.new(history, node.first.to_s, node.attributes.to_h)
-        end
-      }
+      doc.find('//item').map do |node|
+        {
+          :id => node[:id],
+          :links => node.find('//link').map { |l| Link.new(l.first.to_s, l) },
+          :tags => Reader.list(node, '//tag'),
+          :preselected => Reader.list(node, '//preselected'),
+          :blacklisted => Reader.list(node, '//blacklisted'),
+          :properties => Hash[node.find('//property').map { |p| [ p['name'], p.first.to_s ] }],
+          :history_entries => node.find('//history').map do |node|
+            history = History.new(:from => node[:from], :to => node[:to])
+            HistoryEntry.new(history, node.first.to_s, node.attributes.to_h)
+          end
+        }
+      end
     end
 
     def self.parse_list(element, text)
