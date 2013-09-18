@@ -99,8 +99,13 @@ module DirectedEdge
       @cached
     end
 
+    def data
+      @loader.call unless cached?
+      @cached_data
+    end
+
     def ==(other)
-      method_missing(:==, other)
+      data == other
     end
 
     private
@@ -123,9 +128,7 @@ module DirectedEdge
       SUPPORTED_TYPES.each do |type|
         return @cached_data.is_a?(type) if name.to_s == "#{type.name.downcase}?"
       end
-
-      @loader.call unless cached?
-      @cached_data.clone.freeze.send(name, *args, &block)
+      data.clone.freeze.send(name, *args, &block)
     end
   end
 end
