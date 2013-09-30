@@ -1237,7 +1237,7 @@ class DirectedEdgeExporter
 
     public function export($item)
     {
-        $this->write($item->toXML(null, null, null, false) . "\n");
+        $this->write($item->toXML(null, null, null, null, null, false) . "\n");        
     }
 
     /**
@@ -1261,7 +1261,10 @@ class DirectedEdgeExporter
         {
             $this->database->getResource()->put(
                 $this->data, 'add', array('createMissingLinks' => 'true'));
+            
             $this->data = '';
+            $this->write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+            $this->write("<directededge version=\"0.1\">\n");
         }
     }
 
