@@ -21,13 +21,13 @@ class TestDirectedEdge < Test::Unit::TestCase
       job.item('test_1') { |i| i.tags.add 'test' }
     end
 
-    assert(DirectedEdge::Item.new(@database, 'test_1').tags.include?('test'))
+    assert(item('test_1').tags.include?('test'))
 
     DirectedEdge::UpdateJob.run(@user, @pass, :update) do |job|
       job.item('test_2') { |i| i.tags.add 'test' }
     end
 
-    assert(DirectedEdge::Item.new(@database, 'test_2').tags.include?('test'))
+    assert(item('test_2').tags.include?('test'))
 
     DirectedEdge::UpdateJob.run(@database, :update) do |job|
       job.item('test_1') { |i| i.tags.add 'test' }
@@ -51,8 +51,8 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     job.run
 
-    user = DirectedEdge::Item.new(@database, 'test_user_1')
-    product = DirectedEdge::Item.new(@database, 'test_product')
+    user = item('test_user_1')
+    product = item('test_product')
 
     assert(user.tags.include?('user'))
     assert_equal('Test User', user['name'])
@@ -70,19 +70,19 @@ class TestDirectedEdge < Test::Unit::TestCase
     job.item('Foo') { |item| item['name'] = 'Bar' }
     job.run
     
-    item = DirectedEdge::Item.new(@database, 'Foo')
+    item = item('Foo')
     assert_equal('Bar', item['name'])
   end
 
   def test_items
-    first_item = DirectedEdge::Item.new(@database, 'test_1')
+    first_item = item('test_1')
     first_item.save
 
-    second_item = DirectedEdge::Item.new(@database, 'test_2')
+    second_item = item('test_2')
     second_item.links.add(first_item)
     second_item.save
 
-    third_item = DirectedEdge::Item.new(@database, 'test_3')
+    third_item = item('test_3')
     third_item.links.add(first_item)
     third_item.links.add(second_item)
     third_item.tags.add('test_tag')
@@ -116,8 +116,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     # Make sure that the first and second items show up in the related items for
     # the third item
 
-    assert(third_item.related.include?(first_item.to_s))
-    assert(third_item.related.include?(second_item.to_s))
+    assert(third_item.related.include?(first_item))
+    assert(third_item.related.include?(second_item))
 
     # Since linked items are excluded from recommendations, nothing should show
     # up in the recommended items for the third item.
@@ -158,7 +158,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_tags
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
     item.tags.add('dude')
     assert(item.tags.include?('dude'))
 
@@ -171,7 +171,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(item.tags.include?('greek'))
     assert(!item.tags.include?('dude'))
 
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
     item.tags.remove('greek')
     item.save
 
@@ -181,7 +181,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_properties
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
 
     assert_equal(0, item.properties.length)
 
@@ -216,23 +216,23 @@ class TestDirectedEdge < Test::Unit::TestCase
     item['test_property_1'] = 'test_value'
     item.save
 
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
     item.properties.remove('test_property_1')
     item.save
     assert(!item.properties.include?('test_property_1'))
   end
 
   def test_link_types
-    first = DirectedEdge::Item.new(@database, 'item_1')
-    second = DirectedEdge::Item.new(@database, 'item_2')
+    first = item('item_1')
+    second = item('item_2')
     first.save
     second.save
 
     first.links.add(second, :type => :test)
     first.save
 
-    first = DirectedEdge::Item.new(@database, 'item_1')
-    second = DirectedEdge::Item.new(@database, 'item_2')
+    first = item('item_1')
+    second = item('item_2')
 
     first.save
 
@@ -251,17 +251,17 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     def run_load_test(prefix, count)
       (1..count).concurrently do |i|
-        item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
+        item = item("test_item_#{prefix}_#{i}")
         item.tags.add('test_tag')
         item.save
       end
       (1..count).concurrently do |i|
-        item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
+        item = item("test_item_#{prefix}_#{i}")
         item['test_property'] = 'test_value'
         item.save
       end
       (1..count).concurrently do |i|
-        item = DirectedEdge::Item.new(@database, "test_item_#{prefix}_#{i}")
+        item = item("test_item_#{prefix}_#{i}")
         assert_equal(1, item.tags.length)
         assert_equal(1, item.properties.length)
       end
@@ -279,9 +279,9 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_rankings
-    customer1 = DirectedEdge::Item.new(@database, 'customer1')
-    customer2 = DirectedEdge::Item.new(@database, 'customer2')
-    customer3 = DirectedEdge::Item.new(@database, 'customer3')
+    customer1 = item('customer1')
+    customer2 = item('customer2')
+    customer3 = item('customer3')
 
     # Test an out of range ranking.
 
@@ -301,6 +301,10 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_multiple_items
+    # @database.items('customer1').first.properties['foo'] = 'bar'
+    item('customer1')['foo'] = 'bar'
+
+
     assert(@database.items('customer1').is_a?(Array))
     assert_equal(1, @database.items('customer1').length)
     assert(@database.items('customer1').first.tags == [ 'customer' ])
@@ -326,44 +330,44 @@ class TestDirectedEdge < Test::Unit::TestCase
   def test_unsafe_chars
     return unless @database.resource.head.headers[:server].include?('nginx')
 
-    item = DirectedEdge::Item.new(@database, ';@%&!')
+    item = item(';@%&!')
     item['foo'] = 'bar'
     item.save
 
-    item = DirectedEdge::Item.new(@database, ';@%&!')
+    item = item(';@%&!')
     assert(item['foo'] == 'bar')
 
-    item = DirectedEdge::Item.new(@database, 'foo/bar')
+    item = item('foo/bar')
     item['foo'] = 'bar'
     item.save
 
-    item = DirectedEdge::Item.new(@database, 'foo/bar')
+    item = item('foo/bar')
     assert(item['foo'] == 'bar')
   end
 
   def test_bad_links
-    item = DirectedEdge::Item.new(@database, 'does not exist')
+    item = item('does not exist')
     assert_raise(RestClient::ResourceNotFound) { item.destroy }
 
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
     item.links.add('also does not exist')
     assert_raise(RestClient::UnprocessableEntity) { item.save }
   end
 
   def test_query_parameters
-    item = DirectedEdge::Item.new(@database, 'product1')
+    item = item('product1')
     assert_equal(5, item.related(:tags => 'product', :max_results => 5).size)
 
     item.links.add('product21')
     item.save
 
-    assert(item.related(:tags => 'product').include?('product21'))
+    assert(item.related(:tags => 'product').include?(item('product21')))
     assert(!item.related(:tags => 'product', :exclude_linked => true).include?('product21'))
   end
 
   def test_include_properties
-    item = DirectedEdge::Item.new(@database, 'product1')
-    other = DirectedEdge::Item.new(@database, 'product21')
+    item = item('product1')
+    other = item('product21')
     other['foo'] = 'bar'
     other.save
     related = item.related(:tags => 'product', :include_properties => true)
@@ -372,20 +376,20 @@ class TestDirectedEdge < Test::Unit::TestCase
     related = @database.related('product1', :tags => 'product', :include_properties => true)
     assert_equal('bar', related['product21'].properties['foo'])
 
-    customer = DirectedEdge::Item.new(@database, 'customer2')
+    customer = item('customer2')
     recommended = customer.recommended(:tags => 'product', :include_properties => true)
     assert_equal('bar', recommended['product21'].properties['foo'])
   end
 
   def test_include_tags
-    item = DirectedEdge::Item.new(@database, 'product1')
+    item = item('product1')
     item.preselected.add('product2')
     item.save
 
     related = item.related(:tags => 'product', :include_tags => true)
     assert(related['product2'].properties['tags'].include?('product'))
 
-    target = DirectedEdge::Item.new(@database, 'product2')
+    target = item('product2')
     target.tags.add('foo')
     target.save
 
@@ -397,7 +401,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_preselected
-    item = DirectedEdge::Item.new(@database, 'product1')
+    item = item('product1')
 
     first = item.related[0]
 
@@ -406,12 +410,12 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
 
     assert_equal(2, item.preselected.length)
-    assert_equal('product2', item.preselected[0])
-    assert_equal('product3', item.preselected[1])
+    assert_equal(item('product2'), item.preselected[0])
+    assert_equal(item('product3'), item.preselected[1])
 
     related = item.related
-    assert_equal('product2', item.related[0])
-    assert_equal('product3', item.related[1])
+    assert_equal(item('product2'), item.related[0])
+    assert_equal(item('product3'), item.related[1])
 
     item.preselected.remove('product2')
     item.save
@@ -431,7 +435,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_blacklisted
-    customer = DirectedEdge::Item.new(@database, 'customer1')
+    customer = item('customer1')
     first = customer.recommended(:tags => 'product').first
     customer.blacklisted.add(first)
     customer.save
@@ -446,11 +450,11 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_exists
-    item = DirectedEdge::Item.new(@database, 'does_not_exist')
+    item = item('does_not_exist')
     assert(!item.exists?)
     assert(item.links.empty?)
 
-    item = DirectedEdge::Item.new(@database, 'customer1')
+    item = item('customer1')
     assert(item.exists?)
     assert(!item.links.empty?)
   end
@@ -493,8 +497,8 @@ class TestDirectedEdge < Test::Unit::TestCase
     history = DirectedEdge::History.new(:from => :customer, :to => :product)
     @database.histories = [ history ]
 
-    customer = DirectedEdge::Item.new(@database, 'customer1')
-    product = DirectedEdge::Item.new(@database, 'product1')
+    customer = item('customer1')
+    product = item('product1')
 
     assert(customer.history_entries.empty?)
 
@@ -502,5 +506,11 @@ class TestDirectedEdge < Test::Unit::TestCase
     customer.save
 
     assert(customer.history_entries.size == 1)
+  end
+
+  private
+
+  def item(id)
+    DirectedEdge::Item.new(@database, id)
   end
 end

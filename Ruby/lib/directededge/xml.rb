@@ -23,25 +23,27 @@
 
 module DirectedEdge
 
+  ### MAYBE REMOVE ITEM REFERENCES HERE!?
+
   # @private
 
   class XML
 
     INVALID_XML_CHARS = /[^\x09\x0A\x0D\x20-\u{D7FF}\u{E000}-\u{FFFD}\u{10000}-\u{10FFFF}]/
 
-    def self.parse(text)
-      self.parse_items(text).first
+    def self.parse(database, text)
+      self.parse_items(database, text).first
     end
 
-    def self.parse_items(text)
+    def self.parse_items(database, text)
       doc = LibXML::XML::Parser.string(text).parse
       doc.find('//item').map do |node|
         {
           :id => node[:id],
           :links => node.find('.//link').map { |l| Link.new(l.first.to_s, l) },
           :tags => Reader.list(node, './/tag'),
-          :preselected => Reader.list(node, './/preselected'),
-          :blacklisted => Reader.list(node, './/blacklisted'),
+          :preselected => Reader.list(node, './/preselected') { |id| Item.new(database, id) },
+          :blacklisted => Reader.list(node, './/blacklisted') { |id| Item.new(database, id) },
           :properties => Hash[node.find('.//property').map { |p| [ p['name'], p.first.to_s ] }],
           :history_entries => node.find('.//history').map do |node|
             history = History.new(:from => node[:from], :to => node[:to])
@@ -51,9 +53,9 @@ module DirectedEdge
       end
     end
 
-    def self.parse_list(element, text)
+    def self.parse_list(element, text, &block)
       doc = LibXML::XML::Parser.string(text).parse
-      Reader.list(doc, "//#{element}")
+      Reader.list(doc, "//#{element}", &block)
     end
 
     def self.generate(item, with_root = true)
@@ -104,7 +106,11 @@ module DirectedEdge
       module Lookup
         def [](*args)
           return index_without_lookup(*args) if args.first.is_a?(Integer)
-          each { |member| return member if member == args.first } ; nil
+          each do |member|
+            return member if member == args.first
+            return member if member.is_a?(Item) && member.id == args.first
+          end
+            nil
         end
 
         def self.extended(base)
@@ -112,12 +118,12 @@ module DirectedEdge
         end
       end
 
-      def self.list(node, element)
-        node.find(element).map do |node|
+      def self.list(node, element, &block)
+        value = node.find(element).map do |node|
           value = node.first.to_s
           value.extend(Properties)
           value.properties = node.attributes.to_h
-          value
+          block ? block.call(value) : value
         end.extend(Lookup)
       end
     end

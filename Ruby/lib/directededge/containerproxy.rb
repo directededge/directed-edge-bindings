@@ -104,8 +104,12 @@ module DirectedEdge
       @cached_data
     end
 
+    def <=>(other)
+      data <=> other.respond_to?(:data) ? other.data : other
+    end
+
     def ==(other)
-      data == other
+      data == other.respond_to?(:data) ? other.data : other
     end
 
     private

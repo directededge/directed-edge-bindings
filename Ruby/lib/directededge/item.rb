@@ -22,6 +22,8 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module DirectedEdge
+  class ContainerProxy ; end
+
   # Represents an item in a Directed Edge database.  Items can be products, pages
   # or users, for instance.  Usually items groups are differentiated from one
   # another by a set of tags that are provided.
@@ -86,8 +88,8 @@ module DirectedEdge
         :links => LinkProxy.new(Array) { load },
         :tags => ContainerProxy.new(Array) { load },
         :properties => ContainerProxy.new(Hash) { load },
-        :preselected => ContainerProxy.new(Array) { load },
-        :blacklisted => ContainerProxy.new(Array) { load },
+        :preselected => ItemProxy.new(database) { load },
+        :blacklisted => ItemProxy.new(database) { load },
         :history_entries => ContainerProxy.new(Array) { load }
       }
 
@@ -104,7 +106,7 @@ module DirectedEdge
 
     def load
       begin
-        data = XML.parse(resource[@options].get)
+        data = XML.parse(@database, resource[@options].get)
         @exists = true
       rescue RestClient::ResourceNotFound
         @exists = false
@@ -263,11 +265,15 @@ module DirectedEdge
       @id
     end
 
+    def ==(other)
+      other.is_a?(Item) ? id == other.id : false
+    end
+
     private
 
     # @private
 
-    class LinkProxy < ContainerProxy
+    class ObjectProxy < ContainerProxy
       def add(value, options = {})
         super(objectify(value, options))
       end
@@ -275,7 +281,9 @@ module DirectedEdge
       def remove(value, options = {})
         super(objectify(value, options))
       end
+    end
 
+    class LinkProxy < ObjectProxy
       def [](id, type = '')
         return super(id) if id.is_a?(Integer)
         each { |member| return member if member == id && member.type == type.to_s } ; nil
@@ -289,6 +297,22 @@ module DirectedEdge
         else
           value
         end
+      end
+    end
+
+    class ItemProxy < ObjectProxy
+      def initialize(database, &loader)
+        @database = database
+        super(Array, &loader)
+      end
+
+      def [](id)
+        return super(id) if id.is_a?(Integer)
+        each { |member| return member if member == id } ; nil
+      end
+
+      def objectify(value, options)
+        value.is_a?(String) ? Item.new(@database, value) : value
       end
     end
 
@@ -306,7 +330,9 @@ module DirectedEdge
 
     def query(type, options)
       @query_cache[type] ||= {}
-      @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get)
+      @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get) do |i|
+        Item.new(@database, i, :properties => i.properties)
+      end
     end
 
     def to_xml(data_method, with_header = true)

@@ -62,7 +62,7 @@ module DirectedEdge
     # @param ids The list of item IDs to return
 
     def items(ids, options = {})
-      XML.parse_items(@resource[options.merge(:items => ids)].get).map do |data|
+      XML.parse_items(@database, @resource[options.merge(:items => ids)].get).map do |data|
         Item.new(self, data[:id], data)
       end
     end
