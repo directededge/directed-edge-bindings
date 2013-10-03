@@ -31,7 +31,7 @@ module DirectedEdge
 
     INVALID_XML_CHARS = /[^\x09\x0A\x0D\x20-\u{D7FF}\u{E000}-\u{FFFD}\u{10000}-\u{10FFFF}]/
 
-    def self.parse(database, text)
+    def self.parse_item(database, text)
       self.parse_items(database, text).first
     end
 

@@ -106,7 +106,7 @@ module DirectedEdge
 
     def load
       begin
-        data = XML.parse(@database, resource[@options].get)
+        data = XML.parse_item(@database, resource[@options].get)
         @exists = true
       rescue RestClient::ResourceNotFound
         @exists = false
