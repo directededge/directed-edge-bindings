@@ -105,16 +105,12 @@ module DirectedEdge
 
       module Lookup
         def [](*args)
-          return index_without_lookup(*args) if args.first.is_a?(Integer)
-          each do |member|
-            return member if member == args.first
-            return member if member.is_a?(Item) && member.id == args.first
-          end
-            nil
+          each { |m| return m if m == args.first } unless args.first.is_a?(Integer)
+          index_without_lookup(*args)
         end
 
         def self.extended(base)
-          base.class.send :alias_method, :index_without_lookup, :[]
+          base.class.send(:alias_method, :index_without_lookup, :[])
         end
       end
 

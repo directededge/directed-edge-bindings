@@ -316,6 +316,17 @@ module DirectedEdge
       end
     end
 
+    module ItemLookup
+      def [](*args)
+        each { |m| return m if m.id == args.first } if args.first.is_a?(String)
+        index_without_item_lookup(*args)
+      end
+
+      def self.extended(base)
+        base.class.send(:alias_method, :index_without_item_lookup, :[])
+      end
+    end
+
     def cached?
       @data.values.first.cached?
     end
@@ -332,7 +343,7 @@ module DirectedEdge
       @query_cache[type] ||= {}
       @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get) do |i|
         Item.new(@database, i, :properties => i.properties)
-      end
+      end.extend(ItemLookup)
     end
 
     def to_xml(data_method, with_header = true)
