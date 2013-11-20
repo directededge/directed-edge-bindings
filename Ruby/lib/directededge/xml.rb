@@ -26,6 +26,9 @@ module DirectedEdge
   # @private
 
   class XML
+
+    INVALID_XML_CHARS = /[^\x09\x0A\x0D\x20-\u{D7FF}\u{E000}-\u{FFFD}\u{10000}-\u{10FFFF}]/
+
     def self.parse(text)
       self.parse_items(text).first
     end
@@ -135,7 +138,7 @@ module DirectedEdge
         values.each do |key, value|
           parent << node = LibXML::XML::Node.new(element_name)
           node[attribute_name] = key.to_s
-          node << value.to_s
+          node << value.to_s.gsub(INVALID_XML_CHARS, '')
         end if values
       end
     end
