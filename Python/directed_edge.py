@@ -358,16 +358,16 @@ class Item(object):
         """Writes any local changes to the item back to the remote database."""
 
         if self.__cached:
-            self.database.resource.put(self.to_xml(), self.id)
+            self.database.resource.put(self.to_xml(), [ "items", self.id ])
         else:
-            self.database.resource.put(self.to_xml(), [ self.id, "add" ])
+            self.database.resource.put(self.to_xml(), [ "items", self.id, "add" ])
             if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
                 to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
                 self.database.resource.put(self.to_xml(
                     self.__tags_to_remove,
                     to_dict(self.__links_to_remove, 0),
                     to_dict(self.__properties_to_remove, "")),
-                                           [ self.id, "remove" ])
+                                           [ "items", self.id, "remove" ])
 
                 self.__links_to_remove.clear()
                 self.__tags_to_remove.clear()
@@ -377,7 +377,7 @@ class Item(object):
         """Destroy this item from the database. All incoming links will also be
         destroyed."""
 
-        self.database.resource.delete(self.id)
+        self.database.resource.delete([ "items", self.id ])
 
     def __set_link(self, type, target, weight=0):
         if type not in self.__links:
@@ -411,7 +411,7 @@ class Item(object):
             self.__cached = True
 
     def __document(self, sub="", params={}):
-        content = self.database.resource.get([ self.id, sub ], params)
+        content = self.database.resource.get([ "items", self.id, sub ], params)
         return xml.dom.minidom.parseString(content)
 
 class Exporter(object):
