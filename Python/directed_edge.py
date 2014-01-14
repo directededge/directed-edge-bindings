@@ -307,7 +307,8 @@ class Item(object):
         params["tags"] = ",".join(set(tags))
         if not params.has_key("excludeLinked"):
             params["excludeLinked"] = "true"
-        return self.database.resource.read_list(self.__document("recommended", params), "recommended")
+        return self.database.resource.read_list(self.__document("recommended", params),
+                                                "recommended")
 
     def to_xml(self, tags=None, links=None, properties=None, include_document=True):
         """Converts this item to an XML representation.  Only for internal use."""
@@ -362,9 +363,10 @@ class Item(object):
             self.database.resource.put(self.to_xml(), [ self.id, "add" ])
             if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
                 to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
-                self.database.resource.put(self.to_xml(self.__tags_to_remove,
-                                                       to_dict(self.__links_to_remove, 0),
-                                                       to_dict(self.__properties_to_remove, "")),
+                self.database.resource.put(self.to_xml(
+                    self.__tags_to_remove,
+                    to_dict(self.__links_to_remove, 0),
+                    to_dict(self.__properties_to_remove, "")),
                                            [ self.id, "remove" ])
 
                 self.__links_to_remove.clear()
@@ -460,7 +462,8 @@ class Exporter(object):
         if self.__file:
             self.__file.close()
         else:
-            self.database.resource.put(self.__data.getvalue(), "add", { "createMissingLinks" : "true" })
+            self.database.resource.put(self.__data.getvalue(), "add",
+                                       { "createMissingLinks" : "true" })
 
     def __write(self, data):
         if self.__file:
