@@ -55,13 +55,15 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
     public function testRelated()
     {
-        $this->assertEquals(5, count($this->product->getRelated(array(), array('maxResults' => 5))));
+        $this->assertEquals(5, count($this->product->getRelated(array(),
+                                                                array('maxResults' => 5))));
         $this->assertContains('product21', $this->product->getRelated(array('product')));
     }
 
     public function testRelatedWithProperties()
     {
-        $recommended = $this->customer->getRecommended(array('product'), array('maxResults' => 1));
+        $recommended = $this->customer->getRecommended(array('product'),
+                                                       array('maxResults' => 1));
         $first = new DirectedEdgeItem($this->database, $recommended[0]);
         $first->setProperty('foo', 'bar');
         $first->save();
@@ -74,13 +76,16 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
     public function testGroupRelated()
     {
-        $results = $this->database->getGroupRelated(array('product1', 'product2'), array('product'));
+        $results = $this->database->getGroupRelated(array('product1', 'product2'),
+                                                    array('product'));
         $this->assertEquals(20, count($results));
 
-        $results = $this->database->getGroupRelated(array($this->product), array('product'));
+        $results = $this->database->getGroupRelated(array($this->product),
+                                                    array('product'));
         $this->assertEquals(20, count($results));
 
-        $results = $this->database->getGroupRelated(array($this->product, 'product2'), array('product'));
+        $results = $this->database->getGroupRelated(array($this->product, 'product2'),
+                                                    array('product'));
         $this->assertEquals(20, count($results));
     }
 
@@ -186,11 +191,13 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $related = $this->database->getRelated(
             $items, $tags, array('threshold' => 0.5 /* , countOnly => 'true' */));
 
-        $results = $this->database->getRelated(array('product1', 'product2'), array('product'));
+        $results = $this->database->getRelated(array('product1', 'product2'),
+                                               array('product'));
         $this->assertEquals(2, count($results));
         $this->assertEquals(20, count($results['product1']));
         $this->assertEquals(20, count($results['product2']));
-        $this->assertEquals($this->product->getRelated(array('product')), $results['product1']);
+        $this->assertEquals($this->product->getRelated(array('product')), 
+                            $results['product1']);
     }
 
     public function testCharacters()
