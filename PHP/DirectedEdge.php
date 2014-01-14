@@ -143,7 +143,23 @@ class DirectedEdgeResource
 
     public function path($path = '')
     {
-        return $this->base . '/' . urlencode($path);
+        if(is_array($path))
+        {
+            $components = '';
+
+            foreach($path as $component)
+            {
+                $components .= "/" . urlencode($component);
+            }
+
+            $path = $components;
+        }
+        else
+        {
+            $path = "/" . urlencode($path);
+        }
+
+        return $this->base . $path;
     }
 
     /**
@@ -450,7 +466,7 @@ class DirectedEdgeItem
     {
         $this->database = $database;
         $this->resource = new DirectedEdgeResource(
-            $database->getResource()->path($id),
+            $database->getResource()->path(array('items', $id)),
             array('timeout' => $database->getResource()->getTimeout()));
         $this->id = $id;
     }
