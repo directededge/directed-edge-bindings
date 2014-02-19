@@ -32,7 +32,7 @@ module DirectedEdge
     FOOTER = "</directededge>\n"
 
     # @param [Database] database
-    # @param [:replate, :update] mode
+    # @param [:replace, :update] mode
 
     def initialize(database, mode)
       raise ArgumentError.new unless [ :replace, :update ].include?(mode)
