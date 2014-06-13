@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3BEC999E-FF2C-4791-8BC3-638DD70D08EF}</ProjectGuid>
+    <ProjectGuid>{F0ED5E9B-7D46-481A-B1D2-1D9C264B7DA2}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>DirectedEdge</RootNamespace>
-    <AssemblyName>DirectedEdge</AssemblyName>
+    <RootNamespace>Tests</RootNamespace>
+    <AssemblyName>Tests</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,18 +28,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="RestSharp">
-      <HintPath>..\packages\RestSharp.104.4.0\lib\net4\RestSharp.dll</HintPath>
-    </Reference>
+    <Reference Include="nunit.framework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resource.cs" />
-    <Compile Include="Database.cs" />
-    <Compile Include="Item.cs" />
+    <Compile Include="Test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\DirectedEdge\DirectedEdge.csproj">
+      <Project>{3BEC999E-FF2C-4791-8BC3-638DD70D08EF}</Project>
+      <Name>DirectedEdge</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
