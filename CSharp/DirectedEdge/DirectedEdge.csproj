@@ -38,6 +38,7 @@
     <Compile Include="Resource.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="Link.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
