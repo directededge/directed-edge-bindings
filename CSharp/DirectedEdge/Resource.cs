@@ -29,8 +29,6 @@ namespace DirectedEdge
 
 		public Resource Child(string path)
 		{
-            Console.WriteLine(uri);
-            Console.WriteLine(new Uri(uri, path));
             return new Resource(new Uri(uri, path));
 		}
 	}
