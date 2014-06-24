@@ -13,6 +13,7 @@ namespace Tests
             var customer = new DirectedEdge.Item(database, "customer1");
             customer.Load();
             Assert.IsTrue(customer.Links.Count == 15);
+            Assert.Contains("customer", customer.Tags);
         }
     }
 }

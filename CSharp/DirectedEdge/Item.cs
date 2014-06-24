@@ -10,6 +10,7 @@ namespace DirectedEdge
         public string Id { get; private set; }
         public Resource Resource { get; private set; }
         public List<Link> Links { get; private set; }
+        public List<string> Tags { get; private set; }
 
         public Item(Database database, string id)
         {
@@ -17,12 +18,14 @@ namespace DirectedEdge
             Id = id;
             Resource = database.Resource.Child(id);
             Links = new List<Link>();
+            Tags = new List<string>();
         }
 
         public void Load()
         {
             var doc = new XmlDocument();
             doc.LoadXml(Resource.Get());
+
             foreach(XmlNode node in doc.GetElementsByTagName("link"))
             {
                 XmlAttribute weight = node.Attributes["weight"];
@@ -30,6 +33,11 @@ namespace DirectedEdge
                 Links.Add(new Link(node.InnerText,
                         type == null ? null : node.InnerText,
                         weight == null ? 0 : Convert.ToInt32(weight.Value)));
+            }
+
+            foreach(XmlNode node in doc.GetElementsByTagName("tag"))
+            {
+                Tags.Add(node.InnerText);
             }
         }
     }
