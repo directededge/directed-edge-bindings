@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 
 namespace DirectedEdge
 {
@@ -20,6 +22,16 @@ namespace DirectedEdge
             builder.UserName = user;
             builder.Password = password;
             resource = new Resource(builder.Uri);
+        }
+
+        public void Export(string path)
+        {
+            File.CreateText(path).Write(Resource.Get());
+        }
+
+        public void Import(string path)
+        {
+            Resource.Put(File.OpenText(path).ReadToEnd());
         }
     }
 }

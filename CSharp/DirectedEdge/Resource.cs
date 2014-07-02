@@ -1,5 +1,6 @@
 ﻿using System;
 using RestSharp;
+using System.IO;
 
 namespace DirectedEdge
 {
@@ -26,6 +27,12 @@ namespace DirectedEdge
 		{
             return client.Execute(new RestRequest()).Content;
 		}
+
+        public void Put(string data)
+        {
+            client.Execute(new RestRequest(Method.PUT)
+                .AddParameter("text/xml", data, ParameterType.RequestBody));
+        }
 
 		public Resource Child(string path)
 		{
