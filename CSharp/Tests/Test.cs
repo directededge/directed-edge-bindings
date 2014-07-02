@@ -14,9 +14,7 @@ namespace Tests
         public void Init()
         {
             database = new DirectedEdge.Database("testdb", "test");
-            string dir = Directory.GetCurrentDirectory();
-            dir = new Regex("DirectedEdge\\/Bindings.*").Replace(dir, "DirectedEdge/Bindings");
-            database.Import(Path.Combine(dir, "testdb.xml"));
+            database.Import(TestDbFile());
         }
 
         [Test]
@@ -26,6 +24,13 @@ namespace Tests
             customer.Load();
             Assert.IsTrue(customer.Links.Count == 15);
             Assert.Contains("customer", customer.Tags);
+        }
+
+        private string TestDbFile()
+        {
+            string dir = Directory.GetCurrentDirectory();
+            dir = new Regex("DirectedEdge\\/Bindings.*").Replace(dir, "DirectedEdge/Bindings");
+            return Path.Combine(dir, "testdb.xml");
         }
     }
 }
