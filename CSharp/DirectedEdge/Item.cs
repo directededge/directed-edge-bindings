@@ -12,8 +12,9 @@ namespace DirectedEdge
         public Database Database { get; private set; }
         public string Id { get; private set; }
         public Resource Resource { get; private set; }
-        public List<Link> Links { get; private set; }
-        public List<string> Tags { get; private set; }
+
+        public ListProxy<Link> Links { get; private set; }
+        public ListProxy<string> Tags { get; private set; }
         public Dictionary<string, string> Properties { get; private set; }
 
         [IndexerName("IndexedItem")]
@@ -28,8 +29,8 @@ namespace DirectedEdge
             Database = database;
             Id = id;
             Resource = database.Resource[id];
-            Links = new List<Link>();
-            Tags = new List<string>();
+            Links = new ListProxy<Link>(Load);
+            Tags = new ListProxy<string>(Load);
             Properties = new Dictionary<string, string>();
         }
 
@@ -38,19 +39,27 @@ namespace DirectedEdge
             var doc = new XmlDocument();
             doc.LoadXml(Resource.Get());
 
+            var links = new List<Link>();
+
             foreach(XmlNode node in doc.GetElementsByTagName("link"))
             {
                 var weight = node.Attributes["weight"];
                 var type = node.Attributes["type"];
-                Links.Add(new Link(node.InnerText,
+                links.Add(new Link(node.InnerText,
                         type == null ? null : node.InnerText,
                         weight == null ? 0 : Convert.ToInt32(weight.Value)));
             }
 
+            Links.Set(links);
+
+            var tags = new List<string>();
+
             foreach(XmlNode node in doc.GetElementsByTagName("tag"))
             {
-                Tags.Add(node.InnerText);
+                tags.Add(node.InnerText);
             }
+
+            Tags.Set(tags);
 
             foreach(XmlNode node in doc.GetElementsByTagName("property"))
             {

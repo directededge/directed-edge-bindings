@@ -37,8 +37,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resource.cs" />
     <Compile Include="Database.cs" />
-    <Compile Include="Item.cs" />
     <Compile Include="Link.cs" />
+    <Compile Include="Item.cs" />
+    <Compile Include="ListProxy.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
