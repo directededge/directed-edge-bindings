@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Xml;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace DirectedEdge
 {
@@ -50,6 +52,51 @@ namespace DirectedEdge
                     Properties.Add(name.Value, node.InnerText);
                 }
             }
+        }
+
+        public string ToXml()
+        {
+            var doc = new XmlDocument();
+            var root = CreateElement(doc, doc, "directededge", e => e.SetAttribute("version", "0.1"));
+            var item = CreateElement(doc, root, "item", e => e.SetAttribute("id", Id));
+
+            foreach(var tag in Tags)
+            {
+                CreateElement(doc, item, "tag", e => e.InnerText = tag);
+            }
+
+            foreach(var link in Links)
+            {
+                CreateElement(doc, item, "link", e => {
+                    if(link.Type != null)
+                    {
+                        e.SetAttribute("type", link.Type);
+                    }
+                    if(link.Weight != 0)
+                    {
+                        e.SetAttribute("weight", link.Weight.ToString());
+                    }
+                    e.InnerText = link.Target;
+                });
+            }
+
+            foreach(var property in Properties)
+            {
+                CreateElement(doc, item, "property", e => {
+                    e.SetAttribute("name", property.Key);
+                    e.InnerText = property.Value;
+                });
+            }
+
+            return doc.OuterXml;
+        }
+
+        private XmlElement CreateElement(XmlDocument doc, XmlNode parent, string name,
+            System.Action<XmlElement> builder)
+        {
+            var e = (XmlElement) parent.AppendChild(doc.CreateElement(name));
+            builder.Invoke(e);
+            return e;
         }
     }
 }
