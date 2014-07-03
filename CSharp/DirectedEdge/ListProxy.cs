@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DirectedEdge
 {
-    public class ListProxy<T> : IList<T>, ICollection<T>, ICollection
+    public class ListProxy<T> : IList<T>
     {
         private bool isCached;
 
@@ -28,16 +28,6 @@ namespace DirectedEdge
         public bool IsFixedSize
         {
             get { return false; }
-        }
-
-        public bool IsSynchronized
-        {
-            get { return false; }
-        }
-
-        public object SyncRoot
-        {
-            get { return cached; }
         }
 
         public int Count
@@ -99,11 +89,6 @@ namespace DirectedEdge
         public void CopyTo(T[] array, int i)
         {
             Load(() => cached.CopyTo(array, i));
-        }
-
-        public void CopyTo(Array array, int i)
-        {
-            Load(() => cached.CopyTo((T[]) array, i));
         }
 
         public bool Remove(T item)
