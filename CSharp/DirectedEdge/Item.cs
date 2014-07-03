@@ -27,7 +27,7 @@ namespace DirectedEdge
         {
             Database = database;
             Id = id;
-            Resource = database.Resource.Child(id);
+            Resource = database.Resource[id];
             Links = new List<Link>();
             Tags = new List<string>();
             Properties = new Dictionary<string, string>();
