@@ -7,6 +7,7 @@ namespace DirectedEdge
     public class ListProxy<T> : IList<T>, ICollection<T>, ICollection
     {
         private bool isCached;
+
         private List<T> cached;
         private List<T> add;
         private List<T> remove;
@@ -74,9 +75,9 @@ namespace DirectedEdge
             return Load(() => cached.IndexOf(item));
         }
 
-        public void Insert(int i, T o)
+        public void Insert(int i, T item)
         {
-            Load(() => cached.Insert(i, o));
+            Load(() => cached.Insert(i, item));
         }
 
         public void RemoveAt(int i)

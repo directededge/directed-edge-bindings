@@ -9,11 +9,6 @@ namespace DirectedEdge
         private Uri uri;
 		private RestClient client;
 
-        public Resource this[string path]
-        {
-            get { return Child(path); }
-        }
-
 		public Resource(Uri uri)
 		{
             this.uri = uri;
@@ -27,6 +22,11 @@ namespace DirectedEdge
 		{
 
 		}
+
+        public Resource this[string path]
+        {
+            get { return Child(path); }
+        }
 
 		public string Get()
 		{

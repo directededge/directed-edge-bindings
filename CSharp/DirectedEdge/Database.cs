@@ -6,11 +6,7 @@ namespace DirectedEdge
 {
     public class Database
     {
-        private Resource resource;
-        public Resource Resource
-        {
-            get { return resource; }
-        }
+        public Resource Resource { get; private set; }
 
         public Database(string user, string password)
         {
@@ -21,7 +17,7 @@ namespace DirectedEdge
             builder.Path = "/api/v1/" + user + "/";
             builder.UserName = user;
             builder.Password = password;
-            resource = new Resource(builder.Uri);
+            Resource = new Resource(builder.Uri);
         }
 
         public void Export(string path)

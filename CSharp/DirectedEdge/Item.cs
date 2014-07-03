@@ -17,13 +17,6 @@ namespace DirectedEdge
         public ListProxy<string> Tags { get; private set; }
         public Dictionary<string, string> Properties { get; private set; }
 
-        [IndexerName("IndexedItem")]
-        public string this[string property]
-        {
-            get { return Properties[property]; }
-            set { Properties[property] = value; }
-        }
-
         public Item(Database database, string id)
         {
             Database = database;
@@ -32,6 +25,13 @@ namespace DirectedEdge
             Links = new ListProxy<Link>(Load);
             Tags = new ListProxy<string>(Load);
             Properties = new Dictionary<string, string>();
+        }
+
+        [IndexerName("IndexedItem")]
+        public string this[string property]
+        {
+            get { return Properties[property]; }
+            set { Properties[property] = value; }
         }
 
         public void Load()
