@@ -54,6 +54,11 @@ namespace DirectedEdge
             }
         }
 
+        public void Save()
+        {
+            Resource.Put(ToXml());
+        }
+
         public string ToXml()
         {
             var doc = new XmlDocument();

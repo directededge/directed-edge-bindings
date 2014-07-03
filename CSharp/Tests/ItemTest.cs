@@ -40,6 +40,16 @@ namespace Tests
             Assert.AreEqual(new ArrayList(new [] { "product" }), product.Tags);
         }
 
+        [Test]
+        public void TestProperties()
+        {
+            customer.Properties.Add("age", "42");
+            customer.Save();
+            customer = new DirectedEdge.Item(database, "customer1");
+            customer.Load();
+            Assert.AreEqual("42", customer.Properties["age"]);
+        }
+
         private string TestDbFile()
         {
             string dir = Directory.GetCurrentDirectory();
