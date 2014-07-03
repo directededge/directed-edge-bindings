@@ -30,8 +30,9 @@ namespace DirectedEdge
 
         public void Put(string data)
         {
-            client.Execute(new RestRequest(Method.PUT)
-                .AddParameter("text/xml", data, ParameterType.RequestBody));
+            var request = new RestRequest(Method.PUT);
+            request.AddParameter("text/xml", data, ParameterType.RequestBody);
+            client.Execute(request);
         }
 
 		public Resource Child(string path)
