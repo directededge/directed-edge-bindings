@@ -32,8 +32,8 @@ namespace DirectedEdge
 
             foreach(XmlNode node in doc.GetElementsByTagName("link"))
             {
-                XmlAttribute weight = node.Attributes["weight"];
-                XmlAttribute type = node.Attributes["type"];
+                var weight = node.Attributes["weight"];
+                var type = node.Attributes["type"];
                 Links.Add(new Link(node.InnerText,
                         type == null ? null : node.InnerText,
                         weight == null ? 0 : Convert.ToInt32(weight.Value)));
@@ -46,7 +46,7 @@ namespace DirectedEdge
 
             foreach(XmlNode node in doc.GetElementsByTagName("property"))
             {
-                XmlAttribute name = node.Attributes["name"];
+                var name = node.Attributes["name"];
                 if(node != null)
                 {
                     Properties.Add(name.Value, node.InnerText);
