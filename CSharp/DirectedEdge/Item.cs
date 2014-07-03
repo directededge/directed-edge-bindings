@@ -3,6 +3,7 @@ using System.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace DirectedEdge
 {
@@ -14,6 +15,13 @@ namespace DirectedEdge
         public List<Link> Links { get; private set; }
         public List<string> Tags { get; private set; }
         public Dictionary<string, string> Properties { get; private set; }
+
+        [IndexerName("IndexedItem")]
+        public string this[string property]
+        {
+            get { return Properties[property]; }
+            set { Properties[property] = value; }
+        }
 
         public Item(Database database, string id)
         {
