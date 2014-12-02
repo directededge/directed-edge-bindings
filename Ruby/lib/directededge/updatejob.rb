@@ -130,7 +130,7 @@ module DirectedEdge
 
     def temp(action)
       file = Tempfile.new("#{@database.name}-#{action}")
-      file.unlink
+      file.unlink unless ENV['DIRECTEDEDGE_DEBUG']
       file.puts(HEADER)
       file
     end
