@@ -129,12 +129,10 @@ module DirectedEdge
     end
 
     def temp(action)
-      name = "#{@database.name}-#{action}"
-
       if ENV['DIRECTEDEDGE_DEBUG']
-        file = File.open("/tmp/#{name}.xml", 'w+')
+        file = File.open("/tmp/#{@database.name}-#{action}-#{Time.now.to_i}.xml", 'w+')
       else
-        file = Tempfile.new(name)
+        file = Tempfile.new("#{@database.name}-#{action}")
         file.unlink unless ENV['DIRECTEDEDGE_DEBUG']
       end
 
