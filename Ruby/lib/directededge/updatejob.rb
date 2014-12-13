@@ -75,6 +75,11 @@ module DirectedEdge
         @database.resource[:update_method => :add].post(@add_file)
         @database.resource[:update_method => :subtract].post(@remove_file)
       end
+
+      unless ENV['DIRECTEDEDGE_DEBUG']
+        @add_file.unlink
+        @remove_file.unlink
+      end
     end
 
     # Allows a job to be run from a block without having to create an instance.
@@ -133,7 +138,6 @@ module DirectedEdge
         file = File.open("/tmp/#{@database.name}-#{action}-#{Time.now.to_i}.xml", 'w+')
       else
         file = Tempfile.new("#{@database.name}-#{action}")
-        file.unlink unless ENV['DIRECTEDEDGE_DEBUG']
       end
 
       file.puts(HEADER)
