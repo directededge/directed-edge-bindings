@@ -59,6 +59,13 @@ module DirectedEdge
       @resource = DirectedEdge::Resource.new(url, options)
     end
 
+    # WARNING: Deletes all data in the current database.  Use with extreme
+    # caution.
+
+    def clear!
+      @resource.delete
+    end
+
     # Returns a list of items
     # @param ids The list of item IDs to return
 
