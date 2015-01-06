@@ -35,7 +35,7 @@ module DirectedEdge
     # @param [:replace, :update] mode
 
     def initialize(database, mode)
-      raise ArgumentError.new unless [ :replace, :update ].include?(mode)
+      raise ArgumentError unless [ :replace, :update ].include?(mode)
       @database = database
       @mode = mode
       @add_file = temp(:add)
@@ -88,12 +88,12 @@ module DirectedEdge
     def self.run(*args, &block)
       job =
         if args.length == 2
-          raise ArgumentError.new unless args.first.is_a?(Database)
+          raise ArgumentError unless args.first.is_a?(Database)
           self.new(args.first, args.last)
         elsif args.length == 3
           self.new(DirectedEdge::Database.new(args[0], args[1]), args[2])
         else
-          raise ArgumentError.new
+          raise ArgumentError
         end
       block.call(job)
       job.run
@@ -114,11 +114,11 @@ module DirectedEdge
       private
 
       def load
-        raise StandardError.new('You can\'t call load on Updater::Item')        
+        raise StandardError, 'You can\'t call load on Updater::Item'
       end
 
       def save
-        raise StandardError.new('You can\'t call save on Updater::Item')
+        raise StandardError, 'You can\'t call save on Updater::Item'
       end
     end
 

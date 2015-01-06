@@ -34,7 +34,7 @@ module DirectedEdge
     # @option options [DateTime] :timestamp (Time.now) Time for the event
 
     def initialize(history, target, options = {})
-      raise ArgumentError.new unless history.is_a?(History) && options.is_a?(Hash)
+      raise ArgumentError unless history.is_a?(History) && options.is_a?(Hash)
       @history = history
       @target = target.to_s
       @timestamp = options[:timestamp] ? options.delete(:timestamp).to_i : Time.now.to_i
