@@ -127,7 +127,7 @@ module DirectedEdge
         item.data.values.each do |v|
           if !v.remove_queue.empty?
             message = 'You can\'t remove values while the updater is in :replace mode'
-            raise StandardError.new(message)
+            raise StandardError, message
           end
         end
       end
