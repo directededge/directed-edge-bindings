@@ -275,8 +275,8 @@ module DirectedEdge
         :links => links.data,
         :tags => tags.data,
         :properties => properties.data,
-        :preselected => preselected.map(&:to_h),
-        :blacklisted => blacklisted.map(&:to_h),
+        :preselected => preselected.map(&:id),
+        :blacklisted => blacklisted.map(&:id),
         :history_entries => history_entries.data
       }
     end
