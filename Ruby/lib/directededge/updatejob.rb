@@ -81,8 +81,8 @@ module DirectedEdge
       if @mode == :replace
         @database.resource.put(@add_file)
       elsif @mode == :update
-        @database.resource[:update_method => :add].post(@add_file)
         @database.resource[:update_method => :subtract].post(@remove_file)
+        @database.resource[:update_method => :add].post(@add_file)
       end
     end
 
