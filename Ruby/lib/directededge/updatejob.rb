@@ -31,6 +31,8 @@ module DirectedEdge
     HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<directededge version=\"0.1\">"
     FOOTER = "</directededge>\n"
 
+    attr_reader :database
+
     # @param [Database] database
     # @param [:replace, :update] mode
 
@@ -52,12 +54,19 @@ module DirectedEdge
     #  end
 
     def item(id, &block)
-      item = Item.new(@database, id)
+      item = Item.new(self, id)
       block.call(item) if block
       validate_updates(item)
       @add_file.puts(item.to_xml(:add))
       @remove_file.puts(item.to_xml(:remove)) if @mode == :update
       item
+    end
+
+    # Removes item from the database.  This is only supported in :update mode.
+
+    def destroy(item)
+      raise StandardError unless @mode == :update
+      @remove_file.puts(XML.generate({ :id => item.id }, false))
     end
 
     # Executes the update job
@@ -106,9 +115,21 @@ module DirectedEdge
     class Item < DirectedEdge::Item
       attr_reader :data
 
+      def initialize(update_job, id)
+        super(update_job.database, id)
+        @update_job = update_job
+      end
+
       def to_xml(add_or_remove)
-        method = add_or_remove == :add ? :add_queue : :remove_queue
-        (method == :remove_queue && !queued?(:remove)) ? '' : super(method, false)
+        unless @destroy && !queued?(:add)
+          method = add_or_remove == :add ? :add_queue : :remove_queue
+          (method == :remove_queue && !queued?(:remove)) ? '' : super(method, false)
+        end
+      end
+
+      def destroy
+        @destroy = true
+        @update_job.destroy(self)
       end
 
       private

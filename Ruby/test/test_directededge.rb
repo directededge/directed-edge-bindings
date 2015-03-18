@@ -74,6 +74,17 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal('Bar', item['name'])
   end
 
+  def test_update_job_destroy
+    DirectedEdge::UpdateJob.run(@database, :update) do |job|
+      job.item('product1') { |i| i.destroy }
+      job.item('product2').destroy
+      job.destroy(DirectedEdge::Item.new(@database, 'product3'))
+    end
+    assert(!DirectedEdge::Item.new(@database, 'product1').exists?)
+    assert(!DirectedEdge::Item.new(@database, 'product2').exists?)
+    assert(!DirectedEdge::Item.new(@database, 'product3').exists?)
+  end
+
   def test_items
     first_item = item('test_1')
     first_item.save
