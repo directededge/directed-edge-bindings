@@ -265,6 +265,22 @@ module DirectedEdge
       @id
     end
 
+    # Reads the items data and puts it into a hash.  Useful for debugging.
+    #
+    # @return [Hash]
+    
+    def to_h
+      {
+        :id => @id,
+        :links => links.data,
+        :tags => tags.data,
+        :properties => properties.data,
+        :preselected => preselected.data,
+        :blacklisted => blacklisted.data,
+        :history_entries => history_entries.data
+      }
+    end
+
     def ==(other)
       other.is_a?(Item) ? id == other.id : false
     end
