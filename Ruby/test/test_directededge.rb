@@ -69,7 +69,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     job = DirectedEdge::UpdateJob.new(@database, :update)
     job.item('Foo') { |item| item['name'] = 'Bar' }
     job.run
-    
+
     item = item('Foo')
     assert_equal('Bar', item['name'])
   end
@@ -187,7 +187,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.save
 
     assert_raise(TypeError, RuntimeError) { item.tags.push('mutable') }
-    
+
     assert(!item.tags.include?('greek'))
   end
 
@@ -213,7 +213,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal('test_value_updated', item['test_property_1'])
 
     # Test the cached example of clearing a property
-    
+
     item.properties.remove('test_property_1')
     assert(!item.properties.include?('test_property_1'))
 

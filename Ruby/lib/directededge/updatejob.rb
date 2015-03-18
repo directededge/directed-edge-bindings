@@ -42,6 +42,7 @@ module DirectedEdge
       @mode = mode
       @add_file = temp(:add)
       @remove_file = temp(:remove) if mode == :update
+      @attached = []
     end
 
     # Creates a temporary item in a block to be added to the update job.
@@ -55,10 +56,12 @@ module DirectedEdge
 
     def item(id, &block)
       item = Item.new(self, id)
-      block.call(item) if block
-      validate_updates(item)
-      @add_file.puts(item.to_xml(:add))
-      @remove_file.puts(item.to_xml(:remove)) if @mode == :update
+      if block
+        block.call(item)
+        process(item)
+      else
+        @attached.push(item)
+      end
       item
     end
 
@@ -66,12 +69,15 @@ module DirectedEdge
 
     def destroy(item)
       raise StandardError unless @mode == :update
-      @remove_file.puts(XML.generate({ :id => item.id }, false))
+      @attached.delete(item)
+      @remove_file.puts(XML.generate({ :id => item.is_a?(String) ? item : item.id }, false))
     end
 
     # Executes the update job
 
     def run
+      @attached.each { |item| process(item) }
+
       (@mode == :replace ? [ @add_file ] : [ @add_file, @remove_file ]).each do |file|
         file.puts(FOOTER)
         file.flush
@@ -116,9 +122,10 @@ module DirectedEdge
       end
 
       def to_xml(add_or_remove)
-        unless @destroy && !queued?(:add)
-          method = add_or_remove == :add ? :add_queue : :remove_queue
-          (method == :remove_queue && !queued?(:remove)) ? '' : super(method, false)
+        if add_or_remove == :add
+          (queued?(:add) || (!queued?(:remove) && !@destroy)) ? super(:add_queue, false) : ''
+        else
+          queued?(:remove) ? super(:remove_queue, false) : ''
         end
       end
 
@@ -136,6 +143,12 @@ module DirectedEdge
       def save
         raise StandardError, 'You can\'t call save on Updater::Item'
       end
+    end
+
+    def process(item)
+      validate_updates(item)
+      @add_file.puts(item.to_xml(:add))
+      @remove_file.puts(item.to_xml(:remove)) if @mode == :update
     end
 
     def validate_updates(item)
