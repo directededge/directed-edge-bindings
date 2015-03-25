@@ -457,6 +457,19 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_not_equal(item.related(:ignore_preselected => true).first, dummy)
   end
 
+  def test_only_preselected
+    dummy = item('dummy')
+    dummy.save
+
+    item = item('product1')
+    item.preselected.add(dummy)
+    item.save
+
+    assert_equal(item.related.first, dummy)
+    assert_equal(item.related(:only_preselected => true).first, dummy)
+    assert_equal(item.related(:only_preselected => true).length, 1)
+  end
+
   def test_blacklisted
     customer = item('customer1')
     first = customer.recommended(:tags => 'product').first
