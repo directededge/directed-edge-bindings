@@ -47,19 +47,21 @@ module DirectedEdge
       clear
     end
 
-    def add(value)
+    def add(*values)
+      values.flatten!
       if cached?
         if array?
-          @cached_data.push(value)
+          @cached_data.push(*values)
         elsif set?
-          @cached_data.add(value)
+          @cached_data.merge(values)
         elsif hash?
-          @cached_data.merge!(value)
+          raise ArgumentError unless values.flatten.size == 1
+          @cached_data.merge!(values.first)
         end
       else
-        queue(@add_queue, @remove_queue, value)
+        queue(@add_queue, @remove_queue, values)
       end
-      value
+      values
     end
 
     def remove(value)
@@ -114,17 +116,20 @@ module DirectedEdge
 
     private
 
-    def queue(add, subtract, value)
+    def queue(add, subtract, *values)
+      values.flatten!
       if array?
-        add.push(value)
-        subtract.delete(value)
+        add.push(*values.flatten)
+        subtract.reject! { |v| values.include?(v) }
       elsif set?
-        add.add(value)
-        subtract.delete(value)
+        add.merge(values.flatten)
+        subtract.reject! { |v| values.include?(v) }
       elsif hash?
+        raise ArgumentError unless values.size == 1
+        value = values.first
         value = { value => nil } unless value.is_a?(Hash)
         add.merge!(value)
-        subtract.delete(value.keys.first)
+        subtract.delete(value)
       end
     end
 

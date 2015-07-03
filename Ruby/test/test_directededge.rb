@@ -171,7 +171,11 @@ class TestDirectedEdge < Test::Unit::TestCase
   def test_tags
     item = item('customer1')
     item.tags.add('dude')
+    item.tags.add([ 'wheres', 'my', 'car' ])
     assert(item.tags.include?('dude'))
+    assert(item.tags.include?('wheres'))
+    assert(item.tags.include?('my'))
+    assert(item.tags.include?('car'))
 
     item.save
     assert(item.tags.include?('dude'))
