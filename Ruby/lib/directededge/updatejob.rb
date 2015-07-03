@@ -92,8 +92,8 @@ module DirectedEdge
       end
 
       unless ENV['DIRECTEDEDGE_DEBUG']
-        @add_file.unlink
-        @remove_file.unlink
+        @add_file.unlink if @add_file
+        @remove_file.unlink if @remove_file
       end
     end
 
