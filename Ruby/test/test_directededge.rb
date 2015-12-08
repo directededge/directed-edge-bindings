@@ -138,6 +138,12 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal(0, second_item.recommended(:tags => 'unknown_tag').length)
     assert_equal(third_item.to_s, first_item.recommended(:tags => 'test_tag').first.to_s)
 
+    # Test fallback algorithm override
+
+    product = item('product1')
+    assert(!product.recommended.empty?)
+    assert(product.recommended(:disable_fallback_to_related => true).empty?)
+
     # Remove the link from the second item and assure that it was removed
 
     second_item.links.remove(first_item)
