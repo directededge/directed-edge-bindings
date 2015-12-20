@@ -447,10 +447,14 @@ class DirectedEdgeItem
     private $links = array();
     private $tags = array();
     private $properties = array();
-
+    private $preselecteds = array();
+    private $blacklisteds = array();
+    
     private $linksToRemove = array();
     private $tagsToRemove = array();
     private $propertiesToRemove = array();
+    private $preselectedsToRemove = array();
+    private $blacklistedsToRemove = array();
 
     private $isCached = false;
 
@@ -702,11 +706,101 @@ class DirectedEdgeItem
 
         $this->tags = array_remove($this->tags, $tag);
     }
-
+    
+    /**
+     * @return Array Simple list of all preselected associated with this item.
+     */
+    
+    public function getPreselected()
+    {
+        $this->read();
+        return $this->preselecteds;
+    }
+    
+    /**
+     * Adds a preselected to the item.
+     *
+     * @param string The name of the preselect item to be added.
+     *
+     * Changes will not be reflected in the database until save() is
+     * called.
+     */
+    
+    public function addPreselected($preselected)
+    {
+        $this->preselectedsToRemove = array_remove($this->preselectedsToRemove, $preselected);
+        $this->preselecteds = array_insert($this->preselecteds, $preselected);
+    }
+    
+    /**
+     * Removes a preselected from the item.
+     *
+     * @param string The name of the preselected to be removed.
+     *
+     * Changes will not be reflected in the database until save() is
+     * called.
+     */
+    
+    public function removePreselected($preselected)
+    {
+        if(!$this->isCached)
+        {
+            $this->preselectedsToRemove = array_insert($this->preselectedsToRemove, $preselected);
+        }
+    
+        $this->preselecteds = array_remove($this->preselecteds, $preselected);
+    }
+    
+    
+    /**
+     * @return Array Simple list of all blacklisted associated with this item.
+     */
+    
+    public function getBlacklisted()
+    {
+        $this->read();
+        return $this->blacklisteds;
+    }
+    
+    /**
+     * Adds a blacklisted to the item.
+     *
+     * @param string The name of the preselect item to be added.
+     *
+     * Changes will not be reflected in the database until save() is
+     * called.
+     */
+    
+    public function addBlacklisted($blacklisted)
+    {
+        $this->blacklistedsToRemove = array_remove($this->blacklistedsToRemove, $blacklisted);
+        $this->blacklisteds = array_insert($this->blacklisteds, $blacklisted);
+    }
+    
+    /**
+     * Removes a blacklisted from the item.
+     *
+     * @param string The name of the blacklisted to be removed.
+     *
+     * Changes will not be reflected in the database until save() is
+     * called.
+     */
+    
+    public function removeBlacklisted($blacklisted)
+    {
+        if(!$this->isCached)
+        {
+            $this->blacklistedsToRemove = array_insert($this->blacklistedsToRemove, $blacklisted);
+        }
+    
+        $this->blacklisteds = array_remove($this->blacklisteds, $blacklisted);
+    }
+    
+    
     /**
      * Writes all pending changes back to the database.
      */
-
+    
     public function save()
     {
         if($this->isCached)
@@ -716,15 +810,20 @@ class DirectedEdgeItem
         else
         {
             $this->resource->put($this->toXML(), 'add');
-
+    
             if(!empty($this->linksToRemove) ||
-               !empty($this->tagsToRemove) ||
-               !empty($this->propertiesToRemove))
+                !empty($this->tagsToRemove) ||
+                !empty($this->preselectedsToRemove) ||
+                !empty($this->blacklistedsToRemove) ||
+                !empty($this->propertiesToRemove))
             {
                 $this->resource->put($this->toXML($this->linksToRemove,
-                                                  $this->tagsToRemove,
-                                                  $this->propertiesToRemove),
-                                     'remove');
+                    $this->tagsToRemove,
+                    $this->propertiesToRemove,
+                    $this->preselectedsToRemove,
+                    $this->blacklistedsToRemove
+                ),
+                    'remove');
             }
         }
     }
@@ -739,10 +838,14 @@ class DirectedEdgeItem
         $this->links = array();
         $this->tags = array();
         $this->properties = array();
-
+        $this->preselecteds = array();
+        $this->blacklisteds = array();
+        
         $this->linksToRemove = array();
         $this->tagsToRemove = array();
         $this->propertiesToRemove = array();
+        $this->preselectedsToRemove= array();
+        $this->blacklistedsToRemove = array();
 
         $this->isCached = false;
         $this->read();
@@ -805,62 +908,78 @@ class DirectedEdgeItem
      * @param Array Links to be included, defaults to this item's links.
      * @param Array Tags to be included, defaults to this item's tags.
      * @param Array Properties to be included, defaults to this item's properties.
+     * @param Array Preselecteds to be included, defaults to this item's preselected.
+     * @param Array Blacklisteds to be included, defaults to this item's blacklisted.
      * @param bool Specifies if the full document should be returned or just item element
      * that's creates.
      * @return string XML representation of the item.
      *
      * @internal
      */
-
-    public function toXML($links = null, $tags = null, $properties = null, $includeBody = true)
+    
+    public function toXML($links = null, $tags = null, $properties = null, $preselecteds = null, $blacklisteds = null, $includeBody = true)
     {
-        $links || $links = $this->links;
-        $tags || $tags = $this->tags;
-        $properties || $properties = $this->properties;
-
+        $links        || $links        = $this->links;
+        $tags         || $tags         = $this->tags;
+        $properties   || $properties   = $this->properties;
+        $preselecteds || $preselecteds = $this->preselecteds;
+        $blacklisteds || $blacklisteds = $this->blacklisteds;
+    
         $document = new DOMDocument();
-
+    
         $directededge = $document->createElement('directededge');
         $directededge->setAttribute('version', 0.1);
         $document->appendChild($directededge);
-
+    
         $item = $document->createElement('item');
         $item->setAttribute('id', $this->id);
         $directededge->appendChild($item);
-
+    
         foreach($links as $type => $values)
         {
             foreach($values as $name => $weight)
             {
                 $element = $document->createElement('link', $name);
-
+    
                 if(strlen($type) > 0)
                 {
                     $element->setAttribute('type', $type);
                 }
-
+    
                 if($values[$name] > 0)
                 {
                     $element->setAttribute('weight', $weight);
                 }
-
+    
                 $item->appendChild($element);
             }
         }
-
+    
         foreach($tags as $tag)
         {
             $element = $document->createElement('tag', $tag);
             $item->appendChild($element);
         }
-
+    
         foreach($properties as $key => $value)
         {
             $element = $document->createElement('property', $value);
             $element->setAttribute('name', $key);
             $item->appendChild($element);
         }
-
+    
+        foreach($preselecteds as $preselected)
+        {
+            $element = $document->createElement('preselected', $preselected);
+            $item->appendChild($element);
+        }
+    
+        foreach($blacklisteds as $blacklisted)
+        {
+            $element = $document->createElement('blacklisted', $blacklisted);
+            $item->appendChild($element);
+        }
+    
         if($includeBody)
         {
             return $document->saveXML();
@@ -870,7 +989,7 @@ class DirectedEdgeItem
             return $item->C14N();
         }
     }
-
+    
     /**
      * @return The item's unique identifier.
      */
@@ -935,6 +1054,13 @@ class DirectedEdgeItem
                 $this->getValuesByTagName($document, 'tag', null, $this->tags);
             $this->properties =
                 $this->getValuesByTagName($document, 'property', 'name', $this->properties);
+            
+            $this->preselecteds =
+                $this->getValuesByTagName($document, 'preselected', null, $this->preselecteds);
+            
+            $this->blacklisteds =
+                $this->getValuesByTagName($document, 'blacklisted', null, $this->blacklisteds);
+            
         }
         catch (DirectedEdgeException $e)
         {
@@ -947,7 +1073,7 @@ class DirectedEdgeItem
         }
 
         $this->isCached = true;
-    }
+    }   
 
     /**
      * @param DOMDocument The document (or element) to search in.
@@ -1127,7 +1253,7 @@ class DirectedEdgeExporter
 
     public function export($item)
     {
-        $this->write($item->toXML(null, null, null, false) . "\n");
+        $this->write($item->toXML(null, null, null, null, null, false) . "\n");        
     }
 
     /**
@@ -1151,7 +1277,10 @@ class DirectedEdgeExporter
         {
             $this->database->getResource()->put(
                 $this->data, 'add', array('createMissingLinks' => 'true'));
+            
             $this->data = '';
+            $this->write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+            $this->write("<directededge version=\"0.1\">\n");
         }
     }
 
