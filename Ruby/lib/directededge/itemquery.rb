@@ -1,4 +1,4 @@
-# Copyright (C) 2012 Directed Edge, Inc.
+# Copyright (C) 2016 Directed Edge, Inc.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -21,16 +21,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'libxml'
-require 'rest_client'
+module DirectedEdge
+  # @private
+  module ItemQuery
+    module ItemLookup
+      def [](*args)
+        each { |m| return m if m.id == args.first } if args.first.is_a?(String)
+        index_without_item_lookup(*args)
+      end
 
-require 'directededge/link'
-require 'directededge/history'
-require 'directededge/historyentry'
-require 'directededge/xml'
-require 'directededge/resource'
-require 'directededge/itemquery'
-require 'directededge/database'
-require 'directededge/containerproxy'
-require 'directededge/item'
-require 'directededge/updatejob'
+      def self.extended(base)
+        base.class.send(:alias_method, :index_without_item_lookup, :[])
+      end
+    end
+
+    def item_query(database, type, resource)
+      XML.parse_list(type, resource.get) do |i|
+        Item.new(database, i, :properties => i.properties)
+      end.extend(ItemLookup)
+    end
+  end
+end

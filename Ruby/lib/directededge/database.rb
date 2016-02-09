@@ -39,6 +39,8 @@ module DirectedEdge
   #   database = DirectedEdge::Database.new('mydatabase', 'mypassword')
 
   class Database
+    include ItemQuery
+
     attr_reader :resource, :name
 
     # @param [String] name Directed Edge user name
@@ -105,14 +107,14 @@ module DirectedEdge
     #
     # @param [Array<Item>, Array<String>] Set of items (e.g. basket contents) to
     #  for which to find related items
-    # @return [Array<String>] A list of related items, sorted by relevance
+    # @return [Array<Item>] A list of related items, sorted by relevance
     #
     # @see Item#related
 
     def related(items, options = {})
       options[:items] = items
       options[:union] = true
-      XML.parse_list(:related, @resource[:related][options].get)
+      item_query(self, :related, @resource[:related][options])
     end
 
     # Databases have a defined set of histories that can be tracked that track

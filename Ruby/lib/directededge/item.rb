@@ -78,6 +78,8 @@ module DirectedEdge
   # items, or whatever) or set the entire list.
 
   class Item
+    include ItemQuery
+
     attr_reader :id
 
     def initialize(database, id, options = {})
@@ -158,9 +160,9 @@ module DirectedEdge
     # items, e.g. "products like this product", whereas recommended is for
     # personalized recommendations, i.e. "We think you'd like..."
     #
-    # @return [Array] List of item IDs related to this one with the most closely
+    # @return [Array<Item>] List of items related to this one with the most closely
     # related items first.
-    # 
+    #
     # @param [Hash] options A set of options which are passed directly on to the
     #  web services API in the query string.
     # @option options [String, [Array<String>]] :tags
@@ -196,9 +198,9 @@ module DirectedEdge
     # items, e.g. "products like this product", whereas recommended is for
     # personalized recommendations, i.e. "We think you'd like..."
     #
-    # @return [Array] List of item IDs related to this one with the most closely
+    # @return [Array<Item>] List of items related to this one with the most closely
     # related items first.
-    # 
+    #
     # @param [Hash] options A set of options which are passed directly on to
     # the web services API in the query string.
     #
@@ -268,7 +270,7 @@ module DirectedEdge
     # Reads the items data and puts it into a hash.  Useful for debugging.
     #
     # @return [Hash]
-    
+
     def to_h
       {
         :id => @id,
@@ -332,17 +334,6 @@ module DirectedEdge
       end
     end
 
-    module ItemLookup
-      def [](*args)
-        each { |m| return m if m.id == args.first } if args.first.is_a?(String)
-        index_without_item_lookup(*args)
-      end
-
-      def self.extended(base)
-        base.class.send(:alias_method, :index_without_item_lookup, :[])
-      end
-    end
-
     def cached?
       @data.values.first.cached?
     end
@@ -357,9 +348,7 @@ module DirectedEdge
 
     def query(type, options)
       @query_cache[type] ||= {}
-      @query_cache[type][options] ||= XML.parse_list(type, resource[type][options].get) do |i|
-        Item.new(@database, i, :properties => i.properties)
-      end.extend(ItemLookup)
+      @query_cache[type][options] ||= item_query(@database, type, resource[type][options])
     end
 
     def to_xml(data_method, with_header = true)
