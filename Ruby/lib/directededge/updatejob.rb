@@ -152,8 +152,14 @@ module DirectedEdge
 
     def process(item)
       validate_updates(item)
-      @add_file.puts(item.to_xml(:add))
-      @remove_file.puts(item.to_xml(:remove)) if @mode == :update
+
+      add = item.to_xml(:add)
+      @add_file.puts(item.to_xml(:add)) unless add.empty?
+
+      if @mode == :update
+        remove = item.to_xml(:remove)
+        @remove_file.puts(remove) unless remove.empty?
+      end
     end
 
     def validate_updates(item)
