@@ -28,7 +28,9 @@ module DirectedEdge
   # A job to update the Directed Edge web services in batch
 
   class UpdateJob
+    # @!visibility private
     HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<directededge version=\"0.1\">"
+    # @!visibility private
     FOOTER = "</directededge>\n"
 
     attr_reader :database
@@ -48,7 +50,7 @@ module DirectedEdge
     # Creates a temporary item in a block to be added to the update job.
     # Typical usage would be:
     #
-    #  UpdateJob.run('db', 'pass') do |job|
+    #  UpdateJob.run('db', 'pass', :replace) do |job|
     #    job.item('foo') do |item|
     #      item.tags.add('bar')
     #    end
@@ -98,7 +100,27 @@ module DirectedEdge
     end
 
     # Allows a job to be run from a block without having to create an instance.
-    # The user name and password should be passed as arguments.
+    # Either a [Database] instance, or a user name and password should be passed as
+    # arguments.  For example:
+    #
+    #  db = DirectedEdge::Database.new('account', 'key')
+    #
+    #  UpdateJob.run(db, :replace) do |job|
+    #    job.item('foo') do |item|
+    #      item.tags.add('bar')
+    #    end
+    #  end
+    #
+    # Or you can enter the account information directly:
+    #
+    #  UpdateJob.run('account', 'key', :update) do |job|
+    #    job.item('foo') do |item|
+    #      item.tags.add('bar')
+    #    end
+    #  end
+    #
+    # The final argument can be either `:update` or `:replace`, depending on how
+    # existing data in the database should be treated.
 
     def self.run(*args, &block)
       job =
