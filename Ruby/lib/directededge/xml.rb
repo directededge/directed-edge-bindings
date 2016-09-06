@@ -45,9 +45,9 @@ module DirectedEdge
           :preselected => Reader.list(node, './/preselected') { |id| Item.new(database, id) },
           :blacklisted => Reader.list(node, './/blacklisted') { |id| Item.new(database, id) },
           :properties => Hash[node.find('.//property').map { |p| [ p['name'], p.first.to_s ] }],
-          :history_entries => node.find('.//history').map do |node|
-            history = History.new(:from => node[:from], :to => node[:to])
-            HistoryEntry.new(history, node.first.to_s, node.attributes.to_h)
+          :history_entries => node.find('.//history').map do |h|
+            history = History.new(:from => h[:from], :to => h[:to])
+            HistoryEntry.new(history, h.first.to_s, h.attributes.to_h)
           end
         }
       end
@@ -115,10 +115,10 @@ module DirectedEdge
       end
 
       def self.list(node, element, &block)
-        value = node.find(element).map do |node|
-          value = node.first.to_s
+        value = node.find(element).map do |n|
+          value = n.first.to_s
           value.extend(Properties)
-          value.properties = node.attributes.to_h
+          value.properties = n.attributes.to_h
           block ? block.call(value) : value
         end.extend(Lookup)
       end
