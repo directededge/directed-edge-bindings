@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'rest-client'
-gem 'libxml-ruby'
+gem 'oga'
 
 group :development do
   gem 'rake'

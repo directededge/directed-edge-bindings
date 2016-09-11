@@ -62,12 +62,13 @@ module DirectedEdge
       def self.to_xml(histories)
         doc = XML.document
         histories.each do |history|
-          node = LibXML::XML::Node.new('history')
-          node['from'] = history.from
-          node['to'] = history.to
-          doc.root << node
+          node = Oga::XML::Element.new(:name => 'history')
+          node.set('from', history.from)
+          node.set('to', history.to)
+          root = doc.children.first
+          root.children << node
         end
-        doc.to_s
+        doc.to_xml
       end
 
       def load

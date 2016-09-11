@@ -36,67 +36,77 @@ module DirectedEdge
     end
 
     def self.parse_items(database, text)
-      doc = LibXML::XML::Parser.string(text).parse
-      doc.find('//item').map do |node|
+      doc = Oga.parse_xml(text)
+      doc.xpath('//item').map do |element|
+        links = element.xpath('.//link').map do |link|
+          attributes = Hash[attributes_to_hash(link).map { |k, v| [ k.to_sym, v ] }]
+          Link.new(link.inner_text, attributes)
+        end
         {
-          :id => node[:id],
-          :links => node.find('.//link').map { |l| Link.new(l.first.to_s, l) },
-          :tags => Reader.list(node, './/tag'),
-          :preselected => Reader.list(node, './/preselected') { |id| Item.new(database, id) },
-          :blacklisted => Reader.list(node, './/blacklisted') { |id| Item.new(database, id) },
-          :properties => Hash[node.find('.//property').map { |p| [ p['name'], p.first.to_s ] }],
-          :history_entries => node.find('.//history').map do |h|
-            history = History.new(:from => h[:from], :to => h[:to])
-            HistoryEntry.new(history, h.first.to_s, h.attributes.to_h)
+          :id => element.get('id'),
+          :links => links,
+          :tags => Reader.list(element, './/tag'),
+          :preselected => Reader.list(element, './/preselected') { |id| Item.new(database, id) },
+          :blacklisted => Reader.list(element, './/blacklisted') { |id| Item.new(database, id) },
+          :properties => Hash[element.xpath('.//property').map { |p|
+                                [ p.get('name'), p.inner_text ] }],
+          :history_entries => element.xpath('.//history').map do |h|
+            history = History.new(:from => h.get('from'), :to => h.get('to'))
+            HistoryEntry.new(history, h.inner_text, attributes_to_hash(h))
           end
         }
       end
     end
 
     def self.parse_list(element, text, &block)
-      doc = LibXML::XML::Parser.string(text).parse
+      doc = Oga.parse_xml(text)
       Reader.list(doc, "//#{element}", &block)
     end
 
     def self.generate(item, with_root = true)
-      item_node = LibXML::XML::Node.new('item')
+      item_element = Oga::XML::Element.new(:name => 'item')
 
       if with_root
         doc = document
-        doc.root << item_node
+        root = doc.children.last
+        root.children << item_element
       end
 
-      item_node['id'] = item[:id]
+      item_element.set('id', item[:id])
 
-      Writer.object(item_node, 'link', item[:links]) do |node, link|
-        node << link.target
-        node['weight'] = link.weight.to_s if link.weight != 0
-        node['type'] = link.type.to_s unless link.type.to_s.empty?
+      Writer.object(item_element, 'link', item[:links]) do |element, link|
+        element.inner_text = link.target
+        element.set('weight', link.weight.to_s) if link.weight != 0
+        element.set('type', link.type.to_s) unless link.type.to_s.empty?
       end
 
-      Writer.list(item_node, 'tag', item[:tags])
-      Writer.list(item_node, 'preselected', item[:preselected])
-      Writer.list(item_node, 'blacklisted', item[:blacklisted])
-      Writer.hash(item_node, 'property', 'name', item[:properties])
+      Writer.list(item_element, 'tag', item[:tags])
+      Writer.list(item_element, 'preselected', item[:preselected])
+      Writer.list(item_element, 'blacklisted', item[:blacklisted])
+      Writer.hash(item_element, 'property', 'name', item[:properties])
 
-      Writer.object(item_node, 'history', item[:history_entries]) do |node, entry|
-        node << entry.target
-        node['from'] = entry.history.from.to_s
-        node['to'] = entry.history.to.to_s
-        node['timestamp'] = entry.timestamp.to_s if entry.timestamp
+      Writer.object(item_element, 'history', item[:history_entries]) do |element, entry|
+        element.inner_text = entry.target
+        element.set('from', entry.history.from.to_s)
+        element.set('to', entry.history.to.to_s)
+        element.set('timestamp', entry.timestamp.to_s) if entry.timestamp
       end
 
-      with_root ? doc.to_s : item_node.to_s
+      with_root ? doc.to_xml : item_element.to_xml
     end
 
     def self.document
-      doc = LibXML::XML::Document.new
-      doc.root = LibXML::XML::Node.new('directededge')
-      doc.root['version'] = '0.1'
+      doc = Oga::XML::Document.new
+      root = Oga::XML::Element.new(:name => 'directededge')
+      doc.children << root
       doc
     end
 
     private
+
+    def self.attributes_to_hash(element)
+      Hash[element.attributes.map { |a| [ a.name, a.value ] }]
+    end
 
     class Reader
       module Properties
@@ -114,11 +124,11 @@ module DirectedEdge
         end
       end
 
-      def self.list(node, element, &block)
-        value = node.find(element).map do |n|
-          value = n.first.to_s
+      def self.list(element, element_name, &block)
+        value = element.xpath(element_name).map do |e|
+          value = e.inner_text
           value.extend(Properties)
-          value.properties = n.attributes.to_h
+          value.properties = XML.attributes_to_hash(e)
           block ? block.call(value) : value
         end.extend(Lookup)
       end
@@ -127,20 +137,28 @@ module DirectedEdge
     class Writer
       def self.object(parent, name, values, &block)
         values.each do |object|
-          parent << node = LibXML::XML::Node.new(name)
-          block.call(node, object)
+          element = Oga::XML::Element.new(:name => name)
+          parent.children << element
+          block.call(element, object)
         end if values
       end
 
       def self.list(parent, name, values)
-        values.each { |v| parent << (LibXML::XML::Node.new(name.to_s) << v.to_s) } if values
+        if values
+          values.each do |v|
+            element = Oga::XML::Element.new(:name => name.to_s)
+            element.inner_text = v.to_s
+            parent.children << element
+          end
+        end
       end
 
       def self.hash(parent, element_name, attribute_name, values)
         values.each do |key, value|
-          parent << node = LibXML::XML::Node.new(element_name)
-          node[attribute_name] = key.to_s
-          node << value.to_s.gsub(INVALID_XML_CHARS, '')
+          element = Oga::XML::Element.new(:name => element_name)
+          parent.children << element
+          element.set(attribute_name, key.to_s)
+          element.inner_text = value.to_s.gsub(INVALID_XML_CHARS, '')
         end if values
       end
     end
