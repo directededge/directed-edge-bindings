@@ -19,6 +19,8 @@ Jeweler::Tasks.new do |gem|
     gem.email = "info@directededge.com"
     gem.homepage = "http://developer.directededge.com/"
     gem.authors = ["Directed Edge"]
+    gem.add_dependency 'rest-client'
+    gem.add_dependency 'oga'
 end
 Jeweler::RubygemsDotOrgTasks.new
 
