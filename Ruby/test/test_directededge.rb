@@ -264,7 +264,7 @@ class TestDirectedEdge < Test::Unit::TestCase
   end
 
   def test_load
-    return if ENV['NO_LOAD_TEST']
+    return unless ENV['DIRECTEDEDGE_LOAD_TEST']
 
     begin
       Process.setrlimit(Process::RLIMIT_NOFILE, 4096, 65536)
