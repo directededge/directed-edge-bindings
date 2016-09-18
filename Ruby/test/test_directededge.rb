@@ -9,11 +9,13 @@ module Enumerable
 end
 
 class TestDirectedEdge < Test::Unit::TestCase
+  TESTDB_FILE = File.expand_path('../../../testdb.xml', __FILE__)
+
   def setup
     @user = ENV['DIRECTEDEDGE_TEST_DB']
     @pass = ENV['DIRECTEDEDGE_TEST_PASS']
     @database = DirectedEdge::Database.new(@user, @pass)
-    @database.import(File.expand_path('../../../testdb.xml', __FILE__))
+    @database.import(TESTDB_FILE)
   end
 
   def test_updatejob
@@ -554,9 +556,21 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert(customer.history_entries.size == 1)
   end
 
+  def test_gzipped_import
+    count = item_count
+    @database.clear!
+    assert_equal(item_count, 0)
+    @database.import("#{TESTDB_FILE}.gz")
+    assert_equal(item_count, count)
+  end
+
   private
 
   def item(id)
     DirectedEdge::Item.new(@database, id)
+  end
+
+  def item_count
+    Oga.parse_xml(@database.resource[:statistics].get).at_xpath('//items').inner_text.to_i
   end
 end

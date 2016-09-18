@@ -95,11 +95,14 @@ module DirectedEdge
     # Imports the contents of the specified file to the Directed Edge server,
     # overwriting any previously existing content.
     #
+    # This method also accepts gzipped files.
+    #
     # @param [String] filename
 
     def import(filename)
-      file = File.open(filename, 'r')
-      @resource.put(file)
+      stream = File.open(filename, 'r')
+      stream = Zlib::GzipReader.new(stream) if filename.end_with?('.gz')
+      @resource.put(stream)
     end
 
     # Finds a set of items that are related to the specified set of items.  This
