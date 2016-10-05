@@ -32,8 +32,8 @@ module RestClient
     def [](*args)
       return original_index(*args) if args.empty? || !args[0].is_a?(Hash)
       params = args.first.map do |key, value|
-        key = URI.encode(key.to_s.gsub(/_[a-z]/) { |s| s[1, 1].upcase })
-        value = URI.encode(value.to_s)
+        key = CGI.escape(key.to_s.gsub(/_[a-z]/) { |s| s[1, 1].upcase })
+        value = CGI.escape(value.to_s)
         "#{key}=#{value}"
       end
       original_index('?' + params.join('&'))
@@ -55,7 +55,7 @@ module DirectedEdge
 
     def []=(key, value)
       store(key, value)
-      @insert_order = [] if @insert_order.nil?
+      @insert_order ||= []
       @insert_order.delete(key) if @insert_order.include?(key)
       @insert_order.push(key)
     end
@@ -282,8 +282,10 @@ module DirectedEdge
       if destination.is_a?(String)
         @database = Database.new('exporter')
         @file = File.new(destination, 'w')
+        @data = nil
       elsif destination.is_a?(Database)
         @database = destination
+        @file = nil
         @data = []
       else
         raise TypeError.new("Exporter must be passed a file name or database object.")
@@ -303,7 +305,11 @@ module DirectedEdge
 
     def finish
       write("</directededge>\n")
-      @file ? @file.close : @database.resource[:update_method => :add].post(@data.join)
+      if @file
+        @file.close
+      else
+        @database.resource[:update_method => :add].post(@data.join, :content_type => 'text/xml')
+      end
     end
 
     private
@@ -354,7 +360,7 @@ module DirectedEdge
     # manipulated locally and then saved back to the database by calling save.
 
     def initialize(database, id)
-      super(database.resource[URI.escape(id, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))])
+      super(database.resource[CGI.escape(id)])
 
       @database = database
       @id = id
