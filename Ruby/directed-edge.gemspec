@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.date = %q{2010-04-25}
   s.description = %q{Bindings for the Directed Edge webservices API}
   s.email = %q{info@directededge.com}
+  s.licenses = ['BSD-2-Clause']
   s.extra_rdoc_files = [
     "LICENSE"
   ]
