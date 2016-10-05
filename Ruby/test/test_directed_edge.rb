@@ -147,6 +147,9 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     assert_equal(0, third_item.links.length)
 
+    fourth_item.unlink_from(third_item)
+    fourth_item.save
+
     # Now make sure that those items no longer show up as related items
 
     assert(!third_item.related.include?(first_item.to_s))
@@ -157,7 +160,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     fourth_item.unlink_from(first_item, 'test_type')
     fourth_item.save
 
-    assert_equal(2, fourth_item.links.length)
+    assert_equal(1, fourth_item.links.length)
 
     # Test item removal
 
