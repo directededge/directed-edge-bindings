@@ -10,6 +10,7 @@ begin
     gem.email = "info@directededge.com"
     gem.homepage = "http://developer.directededge.com/"
     gem.authors = ["Directed Edge"]
+    gem.licenses = ["BSD-2-Clause"]
     gem.add_dependency "rest-client", ">= 0"
   end
   Jeweler::GemcutterTasks.new
