@@ -39,11 +39,11 @@ class Resource(object):
     def __init__(self, base_url, user=None, password=None, params={}):
         params.setdefault("timeout", 10)
         self.__base_url = base_url
-        self.__http = httplib2.Http(timeout=params["timeout"])
+        self.__http = httplib2.Http(timeout = params["timeout"])
 
         if user:
             auth = base64.encodestring("%s:%s" % (user, password))
-            self.__headers = {"Authorization": ("Basic %s" % auth)}
+            self.__headers = { "Authorization": ("Basic %s" % auth) }
             self.__http.add_credentials(user, password)
 
     def path(self, sub="", params={}):
@@ -53,23 +53,23 @@ class Resource(object):
                 quoted += "/" + urllib2.quote(segment, "")
         else:
             quoted = "/" + urllib2.quote(sub, "")
-
+                
         return self.__base_url + quoted + "?" + urllib.urlencode(params)
 
     def get(self, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "GET",
-                                                headers=self.__headers)
+                                                headers = self.__headers)
         if response["status"] != "200":
             return "<directededge/>"
         return content
 
     def put(self, data, sub="", params={}):
         response, content = self.__http.request(self.path(sub, params), "PUT", data,
-                                                headers=self.__headers)
+                                                headers = self.__headers)
 
     def delete(self, sub=""):
         response, content = self.__http.request(self.path(sub), "DELETE",
-                                                headers=self.__headers)
+                                                headers = self.__headers)
 
     def read_list(self, document, element_name):
         values = []
@@ -97,7 +97,7 @@ class Database(object):
 
     def import_from_file(self, file_name):
         """If you created an export of your local data using the Exporter class
-        from this package you can import it to your Directed Edge account using
+        from this package you can import it to your Directed Edge account using 
         this method.  Note that all existing data in your database will be
         overwritten."""
 
@@ -111,7 +111,7 @@ class Database(object):
 
         This is typically used for instance to deliver recommendations for the items
         in a shopping cart.
-
+        
         Queries support a number of parameters, e.g.
 
         - maxResults (integer)
@@ -150,7 +150,7 @@ class Item(object):
         self.__properties_to_remove = set()
 
         self.__cached = False
-
+        
     @property
     def name(self):
         """The ID of the item used to identify it in the database."""
@@ -358,15 +358,16 @@ class Item(object):
         """Writes any local changes to the item back to the remote database."""
 
         if self.__cached:
-            self.database.resource.put(self.to_xml(), self.id)
+            self.database.resource.put(self.to_xml(), [ "items", self.id ])
         else:
-            self.database.resource.put(self.to_xml(), [ self.id, "add" ])
+            self.database.resource.put(self.to_xml(), [ "items", self.id, "add" ])
             if self.__links_to_remove or self.__tags_to_remove or self.__properties_to_remove:
                 to_dict = lambda list, default: dict(map(lambda x: [x, default], list))
-                self.database.resource.put(self.to_xml(self.__tags_to_remove,
-                                                       to_dict(self.__links_to_remove, 0),
-                                                       to_dict(self.__properties_to_remove, "")),
-                                           [ self.id, "remove" ])
+                self.database.resource.put(self.to_xml(
+                    self.__tags_to_remove,
+                    to_dict(self.__links_to_remove, 0),
+                    to_dict(self.__properties_to_remove, "")),
+                                           [ "items", self.id, "remove" ])
 
                 self.__links_to_remove.clear()
                 self.__tags_to_remove.clear()
@@ -376,7 +377,7 @@ class Item(object):
         """Destroy this item from the database. All incoming links will also be
         destroyed."""
 
-        self.database.resource.delete(self.id)
+        self.database.resource.delete([ "items", self.id ])
 
     def __set_link(self, type, target, weight=0):
         if type not in self.__links:
@@ -410,7 +411,7 @@ class Item(object):
             self.__cached = True
 
     def __document(self, sub="", params={}):
-        content = self.database.resource.get([ self.id, sub ], params)
+        content = self.database.resource.get([ "items", self.id, sub ], params)
         return xml.dom.minidom.parseString(content)
 
 class Exporter(object):
@@ -461,7 +462,8 @@ class Exporter(object):
         if self.__file:
             self.__file.close()
         else:
-            self.database.resource.put(self.__data.getvalue(), "add", { "createMissingLinks" : "true" })
+            self.database.resource.put(self.__data.getvalue(), "add",
+                                       { "createMissingLinks" : "true" })
 
     def __write(self, data):
         if self.__file:

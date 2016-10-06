@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Directed Edge, Inc.
+ * Copyright (C) 2009-2016 Directed Edge, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -151,7 +151,6 @@ public class Database
      * @param fileName The file path of a Directed Edge XML file.
      * @see Exporter
      */
-    @Deprecated
     public void importFromFile(String fileName) throws ResourceException
     {
         upload(Method.PUT, new ArrayList<String>(), new HashMap<String, Object>(),
@@ -192,27 +191,6 @@ public class Database
         }
     }
 
-    public void put(File file) throws ResourceException
-    {
-        put(new ArrayList<String>(), file);
-    }
-
-    public void put(List<String> resources, File file) throws ResourceException
-    {
-        put(resources, file, new HashMap<String, Object>());
-    }
-
-    public void put(List<String> resources, File file, Map<String, Object> options)
-            throws ResourceException
-    {
-        upload(Method.PUT, resources, options, new FileEntity(file, "text/xml"));
-    }
-
-    public void put(String data) throws ResourceException
-    {
-        put(new ArrayList<String>(), data);
-    }
-
     /**
      * Grabs the contents of the sub-resources, e.g. "item1".  This is
      * primarily for internal usage.
@@ -236,27 +214,6 @@ public class Database
         {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void post(File file) throws ResourceException
-    {
-        put(new ArrayList<String>(), file);
-    }
-
-    public void post(List<String> resources, File file) throws ResourceException
-    {
-        put(resources, file, new HashMap<String, Object>());
-    }
-
-    public void post(List<String> resources, File file, Map<String, Object> options)
-            throws ResourceException
-    {
-        upload(Method.POST, resources, options, new FileEntity(file, "text/xml"));
-    }
-
-    public void post(String data) throws ResourceException
-    {
-        post(new ArrayList<String>(), data);
     }
 
     public void post(List<String> resources, String data) throws ResourceException
@@ -332,7 +289,7 @@ public class Database
         try
         {
             HttpResponse response = client.execute(request);
-            checkResponseCode(method, resources, options, response);
+            checkResponseCode(Method.PUT, resources, options, response);
             EntityUtils.consume(response.getEntity());
         }
         catch (IOException ex)

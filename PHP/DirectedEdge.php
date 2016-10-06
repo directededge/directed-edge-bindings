@@ -133,6 +133,18 @@ class DirectedEdgeResource
         $this->base = $base;
         $this->timeout = isset($params['timeout']) ? $params['timeout'] : 10;
     }
+
+    /**
+     * Creates a sub-resource.
+     *
+     * @param string Just the sub-resource itself's name (e.g. 'related')
+     * @return string The .
+     */
+
+    public function child($path)
+    {
+        return new DirectedEdgeResource($this->path($path));
+    }
     
     /**
      * Indexes into a sub-resource.
@@ -143,7 +155,23 @@ class DirectedEdgeResource
 
     public function path($path = '')
     {
-        return $this->base . '/' . urlencode($path);
+        if(is_array($path))
+        {
+            $components = '';
+
+            foreach($path as $component)
+            {
+                $components .= "/" . urlencode($component);
+            }
+
+            $path = $components;
+        }
+        else
+        {
+            $path = "/" . urlencode($path);
+        }
+
+        return $this->base . $path;
     }
 
     /**
@@ -155,9 +183,9 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function get($path = '', $params = array())
+    public function get($params = array())
     {
-        $request = new HTTP_Request2($this->path() . $path);
+        $request = new HTTP_Request2($this->path());
         $request->setConfig('timeout', $this->timeout);
         $request->getUrl()->setQueryVariables($params);
 
@@ -173,6 +201,30 @@ class DirectedEdgeResource
     }
 
     /**
+     * Performs an HTTP POST on the resource.
+     *
+     * @param string The data to upload to the (sub-) resource. May be a file
+     * name or the content itself.
+     * @param string The sub-resource to upload to.
+     * @throws DirectedEdgeException Thrown if there is a connection problem or the resource
+     * could not be found.
+     */
+
+    public function post($content, $params = array())
+    {
+        $request = new HTTP_Request2($this->path(), HTTP_Request2::METHOD_POST);
+        $request->getUrl()->setQueryVariables($params);
+        $request->setBody($content, file_exists($content));
+        $response = $request->send();
+
+        if($response->getStatus() != 200)
+        {
+            throw new DirectedEdgeException($response->getStatus(),
+                                            $response->getReasonPhrase());
+        }
+    }
+
+    /**
      * Performs an HTTP PUT on the resource.
      *
      * @param string The data to upload to the (sub-) resource. May be a file
@@ -182,9 +234,9 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function put($content, $path = '', $params = array())
+    public function put($content, $params = array())
     {
-        $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_PUT);
+        $request = new HTTP_Request2($this->path(), HTTP_Request2::METHOD_PUT);
         $request->getUrl()->setQueryVariables($params);
         $request->setBody($content, file_exists($content));
         $response = $request->send();
@@ -204,9 +256,9 @@ class DirectedEdgeResource
      * could not be found.
      */
 
-    public function delete($path = '')
+    public function delete()
     {
-        $request = new HTTP_Request2($this->path() . $path, HTTP_Request2::METHOD_DELETE);
+        $request = new HTTP_Request2($this->path(), HTTP_Request2::METHOD_DELETE);
         $response = $request->send();
 
         if($response->getStatus() != 200)
@@ -330,7 +382,7 @@ class DirectedEdgeDatabase
 
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
         $options['items'] = implode(',', $items);
-        $content = $this->resource->get('related', $options);
+        $content = $this->resource->child('related')->get($options);
         $document = new DOMDocument();
         $document->loadXML($content);
 
@@ -373,7 +425,7 @@ class DirectedEdgeDatabase
         $options = DirectedEdgeItem::mergeOptions($tags, $options, $linkWeights);
         $options['items'] = implode(',', $items);
         $options['union'] = 'true';
-        $content = $this->resource->get('related', $options);
+        $content = $this->resource->child('related')->get($options);
         $document = new DOMDocument();
         $document->loadXML($content);
 
@@ -450,7 +502,7 @@ class DirectedEdgeItem
     {
         $this->database = $database;
         $this->resource = new DirectedEdgeResource(
-            $database->getResource()->path($id),
+            $database->getResource()->path(array('items', $id)),
             array('timeout' => $database->getResource()->getTimeout()));
         $this->id = $id;
     }
@@ -699,16 +751,16 @@ class DirectedEdgeItem
         }
         else
         {
-            $this->resource->put($this->toXML(), 'add');
+            $this->resource->post($this->toXML(), array('updateMethod' => 'add'));
 
             if(!empty($this->linksToRemove) ||
                !empty($this->tagsToRemove) ||
                !empty($this->propertiesToRemove))
             {
-                $this->resource->put($this->toXML($this->linksToRemove,
-                                                  $this->tagsToRemove,
-                                                  $this->propertiesToRemove),
-                                     'remove');
+                $this->resource->post($this->toXML($this->linksToRemove,
+                                                   $this->tagsToRemove,
+                                                   $this->propertiesToRemove),
+                                      array('updateMethod' => 'subtract'));
             }
         }
     }
@@ -1010,8 +1062,8 @@ class DirectedEdgeItem
 
     private function query($method, $tags = array(), $options = array(), $linkWeights = array())
     {
-        $content = $this->resource->get(
-            $method, $this->mergeOptions($tags, $options, $linkWeights));
+        $resource = $this->resource->child($method);
+        $content = $resource->get($this->mergeOptions($tags, $options, $linkWeights));
 
         $document = new DOMDocument();
         $document->loadXML($content);
@@ -1133,8 +1185,9 @@ class DirectedEdgeExporter
         }
         else
         {
-            $this->database->getResource()->put(
-                $this->data, 'add', array('createMissingLinks' => 'true'));
+            $this->database->getResource()->post($this->data,
+                                                 array('updateMethod' => 'add',
+                                                       'createMissingLinks' => 'true'));
             $this->data = '';
         }
     }
