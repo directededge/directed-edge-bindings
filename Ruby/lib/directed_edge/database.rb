@@ -54,7 +54,7 @@ module DirectedEdge
       @name = name
       protocol = options[:protocol] || 'http'
       host = options[:host] || ENV['DIRECTEDEDGE_HOST'] || 'webservices.directededge.com'
-      port = options[:port] || 80
+      port = options[:port] || ENV['DIRECTEDEDGE_PORT'] || 80
       url = "#{protocol}://#{CGI.escape(name)}:#{CGI.escape(password)}@#{host}:#{port}" +
         "/api/v1/#{name}"
       options[:timeout] ||= 10
