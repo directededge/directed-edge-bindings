@@ -294,7 +294,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     end
   end
 
-  def test_rankings
+  def test_weights
     customer1 = DirectedEdge::Item.new(@database, 'customer1')
     customer2 = DirectedEdge::Item.new(@database, 'customer2')
     customer3 = DirectedEdge::Item.new(@database, 'customer3')
