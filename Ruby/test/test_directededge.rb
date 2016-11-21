@@ -301,7 +301,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     end
   end
 
-  def test_rankings
+  def test_weights
     customer1 = item('customer1')
     customer2 = item('customer2')
     customer3 = item('customer3')
