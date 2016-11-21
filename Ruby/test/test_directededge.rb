@@ -323,6 +323,17 @@ class TestDirectedEdge < Test::Unit::TestCase
     assert_equal(10, customer1.links[customer3].weight)
   end
 
+  def test_items_to_rank
+    product = item('product1')
+    targets = (2..10).map { |i| "product#{i}" }
+
+    results = product.related(:items_to_rank => targets)
+    assert_operator(results.size, :<=, targets.size)
+
+    results = product.related(:items_to_rank => targets, :include_unranked => true)
+    assert_equal(targets.size, results.size)
+  end
+
   def test_multiple_items
     # @database.items('customer1').first.properties['foo'] = 'bar'
     item('customer1')['foo'] = 'bar'
