@@ -72,6 +72,7 @@ module DirectedEdge
     # @param ids The list of item IDs to return
 
     def items(ids, options = {})
+      return [] if ids.empty?
       XML.parse_items(@database, @resource[options.merge(:items => ids)].get).map do |data|
         Item.new(self, data[:id], data)
       end
