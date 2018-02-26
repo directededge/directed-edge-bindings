@@ -377,7 +377,18 @@ class TestDirectedEdge < Test::Unit::TestCase
 
     item = item('foo/bar')
     assert(item['foo'] == 'bar')
-  end
+
+    item = item('bad')
+    item['bad'] = "bad\u{1a}"
+    item.save
+    item.reset
+    assert(item['bad'] == 'bad')
+
+    item.tags.add("bad\u{1a}")
+    item.save
+    item.reset
+    assert(item.tags.include?('bad'))
+end
 
   def test_bad_links
     item = item('does not exist')

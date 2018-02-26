@@ -147,7 +147,7 @@ module DirectedEdge
         if values
           values.each do |v|
             element = Oga::XML::Element.new(:name => name.to_s)
-            element.inner_text = v.to_s
+            element.inner_text = sanitize(v)
             parent.children << element
           end
         end
@@ -158,8 +158,14 @@ module DirectedEdge
           element = Oga::XML::Element.new(:name => element_name)
           parent.children << element
           element.set(attribute_name, key.to_s)
-          element.inner_text = value.to_s.gsub(INVALID_XML_CHARS, '')
+          element.inner_text = sanitize(value)
         end if values
+      end
+
+      private
+
+      def self.sanitize(v)
+        v.to_s.gsub(INVALID_XML_CHARS, '')
       end
     end
   end
