@@ -198,7 +198,7 @@ class TestDirectedEdge < Test::Unit::TestCase
     item.tags.remove('greek')
     item.save
 
-    assert_raise(TypeError, RuntimeError) { item.tags.push('mutable') }
+    assert_raise(TypeError, RuntimeError, FrozenError) { item.tags.push('mutable') }
 
     assert(!item.tags.include?('greek'))
   end
