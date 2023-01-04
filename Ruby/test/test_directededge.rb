@@ -491,6 +491,19 @@ end
     assert_not_equal(item.related(:ignore_preselected => true).first, dummy)
   end
 
+  def test_query_preselected
+    dummy = item('dummy')
+    dummy.save
+
+    item = item('product1')
+    assert_equal(
+      item.related(:query_preselected => dummy).first, dummy)
+    assert_equal(
+      item.recommended(:query_preselected => dummy).first, dummy)
+    assert_equal(
+      @database.related([ 'product1', 'product2' ], :query_preselected => dummy).first, dummy)
+  end
+
   def test_only_preselected
     dummy = item('dummy')
     dummy.save
