@@ -1,0 +1,12 @@
+source 'http://rubygems.org'
+
+gem 'rest-client'
+gem 'oga'
+
+group :development do
+  gem 'rake'
+  gem 'rdoc'
+  gem 'bundler'
+  gem 'jeweler'
+  gem 'test-unit'
+end

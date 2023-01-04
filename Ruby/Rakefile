@@ -1,44 +1,36 @@
+# encoding: utf-8
+
 require 'rubygems'
+require 'bundler'
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
+end
 require 'rake'
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = "directed-edge"
+require 'jeweler'
+Jeweler::Tasks.new do |gem|
+    gem.name = "directededge"
     gem.summary = "Bindings for the Directed Edge webservices API"
     gem.description = "Bindings for the Directed Edge webservices API"
     gem.email = "info@directededge.com"
     gem.homepage = "http://developer.directededge.com/"
     gem.authors = ["Directed Edge"]
-    gem.licenses = ["BSD-2-Clause"]
-    gem.add_dependency "rest-client", ">= 0"
-  end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+    gem.add_dependency 'rest-client'
+    gem.add_dependency 'oga'
 end
+Jeweler::RubygemsDotOrgTasks.new
 
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
+  test.warning = false
 end
-
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |test|
-    test.libs << 'test'
-    test.pattern = 'test/**/test_*.rb'
-    test.verbose = true
-  end
-rescue LoadError
-  task :rcov do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
-  end
-end
-
-task :test => :check_dependencies
 
 task :default => :test
 
@@ -47,7 +39,7 @@ Rake::RDocTask.new do |rdoc|
   version = File.exist?('VERSION') ? File.read('VERSION') : ""
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "directed-edge #{version}"
+  rdoc.title = "directededge #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end

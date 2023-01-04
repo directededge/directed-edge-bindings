@@ -1,4 +1,4 @@
-= directed-edge
+= directededge
 
 Bindings for the Directed Edge Web-services API
 
@@ -30,8 +30,8 @@ Push them over to the Directed Edge web service:
 And do stuff with them, like set properties, tags, link them to other items:
 
   item1['picture'] = 'http://foo.bar.com/1.jpg'
-  item1.add_tag('product')
-  item1.link_to(item2)
+  item1.tags.add('product')
+  item1.links.add(item2)
   item1.save
 
 There's more info on the Directed Edge developer site:
@@ -42,4 +42,4 @@ There's more info on the Directed Edge developer site:
 
 == Copyright
 
-Copyright (c) 2009-2010 Directed Edge, Inc. See LICENSE for details.
+Copyright (c) 2009-2012 Directed Edge, Inc. See LICENSE for details.
